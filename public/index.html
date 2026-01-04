@@ -19,6 +19,7 @@
 	
   <!-- Preload critical assets -->
   <link rel="preload" href="assets/WebIntro.gif" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/ContactSML.png" as="image" fetchpriority="high">
   <link rel="preload" href="css/StyleMatters.2024.css" as="style" fetchpriority="high">
   <link rel="preload" href="./components/FolioEngine.js" as="script">
   <link rel="preload" href="./components/NavBar.js" as="script">
@@ -125,7 +126,7 @@
             </a>
             <font class="navBarItem_OnState">📐 WORK</font>
             <font class="navBarItem" onclick="openNavChatView()" id="openChatView" class="openChatView">💬 MY AI</font>
-            <img src="./assets/ContactSML.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu">
+            <img src="./assets/ContactSML.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu" fetchpriority="high">
         </div>
     </div>
     <div class="infoViewContent" id="infoViewContent">
