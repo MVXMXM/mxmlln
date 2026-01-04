@@ -41,6 +41,11 @@
       width: 100%;
       height: 100%;
     }
+    /* Sig logo Lottie container */
+    #sigLogo svg, #sigLogo img {
+      width: 100%;
+      height: 100%;
+    }
     /* Chat logo Lottie containers */
     #chatEmptyLogo svg, #chatEmptyLogo img,
     #chatResponseLogo svg, #chatResponseLogo img {
@@ -66,43 +71,16 @@
   <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script defer src="./js/IntenseImages/intense.js"></script>
   
-  <!-- Lottie player -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <!-- Lottie player (deferred for performance) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
 
 <body>
   
   <!-- Intro Graphic -->
   <div id="introLoader" class="IntroLoader">
-    <!-- GIF fallback (hidden when Lottie loads) -->
     <img src="assets/WebIntro.gif" id="introLoaderFallback" alt="Loading animation">
   </div>
-  <script>
-    // Load Lottie animation with GIF fallback
-    (function() {
-      var fallbackImg = document.getElementById('introLoaderFallback');
-      try {
-        var anim = lottie.loadAnimation({
-          container: document.getElementById('introLoader'),
-          renderer: 'svg',
-          loop: true,
-          autoplay: true,
-          path: 'assets/WebIntro.json'
-        });
-        // Hide GIF fallback once Lottie is ready
-        anim.addEventListener('DOMLoaded', function() {
-          if (fallbackImg) fallbackImg.style.display = 'none';
-        });
-        // Show GIF if Lottie fails to load
-        anim.addEventListener('error', function() {
-          if (fallbackImg) fallbackImg.style.display = 'block';
-        });
-      } catch (e) {
-        // Lottie not available, GIF fallback remains visible
-        console.log('Lottie not available, using GIF fallback');
-      }
-    })();
-  </script>
 
   <!-- <video 
     class="IntroLoader"
@@ -130,23 +108,6 @@
             <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;">
                 <img src="./assets/LogoSpin2024.SML.gif" id="navLogoSpinFallback" height="40px" width="40px" alt="Open info menu">
             </div>
-            <script>
-                (function() {
-                    var fallbackImg = document.getElementById('navLogoSpinFallback');
-                    try {
-                        var anim = lottie.loadAnimation({
-                            container: document.getElementById('navLogoSpin'),
-                            renderer: 'svg',
-                            loop: true,
-                            autoplay: true,
-                            path: './assets/LogoSpin2026.json'
-                        });
-                        anim.addEventListener('DOMLoaded', function() {
-                            if (fallbackImg) fallbackImg.style.display = 'none';
-                        });
-                    } catch (e) { }
-                })();
-            </script>
             <a href="about.html" onclick="gtag('event', 'About', {'event_category' : 'Nav Item', 'event_label' : 'View About Page'});">
                 <font class="navBarItem">👋 ABOUT</font>
             </a>
@@ -164,23 +125,6 @@
             <div id="sigLogo" style="width:200px;height:200px;">
                 <img src="./assets/Sig2026.gif" id="sigLogoFallback" height="200px" width="200px" decoding="async" alt="MXMLLN logo">
             </div>
-            <script>
-                (function() {
-                    var fallbackImg = document.getElementById('sigLogoFallback');
-                    try {
-                        var anim = lottie.loadAnimation({
-                            container: document.getElementById('sigLogo'),
-                            renderer: 'svg',
-                            loop: true,
-                            autoplay: true,
-                            path: './assets/Sig2026.json'
-                        });
-                        anim.addEventListener('DOMLoaded', function() {
-                            if (fallbackImg) fallbackImg.style.display = 'none';
-                        });
-                    } catch (e) { }
-                })();
-            </script>
         </div>
         <div>
             <a href="https://github.com/M4XMXM/mxmlln" target="_blank">
@@ -206,23 +150,6 @@
                 <div id="chatEmptyLogo" style="width:150px;height:150px;">
                     <img src="./assets/LogoSpin2024.MED.MEZZO.gif" id="chatEmptyLogoFallback" height="150px" width="150px" alt="MXMLLN logo">
                 </div>
-                <script>
-                    (function() {
-                        var fallbackImg = document.getElementById('chatEmptyLogoFallback');
-                        try {
-                            var anim = lottie.loadAnimation({
-                                container: document.getElementById('chatEmptyLogo'),
-                                renderer: 'svg',
-                                loop: true,
-                                autoplay: true,
-                                path: './assets/LogoSpin2026.json'
-                            });
-                            anim.addEventListener('DOMLoaded', function() {
-                                if (fallbackImg) fallbackImg.style.display = 'none';
-                            });
-                        } catch (e) { }
-                    })();
-                </script>
             </div>
             <div class="chatEmptyStateText">
                 <h1 style="line-height:0%;font-weight:900;">Maximillian AI</h1>
@@ -255,23 +182,6 @@
                         <div id="chatResponseLogo" class="chatResponseLogo">
                             <img src="./assets/LogoSpin2024.SML.gif" id="chatResponseLogoFallback" alt="MXMLLN logo">
                         </div>
-                        <script>
-                            (function() {
-                                var fallbackImg = document.getElementById('chatResponseLogoFallback');
-                                try {
-                                    var anim = lottie.loadAnimation({
-                                        container: document.getElementById('chatResponseLogo'),
-                                        renderer: 'svg',
-                                        loop: true,
-                                        autoplay: true,
-                                        path: './assets/LogoSpin2026.json'
-                                    });
-                                    anim.addEventListener('DOMLoaded', function() {
-                                        if (fallbackImg) fallbackImg.style.display = 'none';
-                                    });
-                                } catch (e) { }
-                            })();
-                        </script>
                     </div>
                     <p style="margin:0px;padding:0px;text-align:left;"></p>
                 </div>
@@ -936,6 +846,45 @@
 <!-- Defer non-critical scripts -->
 <script defer src="./components/ChatIntelligence.js"></script>
 <script defer src="./js/IntenseImages/intense.js"></script>
+
+<!-- Lottie initialization (runs after deferred script loads) -->
+<script>
+  function initLottieAnimations() {
+    if (typeof lottie === 'undefined') return;
+    
+    var animations = [
+      { container: 'introLoader', fallback: 'introLoaderFallback', path: 'assets/WebIntro.json' },
+      { container: 'navLogoSpin', fallback: 'navLogoSpinFallback', path: './assets/LogoSpin2026.json' },
+      { container: 'sigLogo', fallback: 'sigLogoFallback', path: './assets/Sig2026.json' },
+      { container: 'chatEmptyLogo', fallback: 'chatEmptyLogoFallback', path: './assets/LogoSpin2026.json' },
+      { container: 'chatResponseLogo', fallback: 'chatResponseLogoFallback', path: './assets/LogoSpin2026.json' }
+    ];
+    
+    animations.forEach(function(config) {
+      var container = document.getElementById(config.container);
+      var fallback = document.getElementById(config.fallback);
+      if (!container) return;
+      
+      var anim = lottie.loadAnimation({
+        container: container,
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: config.path
+      });
+      anim.addEventListener('DOMLoaded', function() {
+        if (fallback) fallback.style.display = 'none';
+      });
+    });
+  }
+  
+  // Run when lottie script has loaded
+  if (document.readyState === 'complete') {
+    initLottieAnimations();
+  } else {
+    window.addEventListener('load', initLottieAnimations);
+  }
+</script>
 
 <!-- Analytics (moved to end and async) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-36917341-6"></script>
