@@ -26,6 +26,10 @@
   <meta property="fb:admins" content="577048085831970"/>
   <meta name="viewport" content="width=device-width, initial-scale=0.75" />
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
+
+  <!-- Preload critical assets -->
+  <link rel="preload" href="assets/WebIntro.gif" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/Contact_black.png" as="image" fetchpriority="high">
 	
   <!-- Style Sheets ETC. -->
   <link rel="stylesheet" href="css/StyleMatters.2024.css">
@@ -90,7 +94,7 @@
                 <font class="navBarItem">📐 WORK</font>
             </a>
             <font class="navBarItem" onclick="openNavChatView()" id="openChatView" class="openChatView">💬 MY AI</font>
-            <img src="./assets/Contact_black.png" height="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView">
+            <img src="./assets/Contact_black.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu" fetchpriority="high">
         </div>
     </div>
     <div class="infoViewContent" id="infoViewContent">
