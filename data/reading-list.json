@@ -319,6 +319,30 @@
       "createdAt": "2025-10-25T00:39:00Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "41",
+      "url": "https://arxiv.org/pdf/2506.01622",
+      "title": "General Agents Contain World Models",
+      "createdAt": "2026-01-04T00:00:00Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "42",
+      "url": "https://arxiv.org/pdf/2503.02113",
+      "title": "Deep Learning is Not So Mysterious or Different",
+      "createdAt": "2026-01-04T00:01:00Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "43",
+      "url": "https://arxiv.org/pdf/1611.03530",
+      "title": "Understanding Deep Learning Requires Rethinking Generalization",
+      "createdAt": "2026-01-04T00:02:00Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
