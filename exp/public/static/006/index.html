@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Ripple Effect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #2A2C2F;
+        }
+
+        .text-block {
+            font-family: 'Inter', sans-serif;
+            font-size: 6rem;
+            font-weight: 500;
+            color: #e2e8f0;
+            text-align: center;
+            line-height: 110%;
+            letter-spacing: -4px;
+            display: flex;
+        }
+
+        .char {
+            transition: font-weight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .char.space {
+            width: 0.25em;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-block"></div>
+    <script>
+        const text = "Interpolation";
+        const textBlock = document.querySelector('.text-block');
+        const minWeight = 100;
+        const maxWeight = 900;
+        const initialWeight = 500;
+        const weightRange = maxWeight - minWeight;
+
+        // Split text into characters and create spans
+        const charElements = [];
+        text.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.className = char === ' ' ? 'char space' : 'char';
+            span.textContent = char;
+            span.style.fontWeight = initialWeight;
+            textBlock.appendChild(span);
+            charElements.push(span);
+        });
+
+        let animationFrame;
+        let lastHoveredIndex = null;
+
+        function updateWeights(hoveredIndex) {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+
+            animationFrame = requestAnimationFrame(() => {
+                // Get the hovered character's position
+                const hoveredChar = charElements[hoveredIndex];
+                const hoveredRect = hoveredChar.getBoundingClientRect();
+                const hoveredCenter = hoveredRect.left + hoveredRect.width / 2;
+
+                charElements.forEach((char, index) => {
+                    if (text[index] === ' ') {
+                        char.style.fontWeight = minWeight;
+                        return;
+                    }
+
+                    // Get the current character's position
+                    const charRect = char.getBoundingClientRect();
+                    const charCenter = charRect.left + charRect.width / 2;
+                    
+                    // Calculate distance in pixels
+                    const distanceInPixels = Math.abs(hoveredCenter - charCenter);
+                    
+                    // Convert pixel distance to character distance using a fixed reference width
+                    // This prevents issues with narrow characters like 'I'
+                    const referenceWidth = 40; // Approximate width of a typical character
+                    const distance = Math.round(distanceInPixels / referenceWidth);
+                    
+                    // The hovered character gets the highest weight
+                    if (distance === 0) {
+                        char.style.fontWeight = maxWeight;
+                    } else {
+                        // For surrounding characters, calculate weight based on distance
+                        // Use smooth interpolation between min and max weights
+                        const weight = Math.max(minWeight, maxWeight - (distance * 200));
+                        char.style.fontWeight = weight;
+                    }
+                });
+            });
+        }
+
+        // Reset all weights to initial value
+        function resetWeights() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+
+            animationFrame = requestAnimationFrame(() => {
+                charElements.forEach(char => {
+                    char.style.fontWeight = initialWeight;
+                });
+            });
+        }
+
+        // Add event listeners
+        charElements.forEach((char, index) => {
+            char.addEventListener('mouseenter', () => {
+                updateWeights(index);
+            });
+        });
+
+        textBlock.addEventListener('mouseleave', resetWeights);
+    </script>
+</body>
+</html> 

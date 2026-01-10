@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ASCII Art Video</title>
+  <style>
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    body {
+      /*
+      background: 
+        radial-gradient(ellipse at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(0, 255, 136, 0.05) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 50%, rgba(0, 255, 136, 0.025) 0%, transparent 60%),
+        #0a0a0a;
+      */
+      background: #09090B;
+      background-size: 200% 200%;
+      animation: gradientShift 15s ease-in-out infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    #bg-video-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #bg-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #ascii {
+      font-family: "JetBrains Mono", "Fira Code", "SF Mono", monospace;
+      font-size: 10px;
+      line-height: 1.15;
+      white-space: pre;
+      color: #00ff88;
+      background: transparent;
+      letter-spacing: 2px;
+      text-shadow: 
+        0 0 5px #00ff8866,
+        0 0 20px #00ff8833,
+        0 0 40px #00ff8822;
+      user-select: none;
+      position: relative;
+      z-index: 1;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="bg-video-container">
+    <video id="bg-video" playsinline muted autoplay loop></video>
+  </div>
+  <div id="ascii" style="position: relative; z-index: 1;">Loading video...</div>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <script>
+    // ASCII characters ramp - spaces for dark, characters for bright areas only
+    const chars = "        ·:~=+*#@IROTUY";
+    // Higher resolution with smaller characters
+    const width = 100, height = 70;
+
+    const bgVideo = document.getElementById('bg-video');
+    const canvas = document.getElementById('canvas');
+    const ascii = document.getElementById('ascii');
+    const ctx = canvas.getContext('2d');
+    canvas.width = width;
+    canvas.height = height;
+
+    let corsErrorCount = 0;
+    let hasCorsError = false;
+
+    function frameToAscii() {
+      // Stop if we have a persistent CORS error
+      if (hasCorsError) {
+        return;
+      }
+
+      // Check if video is ready and playing
+      if (bgVideo.readyState < 2 || bgVideo.paused || bgVideo.ended) {
+        if (!hasCorsError) {
+          requestAnimationFrame(frameToAscii);
+        }
+        return;
+      }
+      
+      try {
+        // Convert bg-video to ASCII
+        ctx.drawImage(bgVideo, 0, 0, width, height);
+        const img = ctx.getImageData(0, 0, width, height);
+        let output = "";
+        
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const offset = (y * width + x) * 4;
+            // grayscale luminance
+            const r = img.data[offset];
+            const g = img.data[offset + 1];
+            const b = img.data[offset + 2];
+            // perceptual grayscale (weighted)
+            const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            // map to an ascii char
+            const charIdx = Math.floor((lum / 255) * (chars.length - 1));
+            output += chars[charIdx];
+          }
+          output += "\n";
+        }
+        ascii.textContent = output;
+        corsErrorCount = 0; // Reset error count on success
+        if (!hasCorsError) {
+          requestAnimationFrame(frameToAscii);
+        }
+      } catch (e) {
+        corsErrorCount++;
+        if (corsErrorCount > 3) {
+          hasCorsError = true;
+          ascii.textContent = 'CORS Error: Please use a local web server.\n\nRun: python3 -m http.server 8000\nThen open: http://localhost:8000';
+          console.error('CORS error detected. Please use a web server instead of file:// protocol.');
+          return; // Stop the loop
+        }
+        // Continue trying if we haven't hit the limit yet
+        if (!hasCorsError) {
+          requestAnimationFrame(frameToAscii);
+        }
+      }
+    }
+
+    // Start ASCII conversion loop immediately
+    frameToAscii();
+
+    // Load the background video
+    bgVideo.src = 'bg.mp4';
+    bgVideo.loop = true;
+    bgVideo.muted = true;
+    
+    bgVideo.addEventListener('loadeddata', () => {
+      console.log('Video loaded, starting playback');
+      bgVideo.play().catch(e => {
+        console.error('Play error:', e);
+        ascii.textContent = 'Error playing video: ' + e.message;
+      });
+    });
+    
+    bgVideo.addEventListener('playing', () => { 
+      console.log('Video is playing');
+    });
+    
+    bgVideo.addEventListener('error', (e) => {
+      console.error('Video error:', e);
+      ascii.textContent = 'Error loading video. Make sure bg.mp4 exists in the same directory.';
+    });
+  </script>
+</body>
+</html>

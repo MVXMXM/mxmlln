@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTA Button</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #2A2C2F;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            height: 40px;
+            padding: 0 16px;
+            background: linear-gradient(350deg, 
+                #18AA7E 13.61%, 
+                #148F6A 43.85%, 
+                #148F6A 64.01%, 
+                #159871 80.81%,
+                #18AA7E 100%
+            );
+            background-size: 300% 100%;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-position 0.5s ease;
+            box-shadow: 
+                -1px 3px 4px 0px rgba(255, 255, 255, 0.40) inset,
+                1px -2px 4px 0px rgba(255, 255, 255, 0.15) inset,
+                0px 32px 13px 0px rgba(16, 103, 111, 0.01),
+                0px 18px 11px 0px rgba(16, 103, 111, 0.04),
+                0px 8px 8px 0px rgba(16, 103, 111, 0.06),
+                0px 2px 4px 0px rgba(16, 103, 111, 0.07);
+            position: relative;
+            overflow: hidden;
+            --x: 50%;
+            --y: 0%;
+        }
+
+        @keyframes animatedgradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes exitGradient {
+            0% { background-position: var(--last-bg-pos, 0% 50%); }
+            100% { background-position: 0% 50%; }
+        }
+
+        .cta-button:hover {
+            animation: animatedgradient 2s ease infinite;
+        }
+
+        .cta-button:not(:hover) {
+            animation: exitGradient 0.5s ease forwards;
+        }
+
+        .cta-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(90, 232, 189, 0.75);
+        }
+
+        .cta-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), 
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            opacity: 0;
+            animation: none;
+            transition: opacity 0.5s ease;
+        }
+
+        @keyframes moveToCenter {
+            from {
+                --x: var(--last-x, 50%);
+                --y: var(--last-y, 0%);
+            }
+            to {
+                --x: 50%;
+                --y: 0%;
+            }
+        }
+
+        .cta-button:not(:hover)::before {
+            animation: moveToCenter 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .cta-button:hover::before {
+            opacity: 1;
+            animation: none;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const button = document.querySelector('.cta-button');
+            let animationFrame;
+            let lastBgPos = '0% 50%';
+            
+            // Store the last background position before hover ends
+            button.addEventListener('mouseenter', () => {
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                }
+                button.style.animation = 'animatedgradient 2s ease infinite';
+            });
+
+            button.addEventListener('mouseleave', () => {
+                const style = window.getComputedStyle(button);
+                lastBgPos = style.backgroundPosition;
+                button.style.animation = 'none';
+                button.style.backgroundPosition = lastBgPos;
+                
+                // Smoothly transition back to initial position
+                let startTime;
+                const duration = 500; // 0.5 seconds
+                
+                function animate(currentTime) {
+                    if (!startTime) startTime = currentTime;
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Ease out cubic
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    
+                    // Calculate new position
+                    const [startX, startY] = lastBgPos.split(' ').map(pos => parseFloat(pos));
+                    const newX = startX + (0 - startX) * easeProgress;
+                    const newY = 50 + (50 - 50) * easeProgress;
+                    
+                    button.style.backgroundPosition = `${newX}% ${newY}%`;
+                    
+                    if (progress < 1) {
+                        animationFrame = requestAnimationFrame(animate);
+                    }
+                }
+                
+                animationFrame = requestAnimationFrame(animate);
+            });
+            
+            button.addEventListener('mousemove', (e) => {
+                const rect = button.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                
+                button.style.setProperty('--last-x', `${x}%`);
+                button.style.setProperty('--last-y', `${y}%`);
+                button.style.setProperty('--x', `${x}%`);
+                button.style.setProperty('--y', `${y}%`);
+            });
+        });
+    </script>
+</head>
+<body>
+    <button class="cta-button">
+        <span>Join waitlist</span>
+    </button>
+</body>
+</html> 

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #F8FAFC;
+        }
+
+        .loader-container {
+            width: 300px;
+            position: relative;
+        }
+
+        .loader {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <svg class="loader" viewBox="0 0 160 80" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- Define the shimmer gradient -->
+                <linearGradient id="shimmer" x1="50%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:rgba(29, 205, 152, 0.5);stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:rgba(29, 205, 152, 0.2);stop-opacity:1" />
+                    <animate attributeName="x1" values="0%;50%;0%" dur="4s" repeatCount="indefinite" />
+                    <animate attributeName="x2" values="0%;100%;0%" dur="4s" repeatCount="indefinite" />
+                </linearGradient>
+            </defs>
+            
+            <!-- Shimmer shape -->
+            <path d="M0 40C0 17.9086 18.3121 0 40.4035 0C48.9038 0 57.3209 2.6722 64.2193 7.63872L66.5166 9.29266C74.6083 15.1183 85.4831 15.2485 93.712 9.61838L97.5856 6.96811C104.22 2.42883 112.071 0 120.11 0C142.141 0 160 17.9695 160 40C160 62.0305 142.141 80 120.11 80C112.071 80 104.22 77.5712 97.5856 73.0319L93.712 70.3816C85.4831 64.7515 74.6083 64.8817 66.5166 70.7073L64.2193 72.3613C57.3209 77.3278 48.9038 80 40.4035 80C18.3121 80 0 62.0914 0 40Z" fill="url(#shimmer)"/>
+        </svg>
+    </div>
+</body>
+</html>
