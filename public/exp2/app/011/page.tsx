@@ -7,7 +7,9 @@ export default function Page() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const latestMsgRef = useRef<HTMLDivElement>(null);
+  const latestPairRef = useRef<HTMLDivElement>(null);
   const [hasUserMessage, setHasUserMessage] = useState(false);
+  const prevPairCount = useRef(0);
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     onFinish: () => {
       setTimeout(() => {
@@ -21,6 +23,9 @@ export default function Page() {
   // Find the index of the last user message
   const lastUserMsgIdx = [...messages].reverse().findIndex(m => m.role === 'user');
   const lastUserMsgAbsIdx = lastUserMsgIdx === -1 ? -1 : messages.length - 1 - lastUserMsgIdx;
+  // Find the index of the last assistant message
+  const lastAssistantMsgIdx = [...messages].reverse().findIndex(m => m.role === 'assistant');
+  const lastAssistantMsgAbsIdx = lastAssistantMsgIdx === -1 ? -1 : messages.length - 1 - lastAssistantMsgIdx;
 
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
@@ -44,6 +49,24 @@ export default function Page() {
     prevMessagesLength.current = messages.length;
   }, [messages.length]);
 
+  useEffect(() => {
+    // Count user+assistant pairs
+    let count = 0;
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].role === 'user') {
+        count++;
+        if (messages[i + 1] && messages[i + 1].role === 'assistant') i++;
+      }
+    }
+    if (count > prevPairCount.current) {
+      // New pair added, scroll into view
+      setTimeout(() => {
+        latestPairRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
+    }
+    prevPairCount.current = count;
+  }, [messages]);
+
   return (
     <div className="min-h-screen w-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
       <div
@@ -56,35 +79,68 @@ export default function Page() {
             id="chat-message-list"
             ref={scrollContainerRef}
           >
-            {messages.map((message, idx) => (
-              message.role === 'user' ? (
-                <div
-                  key={message.id}
-                  className="flex justify-end"
-                  id={idx === lastUserMsgAbsIdx ? 'latest-user-message' : undefined}
-                >
-                  <TextAnimate animation="blurInUp" className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right">
-                    {message.parts.map((part, idx) => (
-                      <span key={idx}>{part.type === 'text' ? part.text : null}</span>
-                    ))}
-                  </TextAnimate>
-                </div>
-              ) : (
-                <div
-                  key={message.id}
-                  className="flex justify-start w-[770px]"
-                  ref={idx === messages.length - 1 ? latestMsgRef : undefined}
-                >
-                  <div className="px-4 py-2 rounded-lg max-w-full text-left">
-                    <TextAnimate animation="blurIn">
-                      {message.parts.map((part, idx) =>
-                        part.type === 'text' ? part.text : ''
-                      ).join('')}
-                    </TextAnimate>
-                  </div>
-                </div>
-              )
-            ))}
+            {/* Group messages into user+assistant pairs, each in a min-h-screen container */}
+            {(() => {
+              const pairs = [];
+              let pairIdx = 0;
+              // Compute total number of pairs for this render
+              let totalPairs = 0;
+              for (let i = 0; i < messages.length; i++) {
+                if (messages[i].role === 'user') {
+                  totalPairs++;
+                  if (messages[i + 1] && messages[i + 1].role === 'assistant') i++;
+                }
+              }
+              // Render pairs
+              for (let i = 0; i < messages.length; i++) {
+                if (messages[i].role === 'user') {
+                  const userMsg = messages[i];
+                  const assistantMsg = messages[i + 1] && messages[i + 1].role === 'assistant' ? messages[i + 1] : null;
+                  const isLatestPair = pairIdx === totalPairs - 1;
+                  pairs.push(
+                    <div
+                      key={userMsg.id + (assistantMsg ? '-' + assistantMsg.id : '')}
+                      className="min-h-screen w-full flex flex-col"
+                      ref={isLatestPair ? latestPairRef : undefined}
+                    >
+                      {/* User message at top right */}
+                      <div className="w-full flex justify-end pt-8">
+                        {assistantMsg ? (
+                          <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
+                            {userMsg.parts.map((part, idx) =>
+                              part.type === 'text' ? part.text : ''
+                            ).join('')}
+                          </div>
+                        ) : (
+                          <TextAnimate animation="blurInUp">
+                            <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
+                              {userMsg.parts.map((part, idx) =>
+                                part.type === 'text' ? part.text : ''
+                              ).join('')}
+                            </div>
+                          </TextAnimate>
+                        )}
+                      </div>
+                      {/* Assistant message fills remaining height */}
+                      {assistantMsg && (
+                        <div className="flex-1 flex items-center w-full">
+                          <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
+                            <TextAnimate animation="blurIn">
+                              {assistantMsg.parts.map((part, idx) =>
+                                part.type === 'text' ? part.text : ''
+                              ).join('')}
+                            </TextAnimate>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                  pairIdx++;
+                  if (assistantMsg) i++; // Skip the assistant message in the next loop
+                }
+              }
+              return pairs;
+            })()}
           </div>
         </div>
       </div>

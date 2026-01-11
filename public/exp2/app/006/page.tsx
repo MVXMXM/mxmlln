@@ -1,14 +1,11 @@
-'use client';
-import { useEffect } from 'react';
+import GlassCard from "./components/GlassCard"
 
-export default function Page() {
-  useEffect(() => {
-    window.location.href = '/static/007/index.html';
-  }, []);
-
+export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Redirecting to experiment 007...</p>
-    </div>
-  );
+    <GlassCard
+      title="Follow the light"
+      subtitle="Do not go gentle into that good night."
+      buttonText="Explore Components"
+    />
+  )
 }
