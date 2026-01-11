@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            color: #ffffff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Backdrop blur overlay */
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: radial-gradient(circle at center,
+                rgba(230, 230, 230, 0.25)0%,
+                rgba(215, 215, 215, 0.75) 25%,
+                rgba(205, 205, 205, 0.5) 50%,
+                rgba(205, 205, 205, 0.25) 75%,
+                rgba(205, 205, 205, 0) 100%);
+            z-index: 1;
+            pointer-events: none;
+            /* Remove transition - JS animation handles smoothness */
+        }
+
+        /* Single smooth reverberation state */
+        .blur-overlay.reverberating {
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            background: radial-gradient(circle at center,
+                rgba(255, 255, 255, 0.02) 0%,
+                rgba(255, 105, 180, 0.04) 25%,
+                rgba(255, 224, 102, 0.05) 50%,
+                rgba(0, 191, 255, 0.04) 75%,
+                rgba(255, 255, 255, 0.12) 90%,
+                rgba(255, 255, 255, 0) 100%);
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            background: radial-gradient(circle at 50% 20%, rgba(255, 105, 180, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(0, 191, 255, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 20% 80%, rgba(255, 224, 102, 0.3) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ff69b4, #ffe066, #00bfff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, 
+                rgba(210, 210, 210, 0.75) 0%,
+                rgba(225, 225, 225, 0.5) 100%);
+            color: rgba(0, 0, 0, 0.55);
+            text-decoration: none;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 10px 32px rgba(0, 50, 121, 0.15),
+                0 12px 35px rgba(255, 0, 120, 0.08),
+                0 14px 38px rgba(40, 255, 0, 0.06),
+                0 16px 42px rgba(58, 196, 255, 0.05),
+                0 4px 8px rgba(255, 255, 255, 0.3) inset,
+                0 6px 15px rgba(255, 255, 255, 0.6) inset,
+                0 -1px 0px rgba(0, 0, 0, 0.05) inset,
+                0 -2px 8px rgba(255, 255, 255, 0.3) inset,
+                inset 0 35px 25px -20px rgba(255, 255, 255, 0.25),
+                inset 0 -8px 6px -12px rgba(0, 0, 0, 0.5),
+                inset 0 -8px 6px -6px rgba(255, 255, 255, 0.25),
+                inset 0 -6px 4px -8px rgba(255, 0, 120, 0.15),
+                inset 0 -8px 6px -10px rgba(40, 255, 0, 0.12),
+                inset 0 -10px 8px -12px rgba(58, 196, 255, 0.1);
+            backdrop-filter: blur(24px) saturate(1.8);
+            -webkit-backdrop-filter: blur(24px) saturate(1.8);
+            border: 0px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
+        }
+
+
+
+        /* Apple rainbow at bottom */
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 4px;
+            right: 4px;
+            height: 40%;
+            background: linear-gradient(90deg,
+                rgba(233, 229, 1, 0) 20%,    /* Purple */
+                rgba(255, 0, 120, 0.5) 30%,    /* Magenta */
+                rgba(233, 229, 1, 0) 40%,    /* Purple */
+                rgba(246, 255, 85, 1) 60%,     /* Green */
+                rgba(40, 255, 0, 0.75) 70%,     /* Green */
+                rgba(58, 232, 255, 1) 85%,    /* Cyan-Blue */
+                rgba(0, 100, 255, 0.45) 100%);  /* Blue */
+            border-radius: 0px 0px 56px 56px;
+            pointer-events: none;
+            filter: blur(15px);
+            opacity: 0.4;
+            z-index: 0;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 20px 32px rgba(0, 50, 121, 0.18),
+                0 18px 52px rgba(255, 0, 120, 0.15),
+                0 20px 56px rgba(40, 255, 0, 0.12),
+                0 22px 60px rgba(58, 232, 255, 0.1),
+                0 4px 8px rgba(255, 255, 255, 0.3) inset,
+                0 6px 15px rgba(255, 255, 255, 0.6) inset,
+                0 -3px 12px rgba(255, 255, 255, 0.4) inset,
+                inset 0 35px 25px -20px rgba(255, 255, 255, 0.25),
+                inset 0 -8px 6px -12px rgba(0, 0, 0, 0.5),
+                inset 0 -8px 6px -6px rgba(255, 255, 255, 0.25),
+                inset 0 -6px 4px -8px rgba(255, 0, 120, 0.2),
+                inset 0 -8px 6px -10px rgba(40, 255, 0, 0.18),
+                inset 0 -10px 8px -12px rgba(58, 196, 255, 0.15);
+            background: linear-gradient(135deg, 
+                rgba(220, 220, 220, 0.15) 0%,
+                rgba(220, 220, 220, 0.075) 100%);
+        }
+
+        .cta-button:hover::after {
+            opacity: 0.4;
+            filter: blur(15px);
+            bottom: 10px;
+            height: 60%;
+        }
+
+        /* Shimmer effect using ::before */
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 250%;
+            left: 0;
+            width: 100%;
+            height: 175%;
+            background: linear-gradient(0deg, 
+                transparent 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 100%);
+            transition: top 0.6s ease;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .cta-button:hover::before {
+            top: -150%;
+        }
+
+        .cta-button:active {
+            transform: translateY(0px);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.08),
+                0 1px 0px rgba(255, 255, 255, 0.5) inset,
+                0 -1px 0px rgba(0, 0, 0, 0.1) inset;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Backdrop blur overlay -->
+    <div class="blur-overlay"></div>
+    
+    <div class="hero-section">
+        <div class="bg-element"></div>
+        <div class="bg-element"></div>
+        <div class="bg-element"></div>
+        
+        <div class="hero-content">
+            <a href="#features" class="cta-button">Shine on</a>
+        </div>
+    </div>
+
+    <script>
+        // Reverberation effect system
+        const blurOverlay = document.querySelector('.blur-overlay');
+        const button = document.querySelector('.cta-button');
+        
+        function triggerReverberation() {
+            // Smooth animation using requestAnimationFrame
+            const startTime = Date.now();
+            const duration = 800; // Shorter, snappier duration
+            const startBlur = 20;
+            const peakBlur = 30;
+            
+            // Original state values (matching current blur-overlay background)
+            const originalBg = `radial-gradient(circle at center,
+                rgba(230, 230, 230, 0.25) 0%,
+                rgba(215, 215, 215, 0.75) 25%,
+                rgba(205, 205, 205, 0.5) 50%,
+                rgba(205, 205, 205, 0.25) 75%,
+                rgba(205, 205, 205, 0) 100%)`;
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Smooth ease-out curve for natural motion
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                // Sine wave that peaks at 30% then fades
+                const waveIntensity = Math.sin(progress * Math.PI * 2) * Math.exp(-progress * 2);
+                
+                // Calculate current blur (oscillates around 20px)
+                const blurVariation = waveIntensity * (peakBlur - startBlur);
+                const currentBlur = startBlur + Math.abs(blurVariation);
+                
+                // Color intensity follows the wave
+                const colorIntensity = Math.abs(waveIntensity) * 0.8;
+                
+                // Apply the animated values
+                blurOverlay.style.backdropFilter = `blur(${currentBlur}px)`;
+                blurOverlay.style.webkitBackdropFilter = `blur(${currentBlur}px)`;
+                
+                if (colorIntensity > 0.001) {
+                    blurOverlay.style.background = `radial-gradient(circle at center,
+                        rgba(230, 230, 230, ${0.25 + colorIntensity * 0.2}) 0%,
+                        rgba(255, 105, 180, ${colorIntensity * 0.8}) 15%,
+                        rgba(255, 224, 102, ${colorIntensity * 1.0}) 30%,
+                        rgba(0, 191, 255, ${colorIntensity * 0.6}) 45%,
+                        rgba(215, 215, 215, ${0.75 + colorIntensity * 0.3}) 60%,
+                        rgba(205, 205, 205, ${0.25 + colorIntensity * 0.2}) 75%,
+                        rgba(205, 205, 205, 0) 100%)`;
+                } else {
+                    blurOverlay.style.background = originalBg;
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    // Ensure clean return to original state
+                    blurOverlay.style.backdropFilter = 'blur(20px)';
+                    blurOverlay.style.webkitBackdropFilter = 'blur(20px)';
+                    blurOverlay.style.background = originalBg;
+                }
+            }
+            
+            animate();
+        }
+        
+        // Background shimmer variables
+        let backgroundShimmerAnimation = null;
+        let isHovering = false;
+        
+        // Original state
+        const originalBg = `radial-gradient(circle at center,
+            rgba(230, 230, 230, 0.25) 0%,
+            rgba(215, 215, 215, 0.75) 25%,
+            rgba(205, 205, 205, 0.5) 50%,
+            rgba(205, 205, 205, 0.25) 75%,
+            rgba(205, 205, 205, 0) 100%)`;
+        
+        // Shimmer down on hover (reversed direction)
+        function shimmerDown() {
+            const startTime = Date.now();
+            const duration = 900; // Slightly slower, more luxurious timing
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Bottom to top sweep (180% to -80% - reversed)
+                const shimmerPosition = 180 - (progress * 260); // 180% to -80%
+                
+                // Moderately increased intensity curve
+                const intensity = Math.sin(progress * Math.PI) * 0.5;
+                
+                // Multiple layered pyramids for refraction effect (wider)
+                const pyramidSize = Math.max(0, Math.min(300, 80 + (intensity * 120)));
+                const pyramidSize2 = Math.max(0, Math.min(280, 70 + (intensity * 110)));
+                const pyramidSize3 = Math.max(0, Math.min(260, 60 + (intensity * 100)));
+                
+                blurOverlay.style.background = `
+                    radial-gradient(circle at center,
+                        rgba(230, 230, 230, 0.25) 0%,
+                        rgba(215, 215, 215, 0.75) 25%,
+                        rgba(205, 205, 205, 0.5) 50%,
+                        rgba(205, 205, 205, 0.25) 75%,
+                        rgba(205, 205, 205, 0) 100%),
+                    radial-gradient(ellipse ${pyramidSize}% ${pyramidSize * 0.5}% at 50% ${shimmerPosition}%,
+                        rgba(255, 224, 102, ${intensity * 0.325}) 0%,
+                        rgba(255, 105, 180, ${intensity * 0.225}) 30%,
+                        rgba(0, 191, 255, ${intensity * 0.185}) 60%,
+                        transparent 100%),
+                    radial-gradient(ellipse ${pyramidSize2}% ${pyramidSize2 * 0.4}% at 48% ${shimmerPosition + 5}%,
+                        rgba(255, 105, 180, ${intensity * 0.275}) 0%,
+                        rgba(255, 224, 102, ${intensity * 0.24}) 40%,
+                        rgba(0, 191, 255, ${intensity * 0.15}) 80%,
+                        transparent 100%),
+                    radial-gradient(ellipse ${pyramidSize3}% ${pyramidSize3 * 0.6}% at 52% ${shimmerPosition - 3}%,
+                        rgba(0, 191, 255, ${intensity * 0.225}) 0%,
+                        rgba(255, 224, 102, ${intensity * 0.165}) 50%,
+                        transparent 100%)`;
+                
+                if (progress < 1 && isHovering) {
+                    backgroundShimmerAnimation = requestAnimationFrame(animate);
+                } else {
+                    // Simply return to original state
+                    blurOverlay.style.background = originalBg;
+                }
+            }
+            
+            backgroundShimmerAnimation = requestAnimationFrame(animate);
+        }
+        
+
+        
+        // Enhanced button interactions
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            triggerReverberation();
+            
+            // Add button press effect
+            button.style.transform = 'translateY(0px) scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+        });
+        
+        button.addEventListener('mouseenter', () => {
+            isHovering = true;
+            blurOverlay.style.backdropFilter = 'blur(18px)';
+            blurOverlay.style.webkitBackdropFilter = 'blur(18px)';
+            
+            // Cancel any existing animation
+            if (backgroundShimmerAnimation) {
+                cancelAnimationFrame(backgroundShimmerAnimation);
+            }
+            
+            // Start shimmer down (reversed - top to bottom on hover)
+            shimmerDown();
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            isHovering = false;
+            blurOverlay.style.backdropFilter = 'blur(20px)';
+            blurOverlay.style.webkitBackdropFilter = 'blur(20px)';
+            
+            // Cancel any existing animation and return to original state
+            if (backgroundShimmerAnimation) {
+                cancelAnimationFrame(backgroundShimmerAnimation);
+            }
+            
+            // Immediately return to original background
+            blurOverlay.style.background = originalBg;
+        });
+    </script>
+</body>
+</html>

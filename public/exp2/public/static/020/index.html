@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loupe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+  <style>
+        /* Defs */
+        @property --angle-1 {
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: -75deg;
+        }
+
+        @property --angle-2 {
+        syntax: "<angle>";
+        inherits: false;
+        initial-value: -45deg;
+        }
+
+        :root {
+        --global--size: 2rem; /* Fixed size - smallest breakpoint */
+        --anim--hover-time: 400ms;
+        --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Base Styles */
+        body {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--global--size);
+            background-color: #CBD5E1;
+            font-family: "Inter", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        p {
+          font-size: 16px;
+          max-width: 600px;
+          line-height: 1.5;
+          font-family: "Inter", sans-serif;
+          font-weight: 500;
+          color: rgba(50, 50, 50, 1);
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+         .loupe-container {
+           position: fixed;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           z-index: 10;
+           top: 0px;
+           left: 0px;
+           height: 220px;
+           width: 100%;
+         }
+
+         /* WebGL Canvas for glass effect */
+         .glass-canvas {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 100vw;
+           height: 100vh;
+           pointer-events: none;
+           z-index: 5;
+         }
+
+        /* ========== LOUPE ========== */
+
+        /* Loupe Wrap Container */
+        .loupe-wrap {
+        position: relative;
+        z-index: 2;
+        border-radius: 999vw;
+        background: transparent;
+        pointer-events: none;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        }
+
+        /* Loupe Shadow Container */
+        .loupe-shadow {
+        --shadow-cuttoff-fix: 2em;
+        position: absolute;
+        width: calc(100% + var(--shadow-cuttoff-fix));
+        height: calc(100% + var(--shadow-cuttoff-fix));
+        top: calc(0% - var(--shadow-cuttoff-fix) / 2);
+        left: calc(0% - var(--shadow-cuttoff-fix) / 2);
+        filter: blur(clamp(2px, 0.125em, 12px));
+        -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+        -moz-filter: blur(clamp(2px, 0.125em, 12px));
+        -ms-filter: blur(clamp(2px, 0.125em, 12px));
+        overflow: visible;
+        pointer-events: none;
+        }
+
+        /* Shadow */
+        .loupe-shadow::after {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        border-radius: 999vw;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+        width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+        height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+        top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+        left: calc(var(--shadow-cuttoff-fix) - 0.875em);
+        padding: 0.125em;
+        box-sizing: border-box;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        overflow: visible;
+        opacity: 1;
+        }
+
+        /* ========== LOUPE BASE STYLES ========== */
+
+        .loupe {
+        /* Basic Styling */
+        --border-width: 1px; /* Fixed border width */
+        all: unset;
+        display: inline-block;
+        cursor: pointer;
+        position: relative;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        pointer-events: auto;
+        z-index: 3;
+        box-sizing: border-box;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+        padding-inline: 1.5em;
+        padding-block: 0.875em;
+        background: linear-gradient(
+            -75deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.2),
+            rgba(255, 255, 255, 0.05)
+        );
+        border-radius: 999vw;
+        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+            inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+            0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+            0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+            0 0 0 0 rgba(255, 255, 255, 1);
+        backdrop-filter: blur(1px); /* Fixed blur */
+        -webkit-backdrop-filter: blur(1px);
+        -moz-backdrop-filter: blur(1px);
+        -ms-backdrop-filter: blur(1px);
+        transition: all var(--anim--hover-time) var(--anim--hover-ease);
+        }
+
+        .loupe:hover {
+        transform: scale(0.975);
+        backdrop-filter: blur(0.01em);
+        -webkit-backdrop-filter: blur(0.01em);
+        -moz-backdrop-filter: blur(0.01em);
+        -ms-backdrop-filter: blur(0.01em);
+        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+            inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+            0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+            0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
+            0 0 0 0 rgba(255, 255, 255, 1);
+        }
+
+        .loupe:focus {
+        outline: none;
+        }
+
+        .loupe:focus-visible {
+        outline: 2px solid rgba(0, 123, 255, 0.5);
+        outline-offset: 2px;
+        }
+
+        .loupe:hover span {
+        text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.12);
+        }
+
+        /* Text */
+        .loupe span::after {
+        content: "";
+        display: block;
+        position: absolute;
+        z-index: 1;
+        width: calc(100% - var(--border-width)); /* Prevent overlapping border */
+        height: calc(100% - var(--border-width));
+        top: calc(0% + var(--border-width) / 2);
+        left: calc(0% + var(--border-width) / 2);
+        box-sizing: border-box;
+        border-radius: 999vw;
+        overflow: clip;
+        background: linear-gradient(
+            var(--angle-2),
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.5) 40% 50%,
+            rgba(255, 255, 255, 0) 55%
+        );
+        z-index: 3;
+        mix-blend-mode: screen;
+        pointer-events: none;
+        background-size: 200% 200%;
+        background-position: 0% 50%;
+        background-repeat: no-repeat;
+        transition: background-position calc(var(--anim--hover-time) * 1.25)
+            var(--anim--hover-ease),
+            --angle-2 calc(var(--anim--hover-time) * 1.25) var(--anim--hover-ease);
+        }
+
+        .loupe:hover span::after {
+        background-position: 25% 50%;
+        }
+
+        .loupe:active span::after {
+        background-position: 50% 15%;
+        --angle-2: -15deg;
+        }
+
+        /* Touch Devices */
+        @media (hover: none) and (pointer: coarse) {
+        .loupe span::after,
+        .loupe:active span::after {
+            --angle-2: -45deg;
+        }
+        }
+
+        /* ========== LOUPE OUTLINE ========== */
+
+        /* Outline */
+        .loupe::after {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        border-radius: 999vw;
+        width: calc(100% + var(--border-width));
+        height: calc(100% + var(--border-width));
+        top: calc(0% - var(--border-width) / 2);
+        left: calc(0% - var(--border-width) / 2);
+        padding: var(--border-width);
+        box-sizing: border-box;
+        background: conic-gradient(
+            from var(--angle-1) at 50% 50%,
+            rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0) 5% 40%,
+            rgba(0, 0, 0, 0.5) 50%,
+            rgba(0, 0, 0, 0) 60% 95%,
+            rgba(0, 0, 0, 0.5)
+            ),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        transition: all var(--anim--hover-time) var(--anim--hover-ease),
+            --angle-1 500ms ease;
+        box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+        }
+
+        .loupe:hover::after {
+        --angle-1: -125deg;
+        }
+
+        button:active::after {
+        --angle-1: -75deg;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+        .loupe::after,
+        .loupe:hover::after,
+        .loupe:active::after {
+            --angle-1: -75deg;
+        }
+        }
+
+        /* Shadow Hover */
+        .loupe-wrap:has(.loupe:hover) .loupe-shadow {
+        filter: blur(clamp(2px, 0.0625em, 6px));
+        -webkit-filter: blur(clamp(2px, 0.0625em, 6px));
+        -moz-filter: blur(clamp(2px, 0.0625em, 6px));
+        -ms-filter: blur(clamp(2px, 0.0625em, 6px));
+        transition: filter var(--anim--hover-time) var(--anim--hover-ease);
+        }
+
+        .loupe-wrap:has(.loupe:hover) .loupe-shadow::after {
+        top: calc(var(--shadow-cuttoff-fix) - 0.875em);
+        opacity: 1;
+        }
+
+        /* Rotation */
+        .loupe-wrap:has(.loupe:active) {
+        transform: rotate3d(1, 0, 0, 25deg);
+        }
+
+        .loupe-wrap:has(.loupe:active) .loupe {
+        box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+            inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+            0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+            0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+            0 0.225em 0.05em 0 rgba(0, 0, 0, 0.05),
+            0 0.25em 0 0 rgba(255, 255, 255, 0.75),
+            inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.15);
+        }
+
+        .loupe-wrap:has(.loupe:active) .loupe-shadow {
+        filter: blur(clamp(2px, 0.125em, 12px));
+        -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+        -moz-filter: blur(clamp(2px, 0.125em, 12px));
+        -ms-filter: blur(clamp(2px, 0.125em, 12px));
+        }
+
+        .loupe-wrap:has(.loupe:active) .loupe-shadow::after {
+        top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+        opacity: 0.75;
+        }
+
+        .loupe-wrap:has(.loupe:active) span {
+        text-shadow: 0.025em 0.25em 0.05em rgba(0, 0, 0, 0.12);
+        }
+
+  </style>
+
+</head>
+<body>
+  
+   <canvas class="glass-canvas" id="glassCanvas"></canvas>
+   <div class="loupe-container">
+     <div class="loupe-wrap">
+         <div class="loupe">
+         <span></span>
+         </div>
+         <div class="loupe-shadow"></div>
+     </div>
+   </div>
+
+    <p>
+        A loupe is a small, simple magnification device used to see small details more clearly. Unlike a standard magnifying glass, it usually offers higher magnification and is designed to be held or worn close to the eye without a handle. Loupes typically come in three types—simple lenses for low magnification, compound lenses for higher magnification with reduced distortion, and prismatic lenses with multiple elements for even clearer views.
+        <br/><br/>
+        Loupes are widely used in professions requiring precision and detailed inspection such as jewelry appraisal, watchmaking, surgery, dentistry, gemology, and geology. For example, jewelers commonly use a 10× magnification loupe to inspect gemstones and details like hallmarks or inclusions. Surgeons use customized loupes mounted on glasses to enhance visibility during delicate operations. Collectors like numismatists also rely on loupes to evaluate coin quality and authenticity. The loupe originated from ancient lens technology and has evolved into a vital tool for many detailed visual tasks.​
+        <br/><br/>
+        To use a loupe, it is held close to the eye, and the object is brought into focus at the optimal distance. This setup allows for a magnified and detailed view of tiny features that are otherwise difficult to see with the naked eye. The standard magnification for many applications, especially in jewelry and gemology, is 10×, as it balances magnification with field of view and depth of focus.​
+        <br/><br/>
+        In summary, a loupe is a compact, high-magnification optical tool essential for close-up examination in many fields involving small objects or fine details.
+    </p>
+
+  <script>
+    // WebGL Glass Magnification Shader with Real Background Capture
+    class WebGLMagnifier {
+      constructor() {
+        this.canvas = document.getElementById('glassCanvas');
+        this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+        this.loupeWrap = document.querySelector('.loupe-wrap');
+        this.isFollowing = false;
+        this.isCursorHidden = false;
+        this.currentMouseX = 0;
+        this.currentMouseY = 0;
+        this.backgroundTexture = null;
+        this.program = null;
+        
+        if (!this.gl) {
+          console.error('WebGL not supported');
+          return;
+        }
+        
+        this.init();
+      }
+
+      init() {
+        this.setupCanvas();
+        this.createShaders();
+        this.setupBuffers();
+        this.captureBackground();
+        this.setupEventListeners();
+        this.render();
+      }
+
+      setupCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      }
+
+      captureBackground() {
+        // Get the actual paragraph element and its position
+        const paragraph = document.querySelector('p');
+        const paragraphRect = paragraph.getBoundingClientRect();
+        
+        // Create a temporary canvas to capture the background
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Hide the loupe and canvas temporarily
+        this.loupeWrap.style.display = 'none';
+        this.canvas.style.display = 'none';
+        
+        // Set canvas size to match viewport
+        tempCanvas.width = window.innerWidth;
+        tempCanvas.height = window.innerHeight;
+        
+        // Fill background
+        tempCtx.fillStyle = '#f5f5f5';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Get the actual computed styles of the paragraph
+        const computedStyle = window.getComputedStyle(paragraph);
+        const fontSize = computedStyle.fontSize;
+        const fontFamily = computedStyle.fontFamily;
+        const lineHeight = parseFloat(computedStyle.lineHeight) || parseFloat(fontSize) * 1.2;
+        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+        const paddingRight = parseFloat(computedStyle.paddingRight) || 0;
+        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+        const marginLeft = parseFloat(computedStyle.marginLeft) || 0;
+        
+        // Set the canvas font to match the paragraph
+        tempCtx.fillStyle = computedStyle.color;
+        tempCtx.font = `${fontSize} ${fontFamily}`;
+        
+        // Get the actual text content and handle paragraph breaks properly
+        const textContent = paragraph.innerHTML;
+        // Split by <br/> tags to get paragraphs
+        const paragraphs = textContent.split(/<br\s*\/?>/i);
+        // Use the actual content width (paragraph width minus padding)
+        const maxWidth = paragraphRect.width - paddingLeft - paddingRight;
+        // Start at the actual text baseline position
+        let y = paragraphRect.top + paddingTop + parseFloat(fontSize);
+        
+        // Debug logging to help troubleshoot
+        console.log('Paragraph measurements:', {
+          rect: paragraphRect,
+          paddingLeft,
+          paddingRight,
+          paddingTop,
+          fontSize,
+          maxWidth,
+          startY: y,
+          paragraphCount: paragraphs.length
+        });
+        
+        paragraphs.forEach((paragraphText, paragraphIndex) => {
+          // Clean up the paragraph text (remove any remaining HTML tags)
+          const cleanText = paragraphText.replace(/<[^>]*>/g, '').trim();
+          if (!cleanText) return; // Skip empty paragraphs
+          
+          const words = cleanText.split(' ');
+          let currentLine = '';
+          let isFirstLine = true;
+          
+          words.forEach(word => {
+            const testLine = currentLine + word + ' ';
+            const metrics = tempCtx.measureText(testLine);
+            
+            if (metrics.width > maxWidth && currentLine !== '') {
+              // Draw the current line without indentation
+              tempCtx.fillText(currentLine, paragraphRect.left + paddingLeft, y);
+              currentLine = word + ' ';
+              y += lineHeight;
+              isFirstLine = false;
+            } else {
+              currentLine = testLine;
+            }
+          });
+          
+          // Draw the last line of the paragraph
+          if (currentLine) {
+            tempCtx.fillText(currentLine, paragraphRect.left + paddingLeft, y);
+            y += lineHeight;
+          }
+          
+          // Add extra space between paragraphs (except after the last one)
+          if (paragraphIndex < paragraphs.length - 1) {
+            y += lineHeight * 0.5; // Half line height between paragraphs
+          }
+        });
+        
+        // Store the paragraph position for use in shader
+        this.paragraphOffset = {
+          x: paragraphRect.left / window.innerWidth,
+          y: paragraphRect.top / window.innerHeight
+        };
+        
+        // Show the loupe and canvas again
+        this.loupeWrap.style.display = 'block';
+        this.canvas.style.display = 'block';
+        
+        // Create WebGL texture from the canvas
+        this.backgroundTexture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.backgroundTexture);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, tempCanvas);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+      }
+
+      createShaders() {
+        const vertexShaderSource = `
+          attribute vec2 a_position;
+          attribute vec2 a_texCoord;
+          varying vec2 v_texCoord;
+          
+          void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+            v_texCoord = a_texCoord;
+          }
+        `;
+
+        const fragmentShaderSource = `
+          precision mediump float;
+          varying vec2 v_texCoord;
+          uniform vec2 u_resolution;
+          uniform vec2 u_loupePosition;
+          uniform vec2 u_loupeSize;
+          uniform float u_time;
+          uniform sampler2D u_backgroundTexture;
+          
+          // Function to create rounded rectangle mask
+          float roundedRect(vec2 pos, vec2 size, float radius) {
+            vec2 d = abs(pos) - size + radius;
+            return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - radius;
+          }
+          
+          void main() {
+            vec2 center = u_loupePosition / u_resolution;
+            vec2 coord = v_texCoord;
+            
+            // Calculate position relative to loupe center
+            vec2 relativePos = (coord - center) * u_resolution;
+            
+            // Create rounded rectangle mask with much larger border radius, slightly smaller size
+            float mask = 1.0 - smoothstep(-2.0, 2.0, roundedRect(relativePos, u_loupeSize * 0.45, 25.0));
+            
+            if (mask > 0.0) {
+              // Magnification effect - sample from a smaller area
+              vec2 offset = (coord - center) * 0.6; // 1.67x magnification
+              vec2 magnifiedCoord = center + offset;
+              
+              // Calculate distance from center for realistic refraction
+              float dist = length(relativePos);
+              float maxDist = length(u_loupeSize * 0.45); // Maximum distance to edge
+              float normalizedDist = dist / maxDist; // 0 at center, 1 at edge
+              
+              // Apply distortion only at edges, minimal at center (realistic lens behavior)
+              float edgeFactor = smoothstep(0.0, 1.0, normalizedDist); // 0 at center, 1 at edge
+              float distortion = sin(dist * 0.15) * 0.002 * edgeFactor; // Distortion increases toward edges
+              magnifiedCoord += vec2(distortion, distortion * 0.3);
+              
+              // Sample the actual background texture
+              vec3 backgroundColor = texture2D(u_backgroundTexture, magnifiedCoord).rgb;
+              
+              // Create glass-like color effect (static)
+              vec3 glassColor = vec3(0.95, 0.98, 1.0);
+              float brightness = 1.1; // Static brightness
+              
+              // Apply glass effect with subtle tinting
+              vec3 finalColor = backgroundColor * glassColor * brightness;
+              
+              // Add subtle static glass reflection
+              float reflection = sin(dist * 0.15) * 0.05 + 0.95; // Static reflection
+              finalColor *= reflection;
+              
+              gl_FragColor = vec4(finalColor, mask * 0.95);
+            } else {
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            }
+          }
+        `;
+
+        const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+        
+        this.program = this.createProgram(vertexShader, fragmentShader);
+        this.gl.useProgram(this.program);
+      }
+
+      createShader(type, source) {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+        
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+          console.error('Shader compilation error:', this.gl.getShaderInfoLog(shader));
+          this.gl.deleteShader(shader);
+          return null;
+        }
+        
+        return shader;
+      }
+
+      createProgram(vertexShader, fragmentShader) {
+        const program = this.gl.createProgram();
+        this.gl.attachShader(program, vertexShader);
+        this.gl.attachShader(program, fragmentShader);
+        this.gl.linkProgram(program);
+        
+        if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+          console.error('Program linking error:', this.gl.getProgramInfoLog(program));
+          this.gl.deleteProgram(program);
+          return null;
+        }
+        
+        return program;
+      }
+
+      setupBuffers() {
+        // Create a full-screen quad
+        const positions = new Float32Array([
+          -1, -1,
+           1, -1,
+          -1,  1,
+           1,  1,
+        ]);
+        
+        const texCoords = new Float32Array([
+          0, 1,
+          1, 1,
+          0, 0,
+          1, 0,
+        ]);
+
+        // Position buffer
+        const positionBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
+        
+        const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
+        this.gl.enableVertexAttribArray(positionLocation);
+        this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+
+        // Texture coordinate buffer
+        const texCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
+        
+        const texCoordLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
+        this.gl.enableVertexAttribArray(texCoordLocation);
+        this.gl.vertexAttribPointer(texCoordLocation, 2, this.gl.FLOAT, false, 0, 0);
+      }
+
+      setupEventListeners() {
+        // Mouse tracking
+        document.addEventListener('mousemove', (e) => {
+          this.currentMouseX = e.clientX;
+          this.currentMouseY = e.clientY;
+
+          if (this.isFollowing) {
+            this.updateLoupePosition();
+          }
+
+          if (this.isCursorHidden) {
+            document.documentElement.style.cursor = 'none';
+            document.body.style.cursor = 'none';
+            this.loupeWrap.style.cursor = 'none';
+          }
+        });
+
+        // Click handler
+        this.loupeWrap.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.toggleCursorVisibility();
+          this.toggleLoupeFollowing();
+        });
+      }
+
+      toggleCursorVisibility() {
+        this.isCursorHidden = !this.isCursorHidden;
+        if (this.isCursorHidden) {
+          document.documentElement.style.cursor = 'none';
+          document.body.style.cursor = 'none';
+          this.loupeWrap.style.cursor = 'none';
+        } else {
+          document.documentElement.style.cursor = 'default';
+          document.body.style.cursor = 'default';
+          this.loupeWrap.style.cursor = 'pointer';
+        }
+      }
+
+      toggleLoupeFollowing() {
+        this.isFollowing = !this.isFollowing;
+        if (this.isFollowing) {
+          // Store the original position before switching to fixed
+          const rect = this.loupeWrap.getBoundingClientRect();
+          this.originalPosition = {
+            left: rect.left,
+            top: rect.top
+          };
+          this.loupeWrap.style.position = 'fixed';
+          this.loupeWrap.style.transition = 'none'; // Disable transition for immediate positioning
+          this.updateLoupePosition();
+        } else {
+          // Smoothly transition back to original position
+          this.loupeWrap.style.transition = 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+          this.loupeWrap.style.position = 'fixed';
+          this.loupeWrap.style.left = this.originalPosition.left + 'px';
+          this.loupeWrap.style.top = this.originalPosition.top + 'px';
+          this.loupeWrap.style.transform = 'translate(-50%, -50%)';
+          
+          // After transition completes, switch back to relative positioning
+          setTimeout(() => {
+            this.loupeWrap.style.position = 'relative';
+            this.loupeWrap.style.left = '';
+            this.loupeWrap.style.top = '';
+            this.loupeWrap.style.transform = '';
+            this.loupeWrap.style.transition = '';
+          }, 300);
+        }
+      }
+
+      updateLoupePosition() {
+        this.loupeWrap.style.position = 'fixed';
+        this.loupeWrap.style.left = this.currentMouseX + 'px';
+        this.loupeWrap.style.top = this.currentMouseY + 'px';
+        this.loupeWrap.style.transform = 'translate(-50%, -50%)';
+      }
+
+      render() {
+        this.gl.clearColor(0, 0, 0, 0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        
+        // Bind background texture
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.backgroundTexture);
+        const textureLocation = this.gl.getUniformLocation(this.program, 'u_backgroundTexture');
+        this.gl.uniform1i(textureLocation, 0);
+        
+        // Get loupe position and dimensions
+        const loupeRect = this.loupeWrap.getBoundingClientRect();
+        const loupeWidth = loupeRect.width;
+        const loupeHeight = loupeRect.height;
+        const loupeCenterX = loupeRect.left + loupeRect.width / 2;
+        const loupeCenterY = loupeRect.top + loupeRect.height / 2;
+        
+        // Set uniforms
+        const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
+        this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
+        
+        const loupePositionLocation = this.gl.getUniformLocation(this.program, 'u_loupePosition');
+        this.gl.uniform2f(loupePositionLocation, loupeCenterX, loupeCenterY);
+        
+        const loupeSizeLocation = this.gl.getUniformLocation(this.program, 'u_loupeSize');
+        this.gl.uniform2f(loupeSizeLocation, loupeWidth, loupeHeight);
+        
+        const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
+        this.gl.uniform1f(timeLocation, performance.now() * 0.001);
+        
+        // Draw
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        
+        requestAnimationFrame(() => this.render());
+      }
+    }
+
+    // Initialize when page loads
+    window.addEventListener('load', () => {
+      new WebGLMagnifier();
+    });
+  </script>
+
+</body>
+</html>

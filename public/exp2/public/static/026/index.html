@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatty Chatty</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #E2E8F0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding-bottom: 100px;
+            transition: background-color 0.6s ease;
+        }
+
+        h1 {
+            color: var(--N8, #334155);
+            text-align: center;
+            font-family: Spectral;
+            font-size: 48px;
+            font-style: normal;
+            font-weight: 200;
+            line-height: 110%;
+            letter-spacing: -1.44px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            width: 100%;
+            pointer-events: none;
+            margin-top: 24px;
+        }
+
+        /* Lighter heading text when background is dark */
+        body.dark-step h1 {
+            color: #F9FAFB;
+        }
+
+        h1 .word {
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        h1 .char {
+            transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            filter: blur(8px);
+            transform: translateY(15px);
+            display: inline;
+        }
+
+        /* Punctuation marks - less movement, faster animation */
+        h1 .char:not(.space) {
+            /* Check if it's punctuation using a data attribute or class */
+        }
+
+        h1 .char.visible {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+        }
+
+        /* Special handling for punctuation - animate normally but with less movement */
+        h1 .char[data-punctuation="true"] {
+            transform: translateY(10px);
+        }
+
+        h1 .char[data-punctuation="true"].visible {
+            transform: translateY(0);
+        }
+
+        h1 .char.space {
+            width: 0.25em;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 700px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-pill {
+            background: #fff;
+            color: #334155;
+            padding: 15px 20px;
+            border-radius: 16px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            opacity: 0.75;
+            filter: blur(0px);
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            transition: opacity 1.5s ease, filter 1.5s ease, transform 1s ease, width 1.5s ease;
+            pointer-events: none;
+            text-align: left;
+            word-wrap: break-word;
+            white-space: nowrap;
+            width: 700px;
+        }
+
+        .message-pill.animating {
+            opacity: 0;
+            filter: blur(125px);
+            width: 300px;
+            transform: translateX(-50%) translateY(var(--translate-y, -50%));
+        }
+
+        .search-input {
+            width: calc(100% - 48px);
+            max-width: 700px;
+            padding: 15px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            background: #fff;
+            color: #333;
+            font-size: 16px;
+            font-weight: 200;
+            transition: all 0.3s ease;
+            caret-color: #1DCD98;
+            box-shadow: 0 481px 135px 0 rgba(0, 0, 0, 0.00), 0 308px 123px 0 rgba(0, 0, 0, 0.01), 0 173px 104px 0 rgba(0, 0, 0, 0.05), 0 77px 77px 0 rgba(0, 0, 0, 0.09), 0 19px 42px 0 rgba(0, 0, 0, 0.10);
+        }
+
+        .search-input::placeholder {
+            color: #64748B;
+            font-family: Inter;
+            font-size: 14px;
+            font-style: normal;
+            line-height: 150%;
+            opacity: 1;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #E2E8F0;
+        }
+
+        .search-input:disabled {
+            background: #e8edf2;
+            box-shadow: none;
+        }
+
+        .blur-wrap {
+            will-change: filter;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: blur(0px);
+            opacity: 1;
+            transition: filter 0.6s ease, opacity 1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            height: 200px;
+            width: 300px;
+            margin-top: 24px;
+        }
+
+        .blur-wrap.has-text {
+            filter: blur(150px);
+        }
+
+        .blur-wrap svg {
+            animation: pulseBlur 3s infinite;
+        }
+
+        @keyframes pulseBlur {
+            0%, 100% { filter: blur(30px); }
+            50%      { filter: blur(15px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="blur-wrap">
+            <svg width="300" height="300" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <linearGradient id="shimmer" x1="-350" y1="0" x2="50" y2="0" gradientUnits="userSpaceOnUse" spreadMethod="repeat">
+                    <stop offset="0%" stop-color="rgba(29, 205, 152, 0.25)"/>
+                    <stop offset="15%" stop-color="rgba(29, 205, 152, 0.25)"/>
+                    <stop offset="50%" stop-color="rgba(29, 205, 152, 0.75)"/>
+                    <stop offset="85%" stop-color="rgba(29, 205, 152, 0.25)"/>
+                    <stop offset="100%" stop-color="rgba(29, 205, 152, 0.25)"/>
+                    <animate attributeName="x1" values="-350;50" dur="3s" repeatCount="indefinite" calcMode="linear" />
+                    <animate attributeName="x2" values="50;450" dur="3s" repeatCount="indefinite" calcMode="linear" />
+                </linearGradient>
+                <radialGradient id="sphereLight" cx="-100" cy="100" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="rgba(29, 205, 152, 0.5)"/>
+                    <stop offset="30%" stop-color="rgba(29, 205, 152, 0.4)"/>
+                    <stop offset="50%" stop-color="rgba(29, 205, 152, 0.3)"/>
+                    <stop offset="70%" stop-color="rgba(29, 205, 152, 0)"/>
+                    <animate attributeName="cx" values="-100;300" dur="3s" repeatCount="indefinite" calcMode="linear" />
+                </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="80" fill="url(#shimmer)" />
+            <circle cx="100" cy="100" r="80" fill="url(#sphereLight)" />
+            </svg>
+        </div>
+        <h1>What's on your mind?</h1>
+    </div>
+    <div class="input-wrapper">
+        <input type="text" class="search-input" placeholder="Ask anything" autofocus id="chat-input">
+    </div>
+    <script>
+        const input = document.getElementById('chat-input');
+        const h1 = document.querySelector('h1');
+        const blurWrap = document.querySelector('.blur-wrap');
+        const bodyEl = document.body;
+        console.log('h1 element found:', h1);
+        let messages = [];
+        let currentCharElements = [];
+        let nextStreamingDelay = 0; // Track the next delay time for streaming animations
+
+        // Function to update blur based on text presence
+        function updateBlur() {
+            const hasText = currentCharElements.length > 0 && 
+                           currentCharElements.some(el => {
+                               const text = el.textContent.trim();
+                               return text !== '' && text !== '\u00A0';
+                           });
+            if (blurWrap) {
+                if (hasText) {
+                    blurWrap.classList.add('has-text');
+                } else {
+                    blurWrap.classList.remove('has-text');
+                }
+            }
+        }
+
+        // Function to animate text character by character, grouped by words
+        function animateText(text, element) {
+            // Clear existing content
+            element.innerHTML = '';
+            currentCharElements = [];
+
+            // Split text into words (keeping punctuation with words)
+            const words = text.split(/(\s+)/);
+            let globalIndex = 0;
+
+            words.forEach((word) => {
+                if (word.trim() === '' && word.includes(' ')) {
+                    // This is whitespace - add as space
+                    const spaceSpan = document.createElement('span');
+                    spaceSpan.className = 'char space';
+                    spaceSpan.textContent = '\u00A0';
+                    element.appendChild(spaceSpan);
+                    currentCharElements.push(spaceSpan);
+                    globalIndex++;
+                    return;
+                }
+
+                // Create word wrapper
+                const wordWrapper = document.createElement('span');
+                wordWrapper.className = 'word';
+
+                // Split word into characters
+                word.split('').forEach((char, charIndex) => {
+                    const span = document.createElement('span');
+                    const isPunctuation = /[.,!?;:'"\-—–]/.test(char);
+                    
+                    span.className = 'char';
+                    span.textContent = char;
+                    if (isPunctuation) {
+                        span.setAttribute('data-punctuation', 'true');
+                    }
+                    
+                    wordWrapper.appendChild(span);
+                    currentCharElements.push(span);
+
+                    // Animate with staggered delay - punctuation animates with minimal delay
+                    const delay = isPunctuation ? Math.max(0, (globalIndex - 1) * 30) : globalIndex * 30;
+                    globalIndex++;
+                    
+                    setTimeout(() => {
+                        span.classList.add('visible');
+                    }, delay);
+                });
+
+                element.appendChild(wordWrapper);
+            });
+            
+            // Update blur after text is set (with a small delay to ensure elements are in DOM)
+            setTimeout(() => {
+                updateBlur();
+            }, 50);
+        }
+
+        // Function to update text with animation (for streaming)
+        function updateTextWithAnimation(newText, element) {
+            const currentText = currentCharElements.map(el => el.textContent).join('').replace(/\u00A0/g, ' ');
+            
+            // If text is longer, add new characters with animation
+            if (newText.length > currentText.length) {
+                const newChars = newText.slice(currentText.length);
+                
+                // Find the last word wrapper, or create a new one
+                let currentWordWrapper = element.querySelector('.word:last-child');
+                if (!currentWordWrapper || currentText.slice(-1) === ' ') {
+                    // Start a new word (either no word exists, or previous char was a space)
+                    currentWordWrapper = document.createElement('span');
+                    currentWordWrapper.className = 'word';
+                    element.appendChild(currentWordWrapper);
+                }
+                
+                newChars.split('').forEach((char, index) => {
+                    const isPunctuation = /[.,!?;:'"\-—–]/.test(char);
+                    let span;
+                    
+                    // Handle spaces
+                    if (char === ' ') {
+                        // Close current word and add space
+                        span = document.createElement('span');
+                        span.className = 'char space';
+                        span.textContent = '\u00A0';
+                        element.appendChild(span);
+                        currentWordWrapper = null; // Next char will start a new word
+                    }
+                    // Handle characters
+                    else {
+                        // If we don't have a word wrapper, create one
+                        if (!currentWordWrapper) {
+                            currentWordWrapper = document.createElement('span');
+                            currentWordWrapper.className = 'word';
+                            element.appendChild(currentWordWrapper);
+                        }
+                        
+                        span = document.createElement('span');
+                        span.className = 'char';
+                        span.textContent = char;
+                        if (isPunctuation) {
+                            span.setAttribute('data-punctuation', 'true');
+                        }
+                        currentWordWrapper.appendChild(span);
+                    }
+                    
+                    currentCharElements.push(span);
+
+                    // During streaming, use sequential delays to ensure characters animate in order
+                    // Each character waits for the previous one to start animating
+                    const baseDelay = 10; // Short delay between characters (ms)
+                    const delay = isPunctuation ? nextStreamingDelay + 3 : nextStreamingDelay + baseDelay;
+                    nextStreamingDelay = delay; // Update for next character
+                    
+                    setTimeout(() => {
+                        span.classList.add('visible');
+                    }, delay);
+                });
+                
+                updateBlur(); // Update blur as text streams in
+            }
+            // If text is shorter (shouldn't happen during streaming, but handle it)
+            else if (newText.length < currentText.length) {
+                // Re-animate from scratch
+                animateText(newText, element);
+            }
+        }
+
+        // Background color helper based on step
+        function updateBackgroundForStep(step) {
+            if (!bodyEl) return;
+            let color;
+
+            switch (step) {
+                case 1:
+                    color = '#E2E8F0'; // lightest gray
+                    break;
+                case 2:
+                    color = '#CBD5E1'; // light gray
+                    break;
+                case 3:
+                    color = '#94A3B8'; // medium gray
+                    break;
+                case 4:
+                    color = '#475569'; // darkest gray
+                    break;
+                default:
+                    color = '#F1F5F9'; // fallback to extra-light gray for better dark text readability
+            }
+
+            bodyEl.style.backgroundColor = color;
+
+            // Toggle a "dark-step" class when on the darkest background
+            if (step === 4) {
+                bodyEl.classList.add('dark-step');
+            } else {
+                bodyEl.classList.remove('dark-step');
+            }
+        }
+
+        // Animate initial text on page load
+        if (h1 && h1.textContent) {
+            const initialText = h1.textContent;
+            animateText(initialText, h1);
+            // Initial text should not blur (it's the placeholder)
+            setTimeout(() => {
+                updateBlur();
+            }, 100);
+        }
+
+        // Handle form submission
+        input.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                e.preventDefault();
+                const userMessage = input.value.trim();
+                console.log('Sending message:', userMessage);
+                input.value = '';
+                input.disabled = true;
+
+                // Create and animate message pill
+                const pill = document.createElement('div');
+                pill.className = 'message-pill';
+                pill.textContent = userMessage;
+                const inputWrapper = document.querySelector('.input-wrapper');
+                
+                if (inputWrapper && input) {
+                    // Get input's computed styles to match initial appearance
+                    const inputStyles = window.getComputedStyle(input);
+                    const inputRect = input.getBoundingClientRect();
+                    const wrapperRect = inputWrapper.getBoundingClientRect();
+                    
+                    // Set pill to match input's font size initially (width is set in CSS)
+                    pill.style.fontSize = inputStyles.fontSize;
+                    pill.style.fontWeight = inputStyles.fontWeight;
+                    
+                    // Position pill initially at input field's vertical center
+                    // Calculate bottom offset from wrapper's bottom to input's center
+                    const inputCenterY = inputRect.top + (inputRect.height / 2);
+                    const wrapperBottom = wrapperRect.bottom;
+                    const bottomOffset = wrapperBottom - inputCenterY;
+                    
+                    pill.style.bottom = `${bottomOffset}px`;
+                    inputWrapper.appendChild(pill);
+                    
+                    // Force a reflow to ensure initial position is set
+                    pill.offsetHeight;
+                    
+                    // Calculate distance to center of viewport
+                    // We want to move from input center to viewport center
+                    const centerY = window.innerHeight / 2;
+                    const distanceToCenter = centerY - inputCenterY;
+                    
+                    // Set custom property for animation distance (negative because we're moving up)
+                    pill.style.setProperty('--translate-y', `${distanceToCenter}px`);
+                    
+                    // Trigger animation after a brief delay
+                    setTimeout(() => {
+                        pill.classList.add('animating');
+                        
+                        // Remove pill after animation completes
+                        setTimeout(() => {
+                            pill.remove();
+                        }, 1500);
+                    }, 50);
+                }
+
+                // Reset h1 text
+                if (h1) {
+                    h1.innerHTML = '';
+                    currentCharElements = [];
+                    nextStreamingDelay = 0; // Reset streaming delay
+                    updateBlur(); // Update blur when text is cleared
+                    console.log('Reset h1 text');
+                } else {
+                    console.error('h1 element not found when trying to reset!');
+                }
+
+                // Add user message to messages array
+                messages.push({ role: 'user', content: userMessage });
+                console.log('Messages array:', messages);
+
+                try {
+                    console.log('Fetching /api/chat (JSON)...');
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ messages }),
+                    });
+
+                    console.log('Response status:', response.status, response.statusText);
+                    console.log('Response headers:', [...response.headers.entries()]);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('Response not OK:', errorText);
+                        throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('JSON payload from /api/chat:', data);
+
+                    const assistantStep = data.mood;
+                    const assistantText = data.text;
+
+                    if (typeof assistantText === 'string' && assistantText.trim().length > 0) {
+                        // Animate the assistant's reply text into the h1
+                        if (h1) {
+                            animateText(assistantText, h1);
+                        }
+
+                        // Store assistant message with metadata for future context
+                        messages.push({
+                            role: 'assistant',
+                            content: assistantText,
+                            step: assistantStep,
+                        });
+
+                        console.log('Assistant step:', assistantStep);
+
+                        // Update background color based on step
+                        updateBackgroundForStep(assistantStep);
+                    } else {
+                        console.warn('No assistant text received!');
+                        if (h1) {
+                            animateText('No response received', h1);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    console.error('Error stack:', error.stack);
+                    if (h1) {
+                        animateText('Error: ' + error.message, h1);
+                    }
+                } finally {
+                    input.disabled = false;
+                    input.focus();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

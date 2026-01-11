@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading List Proto</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+        
+        li {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: stretch;
+            min-height: 120px;
+        }
+        
+        li:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        a {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 24px;
+            text-decoration: none;
+            color: #333;
+            height: 100%;
+            width: 100%;
+            flex: 1 1 auto;
+            transition: background-color 0.2s ease;
+        }
+        
+        .favicon {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            border-radius: 12px;
+        }
+        
+        .link-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+            word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
+            line-clamp: 3;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .link-content {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .link-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 6px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .link-url {
+            font-size: 13px;
+            color: #666;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .loading {
+            opacity: 0.6;
+        }
+        
+        .error {
+            opacity: 0.8;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .modal-content {
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .iframe-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+        
+        .iframe-controls button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .iframe-controls button:hover:not(:disabled) {
+            background-color: #e9ecef;
+            transform: translateY(-1px);
+        }
+        
+        .iframe-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #openInNewTabBtn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+        }
+        
+        #openInNewTabBtn svg {
+            display: block;
+        }
+        
+        .current-url {
+            flex: 1;
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+        
+        .iframe-container {
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        #contentFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .loading-indicator {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .header-row {
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            z-index: 100;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header-row h1 {
+            margin: 0;
+        }
+        
+        .add-article-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .add-article-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .filter-controls label {
+            font-weight: 500;
+        }
+        
+        .filter-controls select {
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #212529;
+            outline: none;
+            padding-right: 4px;
+            cursor: pointer;
+        }
+        
+        .add-article-modal {
+            max-width: 500px;
+            height: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .close-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .add-article-form {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            color: #475569;
+            border: 1px solid #cbd5f5;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        
+        li.read .status-pill {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-color: #badbcc;
+        }
+        .status-pill:hover {
+            background: #dfe7fb;
+        }
+        
+        
+        li.read {
+            opacity: 0.65;
+        }
+        
+        li.read .link-title {
+            text-decoration: line-through;
+        }
+        
+        li.empty-state {
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            color: #6c757d;
+            background: transparent;
+            box-shadow: none;
+            border: 1px dashed #ced4da;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-row">
+        <h1>Reading List Prototype</h1>
+        <div class="header-actions">
+            <div class="filter-controls">
+                <label for="statusFilter">Show</label>
+                <select id="statusFilter">
+                    <option value="all">All</option>
+                    <option value="unread">Unread</option>
+                    <option value="read">Read</option>
+                </select>
+            </div>
+            <button id="addArticleBtn" class="add-article-btn">+ Add Article</button>
+        </div>
+    </div>
+    
+    <!-- Add Article Modal -->
+    <div id="addArticleModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content add-article-modal">
+            <div class="modal-header">
+                <h2>Add New Article</h2>
+                <button id="closeAddModal" class="close-btn">✕</button>
+            </div>
+            <form id="addArticleForm" class="add-article-form">
+                <div class="form-group">
+                    <label for="articleTitle">Title</label>
+                    <input type="text" id="articleTitle" name="title" required placeholder="Enter article title">
+                </div>
+                <div class="form-group">
+                    <label for="articleUrl">URL</label>
+                    <input type="url" id="articleUrl" name="url" required placeholder="https://example.com/article">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelAdd" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Article</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal overlay -->
+    <div id="modalOverlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <!-- Navigation controls for iframe -->
+            <div class="iframe-controls">
+                <button id="backBtn" onclick="goBack()" disabled>←</button>
+                <button id="forwardBtn" onclick="goForward()" disabled>→</button>
+                <button id="openInNewTabBtn" onclick="openInNewTab()" title="Open in new tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                </button>
+                <button id="closeBtn" onclick="closeModal()">✕</button>
+                <span id="currentUrl" class="current-url"></span>
+            </div>
+            
+            <!-- Iframe container -->
+            <div class="iframe-container">
+                <iframe id="contentFrame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <ul id="readingList">
+        <!-- Links will be loaded dynamically -->
+    </ul>
+    
+    <div id="loadingIndicator" class="loading-indicator">
+        Loading reading list...
+    </div>
+    
+    <div id="errorMessage" class="error-message" style="display: none;">
+        Failed to load reading list. Please try again.
+    </div>
+    
+    <script>
+        // Function to get favicon URL
+        function getFaviconUrl(url) {
+            try {
+                const domain = new URL(url).origin;
+                return `${domain}/favicon.ico`;
+            } catch (e) {
+                return null;
+            }
+        }
+        
+        // Function to fetch page title
+        async function fetchPageTitle(url) {
+            try {
+                // Use a CORS proxy or alternative method
+                // For now, we'll extract domain name as fallback
+                const domain = new URL(url).hostname;
+                return domain.replace('www.', '');
+            } catch (e) {
+                return 'Unknown';
+            }
+        }
+        
+        // Global variables for article navigation
+        let allArticles = [];
+        let currentArticleIndex = -1;
+        let currentFilter = 'all';
+        
+        // Function to load URL in iframe
+        function loadInFrame(url) {
+            // Find the article index in the list
+            const index = allArticles.findIndex(article => article.url === url);
+            
+            if (index !== -1) {
+                currentArticleIndex = index;
+            }
+            
+            const frame = document.getElementById('contentFrame');
+            const urlDisplay = document.getElementById('currentUrl');
+            const modal = document.getElementById('modalOverlay');
+            
+            // Show modal
+            modal.style.display = 'flex';
+            
+            frame.src = url;
+            urlDisplay.textContent = url;
+            
+            // Update navigation buttons
+            updateNavigationButtons();
+        }
+        
+        // Function to close modal
+        function closeModal() {
+            const modal = document.getElementById('modalOverlay');
+            modal.style.display = 'none';
+            
+            // Clear iframe content
+            document.getElementById('contentFrame').src = 'about:blank';
+            document.getElementById('currentUrl').textContent = '';
+        }
+        
+        // Function to update navigation button states
+        function updateNavigationButtons() {
+            // Buttons are never disabled since we loop around
+            document.getElementById('backBtn').disabled = false;
+            document.getElementById('forwardBtn').disabled = false;
+        }
+        
+        // Navigation functions with looping
+        function goBack() {
+            if (currentArticleIndex > 0) {
+                currentArticleIndex--;
+            } else {
+                // Loop to the end
+                currentArticleIndex = allArticles.length - 1;
+            }
+            
+            const article = allArticles[currentArticleIndex];
+            if (article) {
+                document.getElementById('contentFrame').src = article.url;
+                document.getElementById('currentUrl').textContent = article.url;
+            }
+        }
+        
+        function goForward() {
+            if (currentArticleIndex < allArticles.length - 1) {
+                currentArticleIndex++;
+            } else {
+                // Loop to the beginning
+                currentArticleIndex = 0;
+            }
+            
+            const article = allArticles[currentArticleIndex];
+            if (article) {
+                document.getElementById('contentFrame').src = article.url;
+                document.getElementById('currentUrl').textContent = article.url;
+            }
+        }
+        
+        function openInNewTab() {
+            const article = allArticles[currentArticleIndex];
+            if (article) {
+                window.open(article.url, '_blank');
+            }
+        }
+        
+        function normalizeArticle(article) {
+            return {
+                ...article,
+                read: Boolean(article.read)
+            };
+        }
+        
+        function getFilteredArticles() {
+            return allArticles.filter(article => {
+                if (currentFilter === 'read') {
+                    return Boolean(article.read);
+                }
+                if (currentFilter === 'unread') {
+                    return !Boolean(article.read);
+                }
+                return true;
+            });
+        }
+        
+        async function toggleReadStatus(id, nextValue) {
+            try {
+                const response = await fetch(`http://localhost:3002/api/reading-list/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ read: nextValue })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const updatedArticle = normalizeArticle(await response.json());
+                allArticles = allArticles.map(article => 
+                    article.id === id ? updatedArticle : article
+                );
+                
+                // Preserve current index if we're looking at this article
+                if (currentArticleIndex !== -1 && allArticles[currentArticleIndex]?.id === id) {
+                    currentArticleIndex = allArticles.findIndex(article => article.id === id);
+                }
+                
+                await renderReadingList();
+            } catch (error) {
+                console.error('Error updating read status:', error);
+                alert('Failed to update read status. Please try again.');
+            }
+        }
+        
+        async function renderReadingList() {
+            const readingList = document.getElementById('readingList');
+            readingList.innerHTML = '';
+            
+            if (allArticles.length === 0) {
+                currentArticleIndex = -1;
+            } else if (currentArticleIndex >= allArticles.length) {
+                currentArticleIndex = allArticles.length - 1;
+            }
+            
+            const articlesToRender = getFilteredArticles();
+            
+            if (articlesToRender.length === 0) {
+                const emptyState = document.createElement('li');
+                emptyState.className = 'empty-state';
+                
+                if (currentFilter === 'read') {
+                    emptyState.textContent = 'No articles marked as read yet.';
+                } else if (currentFilter === 'unread') {
+                    emptyState.textContent = 'All caught up! Everything here is read.';
+                } else {
+                    emptyState.textContent = 'No articles in the reading list yet.';
+                }
+                
+                readingList.appendChild(emptyState);
+                return;
+            }
+            
+            articlesToRender.forEach(article => {
+                const listItem = document.createElement('li');
+                if (article.read) {
+                    listItem.classList.add('read');
+                }
+                
+                const link = document.createElement('a');
+                link.href = article.url;
+                link.textContent = article.title;
+                link.dataset.articleId = article.id;
+                link.dataset.read = article.read ? 'true' : 'false';
+                
+                listItem.appendChild(link);
+                readingList.appendChild(listItem);
+            });
+            
+            await enhanceAllLinks();
+        }
+        
+        // Function to enhance a single link
+        async function enhanceLink(link) {
+            const url = link.href;
+            const faviconUrl = getFaviconUrl(url);
+            const articleId = link.dataset.articleId;
+            const matchedArticle = articleId 
+                ? allArticles.find(article => article.id === articleId) 
+                : allArticles.find(article => article.url === url);
+            const isRead = matchedArticle ? Boolean(matchedArticle.read) : link.dataset.read === 'true';
+            
+            // Add click handler to load in iframe
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadInFrame(url);
+            });
+            
+            // Add loading class
+            link.classList.add('loading');
+            
+            // Create favicon element
+            const favicon = document.createElement('img');
+            favicon.className = 'favicon';
+            favicon.src = faviconUrl;
+            favicon.alt = '';
+            favicon.onerror = function() {
+                // Fallback to a default icon or hide
+                this.style.display = 'none';
+            };
+            
+            // Create content wrapper
+            const content = document.createElement('div');
+            content.className = 'link-content';
+            
+            // Create title element
+            const title = document.createElement('div');
+            title.className = 'link-title';
+            title.textContent = link.textContent;
+            
+            const meta = document.createElement('div');
+            meta.className = 'link-meta';
+            
+            // Create URL element
+            const urlElement = document.createElement('div');
+            urlElement.className = 'link-url';
+            urlElement.textContent = url;
+            
+            const statusButton = document.createElement('button');
+            statusButton.type = 'button';
+            statusButton.className = 'status-pill';
+            statusButton.textContent = isRead ? 'Read' : 'Unread';
+            statusButton.setAttribute('aria-pressed', isRead ? 'true' : 'false');
+            statusButton.addEventListener('click', async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const currentArticle = articleId 
+                    ? allArticles.find(article => article.id === articleId) 
+                    : allArticles.find(article => article.url === url);
+                
+                if (!currentArticle || !currentArticle.id) {
+                    console.warn('Unable to toggle read state: missing article ID');
+                    return;
+                }
+                
+                await toggleReadStatus(currentArticle.id, !Boolean(currentArticle.read));
+            });
+            
+            meta.appendChild(urlElement);
+            meta.appendChild(statusButton);
+            
+            // Assemble the new structure
+            content.appendChild(title);
+            content.appendChild(meta);
+            
+            // Clear the link content and add new elements
+            link.innerHTML = '';
+            link.appendChild(favicon);
+            link.appendChild(content);
+            
+            // Remove loading class
+            link.classList.remove('loading');
+        }
+        
+        // Function to load reading list from API
+        async function loadReadingList() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            try {
+                loadingIndicator.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                const response = await fetch('http://localhost:3002/api/reading-list');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                loadingIndicator.style.display = 'none';
+                
+                // Store articles globally for navigation
+                allArticles = Array.isArray(data.links) ? data.links.map(normalizeArticle) : [];
+                
+                await renderReadingList();
+                
+            } catch (error) {
+                console.error('Error loading reading list:', error);
+                loadingIndicator.style.display = 'none';
+                errorMessage.style.display = 'block';
+            }
+        }
+        
+        // Function to enhance all links
+        async function enhanceAllLinks() {
+            const links = document.querySelectorAll('ul li a');
+            
+            // Process links in batches to avoid overwhelming the browser
+            const batchSize = 5;
+            for (let i = 0; i < links.length; i += batchSize) {
+                const batch = Array.from(links).slice(i, i + batchSize);
+                await Promise.all(batch.map(link => enhanceLink(link)));
+                
+                // Small delay between batches
+                if (i + batchSize < links.length) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+        }
+        
+        // Add ESC key handling to close modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modalOverlay');
+                if (modal.style.display === 'flex') {
+                    closeModal();
+                }
+            }
+        });
+        
+        // Add click outside modal to close
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Add Article functionality
+        function openAddModal() {
+            document.getElementById('addArticleModal').style.display = 'flex';
+            document.getElementById('articleTitle').focus();
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addArticleModal').style.display = 'none';
+            document.getElementById('addArticleForm').reset();
+        }
+        
+        async function addArticle(title, url) {
+            try {
+                const response = await fetch('http://localhost:3002/api/reading-list', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, url })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const newArticle = await response.json();
+                console.log('Article added:', newArticle);
+                
+                // Reload the reading list to show the new article
+                await loadReadingList();
+                
+                // Close the modal
+                closeAddModal();
+                
+            } catch (error) {
+                console.error('Error adding article:', error);
+                alert('Failed to add article. Please try again.');
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReadingList();
+            
+            // Add article button event listeners
+            document.getElementById('addArticleBtn').addEventListener('click', openAddModal);
+            document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
+            document.getElementById('cancelAdd').addEventListener('click', closeAddModal);
+            
+            const statusFilter = document.getElementById('statusFilter');
+            statusFilter.value = currentFilter;
+            statusFilter.addEventListener('change', async function(e) {
+                currentFilter = e.target.value;
+                await renderReadingList();
+            });
+            
+            // Form submission
+            document.getElementById('addArticleForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('articleTitle').value.trim();
+                const url = document.getElementById('articleUrl').value.trim();
+                
+                if (title && url) {
+                    addArticle(title, url);
+                }
+            });
+            
+            // Close modal when clicking outside
+            document.getElementById('addArticleModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddModal();
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>

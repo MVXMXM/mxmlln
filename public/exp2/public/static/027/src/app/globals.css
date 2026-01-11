@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  --n1: #F8FAFC;
+  --n2: #F1F5F9;
+  --n3: #E2E8F0;
+  --n4: #CBD5E1;
+  --foreground: #0f172a;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--n1);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+}

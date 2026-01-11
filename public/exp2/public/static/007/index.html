@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nav Bar Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1A1B1F;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-container {
+            display: flex;
+            height: 40px;
+            padding: 0 16px;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.10);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: visible;
+        }
+
+        .nav-item {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: 400;
+            text-decoration: none;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            transition: color 0.3s ease;
+            z-index: 1;
+        }
+
+        .nav-item.active {
+            color: #fff;
+        }
+
+        .active-indicator {
+            position: absolute;
+            bottom: -1px;
+            height: 1px;
+            background: linear-gradient(270deg, rgba(29, 205, 152, 0.00) 0%, #1DCD98 50%, rgba(29, 205, 152, 0.00) 100%);
+            z-index: 2;
+        }
+
+        .nav-item:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-container">
+        <a href="#" class="nav-item active">Home</a>
+        <a href="#" class="nav-item">About</a>
+        <a href="#" class="nav-item">Contact</a>
+        <div class="active-indicator"></div>
+    </nav>
+
+    <script>
+        const navItems = document.querySelectorAll('.nav-item');
+        const indicator = document.querySelector('.active-indicator');
+        
+        function updateIndicator(item) {
+            const rect = item.getBoundingClientRect();
+            const containerRect = item.parentElement.getBoundingClientRect();
+            const newLeft = rect.left - containerRect.left;
+            
+            indicator.style.width = `${rect.width}px`;
+            indicator.style.transition = 'left 0.3s ease, width 0.3s ease';
+            indicator.style.left = `${newLeft}px`;
+            
+            setTimeout(() => {
+                indicator.style.transition = '';
+            }, 300);
+        }
+        
+        // Initialize indicator position
+        updateIndicator(document.querySelector('.nav-item.active'));
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const previousActive = document.querySelector('.nav-item.active');
+                navItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                updateIndicator(item);
+            });
+        });
+    </script>
+</body>
+</html> 

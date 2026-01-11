@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Block</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #09090B;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #09090B;
+      box-sizing: border-box;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    .code-block-wrapper {
+      margin-bottom: 40px;
+      max-width: 1000px;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .code-tabs {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .code-tab {
+      background: rgba(51, 65, 85, 0.3);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      color: rgba(203, 213, 225, 0.7);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .code-tab:hover {
+      background: rgba(51, 65, 85, 0.4);
+      color: rgba(203, 213, 225, 0.9);
+    }
+    .code-tab.active {
+      background: rgba(29, 205, 152, 0.15);
+      border-color: #1DCD98;
+      color: #1DCD98;
+    }
+    .code-example {
+      display: none;
+      min-height: 0;
+    }
+    .code-example.active {
+      display: block;
+    }
+    pre {
+      position: relative;
+      box-sizing: border-box;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      overflow-x: scroll;
+      padding: 16px 0;
+      gap: 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      background: rgba(26, 27, 31, 0.5);
+    }
+    pre code {
+      margin: 0;
+      padding: 0;
+    }
+    /* Default: less important code */
+    .code-content {
+      color: #64748B;
+    }
+    /* Important code - marked with .important class */
+    .code-content .important,
+    .code-content span.important {
+      color: #64748B;
+      transition: color 0.2s ease-in;
+    }
+    .code-content .important.fade-in,
+    .code-content span.important.fade-in {
+      color: #1DCD98;
+    }
+    /* HTTP methods */
+    .code-content .method {
+      color: #64748B;
+      transition: color 0.2s ease-in;
+    }
+    .code-content .method.fade-in {
+      color: #35A4B9;
+    }
+    .code-lines {
+      vertical-align: top;
+      margin: 0;
+      background: none;
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(51, 65, 85, 0.75);
+      text-align: right;
+      font-size: 14px;
+      font-weight: 100;
+      line-height: 170%;
+      width: 32px;
+    }
+    .code-content {
+      width: 100%;
+      overflow: scroll;
+      padding: 0;
+      margin: 0;
+      white-space: pre;
+      vertical-align: top;
+      background: transparent !important;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 170%;
+    }
+    .copy-btn {
+      position: absolute;
+      visibility: hidden;
+      z-index: 10;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(77, 77, 77, 0);
+      border: none;
+      border-radius: 8px;
+      font-size: 10px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .copy-btn:hover {
+      background: rgba(77, 77, 77, 1);
+    }
+    .copied-label {
+      margin-left: 0.45em;
+      font-size: 0.96em;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+  <body>
+    <div class="code-block-wrapper">
+      <div class="code-tabs">
+        <button class="code-tab active" data-tab="0">Example One</button>
+        <button class="code-tab" data-tab="1">Example Two</button>
+        <button class="code-tab" data-tab="2">Example Three</button>
+      </div>
+      <div class="code-example active" data-example="0">
+        <pre>
+          <button class="copy-btn" data-copy="0" title="Copy code">
+            <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <code class="code-lines" aria-hidden="true"></code>
+          <code class="code-content">curl --request <span class="method">POST</span> \
+  --url <span class="important">https://api.yutori.com/v1/browsing/tasks</span> \
+  --header 'X-API-Key: <span class="important">YOUR_API_KEY</span>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "task": <span class="important">"Give me a list of all employees (names and titles) of Yutori."</span>,
+  "start_url": <span class="important">"https://yutori.com"</span>
+}'</code>
+        </pre>
+      </div>
+      <div class="code-example" data-example="1">
+        <pre>
+          <button class="copy-btn" data-copy="1" title="Copy code">
+            <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <code class="code-lines" aria-hidden="true"></code>
+          <code class="code-content">const response = await fetch(<span class="important">'https://api.yutori.com/v1/browsing/tasks'</span>, {
+  method: <span class="method">'POST'</span>,
+  headers: {
+    <span class="important">'X-API-Key'</span>: <span class="important">'YOUR_API_KEY'</span>,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    task: <span class="important">"Give me a list of all employees (names and titles) of Yutori."</span>,
+    start_url: <span class="important">"https://yutori.com"</span>
+  })
+});
+
+const data = await response.json();</code>
+        </pre>
+      </div>
+      <div class="code-example" data-example="2">
+        <pre>
+          <button class="copy-btn" data-copy="2" title="Copy code">
+            <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <code class="code-lines" aria-hidden="true"></code>
+          <code class="code-content">import requests
+
+response = requests.<span class="method">post</span>(
+  <span class="important">'https://api.yutori.com/v1/browsing/tasks'</span>,
+  headers={
+    <span class="important">'X-API-Key'</span>: <span class="important">'YOUR_API_KEY'</span>,
+    'Content-Type': 'application/json'
+  },
+  json={
+    'task': <span class="important">'Give me a list of all employees (names and titles) of Yutori.'</span>,
+    'start_url': <span class="important">'https://yutori.com'</span>
+  }
+)
+
+data = response.json()</code>
+        </pre>
+      </div>
+    </div>
+  <script>
+    // Function to generate line numbers for a code block
+    function generateLineNumbers(codeElement, linesElement) {
+      let raw = codeElement.textContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      raw = raw.replace(/^\s*\n/, '').replace(/\s+$/, '');
+      const lines = raw.split('\n');
+      linesElement.innerHTML = lines.map((_, i) => (i + 1)).join('<br>');
+    }
+
+    // Initialize line numbers for all code examples and set equal heights
+    document.addEventListener('DOMContentLoaded', function() {
+      const codeExamples = document.querySelectorAll('.code-example');
+      
+      // First, make all visible to measure heights
+      codeExamples.forEach(example => {
+        example.style.display = 'block';
+        example.style.visibility = 'hidden';
+        const code = example.querySelector('.code-content');
+        const codeLines = example.querySelector('.code-lines');
+        if (code && codeLines) {
+          generateLineNumbers(code, codeLines);
+          // Make colored spans visible on initial load
+          const coloredSpans = code.querySelectorAll('.important, .method');
+          coloredSpans.forEach(span => {
+            span.classList.add('fade-in');
+          });
+        }
+      });
+      
+      // Find the tallest example
+      let maxHeight = 0;
+      codeExamples.forEach(example => {
+        const height = example.offsetHeight;
+        if (height > maxHeight) {
+          maxHeight = height;
+        }
+      });
+      
+      // Set all examples to the max height and restore visibility
+      codeExamples.forEach((example, index) => {
+        example.style.height = maxHeight + 'px';
+        example.style.visibility = 'visible';
+        if (index === 0) {
+          example.classList.add('active');
+        } else {
+          example.style.display = 'none';
+        }
+      });
+    });
+
+    // Text scramble effect that preserves HTML structure
+    function scrambleTextWithHTML(element, finalHTML, duration = 500) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = finalHTML;
+      const finalText = tempDiv.textContent || tempDiv.innerText;
+      
+      // Start with all spaces (preserve actual spaces and newlines)
+      const initialSpaces = finalText.split('').map(char => {
+        if (char === ' ' || char === '\n') return char;
+        return ' ';
+      }).join('');
+      element.textContent = initialSpaces;
+      
+      const frameTime = 10; // Update every 10ms for smoother animation
+      const totalFrames = duration / frameTime;
+      const charsPerFrame = finalText.length / (totalFrames * 0.7); // Resolve 70% of animation time
+      
+      // Track which characters have started scrambling and their progress
+      const charStates = finalText.split('').map((char, index) => ({
+        char: char,
+        started: false,
+        resolved: false,
+        scrambleCount: 0,
+        currentScramble: ' '
+      }));
+      
+      let totalResolved = 0;
+      const waveSpeed = 3; // Characters per frame that start scrambling
+      let wavePosition = 0;
+      let frameCount = 0;
+      const minScrambles = 3; // Minimum number of character changes before resolving
+      const scrambleInterval = 6; // Change scramble character every N frames
+      
+      const interval = setInterval(() => {
+        frameCount++;
+        
+        // Start scrambling characters from left to right
+        for (let i = 0; i < Math.min(wavePosition + waveSpeed, charStates.length); i++) {
+          if (!charStates[i].started && (i === 0 || charStates[i - 1].started)) {
+            charStates[i].started = true;
+          }
+        }
+        wavePosition += waveSpeed;
+        
+        // Update each character
+        const scrambled = charStates.map((state, index) => {
+          if (state.char === ' ' || state.char === '\n') {
+            return state.char;
+          }
+          
+          if (!state.started) {
+            return ' '; // Still a space, hasn't started yet
+          }
+          
+          if (state.resolved) {
+            return state.char; // Already resolved
+          }
+          
+          // Change scramble character periodically
+          if (frameCount % scrambleInterval === 0 || state.scrambleCount === 0) {
+            state.currentScramble = chars[Math.floor(Math.random() * chars.length)];
+            state.scrambleCount++;
+          }
+          
+          // Only resolve after minimum scrambles
+          if (state.scrambleCount >= minScrambles) {
+            state.resolved = true;
+            totalResolved++;
+            return state.char;
+          }
+          
+          // Return current scramble char
+          return state.currentScramble;
+        }).join('');
+        
+        element.textContent = scrambled;
+        
+        // Check if all characters are resolved
+        if (totalResolved >= charStates.filter(s => s.char !== ' ' && s.char !== '\n').length) {
+          clearInterval(interval);
+          element.innerHTML = finalHTML;
+          
+          // Fade in colored spans after a brief delay
+          setTimeout(() => {
+            const coloredSpans = element.querySelectorAll('.important, .method');
+            coloredSpans.forEach((span, index) => {
+              setTimeout(() => {
+                span.classList.add('fade-in');
+              }, index * 20); // Stagger the fade-in slightly
+            });
+          }, 50);
+        }
+      }, frameTime);
+    }
+    
+    // Simple text scramble for plain text elements
+    function scrambleText(element, finalText, duration = 1000) {
+      const chars = 'YUTORI';
+      
+      // Start with all spaces (preserve actual spaces)
+      const initialSpaces = finalText.split('').map(char => char === ' ' ? ' ' : ' ').join('');
+      element.textContent = initialSpaces;
+      
+      let iterations = 0;
+      const frameTime = 10;
+      const totalFrames = duration / frameTime;
+      const charsPerFrame = finalText.length / (totalFrames * 0.9);
+      
+      // Small delay before starting scramble
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          element.textContent = finalText
+            .split('')
+            .map((char, index) => {
+              if (index < iterations) {
+                return finalText[index];
+              }
+              if (char === ' ') return ' ';
+              return chars[Math.floor(Math.random() * chars.length)];
+            })
+            .join('');
+          
+          iterations += charsPerFrame;
+          
+          if (iterations >= finalText.length) {
+            clearInterval(interval);
+            element.textContent = finalText;
+          }
+        }, frameTime);
+      }, 50);
+    }
+
+    // Tab switching functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.code-tab');
+      const examples = document.querySelectorAll('.code-example');
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const tabIndex = this.getAttribute('data-tab');
+          
+          // Update active tab
+          tabs.forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Update active example
+          examples.forEach(ex => {
+            ex.classList.remove('active');
+            if (ex.getAttribute('data-example') === tabIndex) {
+              ex.classList.add('active');
+              ex.style.display = 'block';
+              
+              // Scramble effect on code content
+              const codeContent = ex.querySelector('.code-content');
+              if (codeContent) {
+                // Remove fade-in classes from colored spans before scrambling
+                const coloredSpans = codeContent.querySelectorAll('.important, .method');
+                coloredSpans.forEach(span => {
+                  span.classList.remove('fade-in');
+                });
+                
+                const codeHTML = codeContent.innerHTML;
+                scrambleTextWithHTML(codeContent, codeHTML, 500);
+              }
+            } else {
+              ex.style.display = 'none';
+              // Remove fade-in classes from hidden examples
+              const codeContent = ex.querySelector('.code-content');
+              if (codeContent) {
+                const coloredSpans = codeContent.querySelectorAll('.important, .method');
+                coloredSpans.forEach(span => {
+                  span.classList.remove('fade-in');
+                });
+              }
+            }
+          });
+        });
+      });
+    });
+
+    // Copy code to clipboard handler for all copy buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      const copyButtons = document.querySelectorAll('.copy-btn');
+      copyButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const exampleIndex = this.getAttribute('data-copy');
+          const example = document.querySelector(`[data-example="${exampleIndex}"]`);
+          const code = example.querySelector('.code-content');
+          
+          navigator.clipboard.writeText(code.innerText).then(() => {
+            // Show Copied! label
+            let label = this.querySelector('.copied-label');
+            if (!label) {
+              label = document.createElement('span');
+              label.className = 'copied-label';
+              this.appendChild(label);
+            }
+            label.textContent = "Copied!";
+            // Hide label after delay
+            setTimeout(() => {
+              if (this.contains(label)) this.removeChild(label);
+            }, 1400);
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

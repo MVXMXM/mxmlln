@@ -1,0 +1,14 @@
+{
+  "name": "reading-list-service",
+  "version": "1.0.0",
+  "description": "Dedicated service for reading list functionality",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
