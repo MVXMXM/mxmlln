@@ -1,0 +1,14 @@
+/* Reset parent styles for this experiment */
+html, body {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  display: block !important;
+  align-items: initial !important;
+  flex-direction: initial !important;
+  overflow: hidden !important;
+  color: inherit !important;
+}
