@@ -1,11 +1,12 @@
-import GlassCard from "./components/GlassCard"
+import { TextAnimate } from "./components/TextAnimate"
+import "./globals.css"
 
 export default function Home() {
   return (
-    <GlassCard
-      title="Follow the light"
-      subtitle="Do not go gentle into that good night."
-      buttonText="Explore Components"
-    />
+    <div className="text-block">
+      <TextAnimate animation="blurInUp" by="character">
+        Intelligence
+      </TextAnimate>
+    </div>
   )
-}
+} 
