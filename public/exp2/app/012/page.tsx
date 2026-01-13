@@ -1,6 +1,7 @@
 "use client";
 import { useChat } from '@ai-sdk/react';
-import { useRef, useEffect, useState } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { TextAnimate } from "@/registry/magicui/TextAnimate";
 
 // Helper to generate a variable weather description for the LLM
@@ -65,7 +66,11 @@ export default function Page() {
   const [input, setInput] = useState('');
   const prevPairCount = useRef(0);
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transport = useMemo(() => new DefaultChatTransport({ api: '/012/api/chat' }), []) as any;
+  
   const { messages, sendMessage, status } = useChat({
+    transport,
     onFinish: () => {
       setTimeout(() => {
         inputRef.current?.focus();
