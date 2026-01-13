@@ -1,7 +1,6 @@
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextRequest } from 'next/server';
-import ReactMarkdown from 'react-markdown';
 
 export const runtime = 'edge';
 
@@ -28,8 +27,8 @@ export async function POST(req: NextRequest) {
         - Use em-dashes sparingly — and surround them with spaces.  
         - Employ ellipses (…) only for gentle, atmospheric pauses.
         `,
-    messages,
+    messages: convertToModelMessages(messages),
   });
 
-  return result.toDataStreamResponse();
+  return result.toUIMessageStreamResponse();
 } 
