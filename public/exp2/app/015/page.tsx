@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 
 export default function Page() {
   useEffect(() => {
-    window.location.href = '/static/017/index.html';
+    window.location.href = '/static/019/index.html';
   }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p>Redirecting to experiment 017...</p>
+      <p>Redirecting to experiment 019...</p>
     </div>
   );
 }

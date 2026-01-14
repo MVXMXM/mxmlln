@@ -4,6 +4,47 @@ import { DefaultChatTransport } from 'ai';
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { TextAnimate } from "@/registry/magicui/TextAnimate";
 
+// Helper to generate a variable weather description for the LLM
+function makeWeatherDescription(weather: string) {
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  if (weather.includes('rain')) return pick([
+    "rainy",
+    "showery",
+    "wet and drizzly",
+    "a day of steady rain",
+    "NYC is getting a good soaking"
+  ]);
+  if (weather.includes('cloud')) return pick([
+    "cloudy",
+    "overcast",
+    "a sky full of clouds",
+    "gray and subdued",
+    "the sun is hiding behind clouds"
+  ]);
+  if (weather.includes('clear') || weather.includes('sun')) return pick([
+    "sunny",
+    "bright and clear",
+    "bathed in sunshine",
+    "a perfect blue sky",
+    "NYC is sparkling in the sun"
+  ]);
+  if (weather.includes('snow')) return pick([
+    "snowy",
+    "blanketed in snow",
+    "flurries are falling",
+    "a winter wonderland",
+    "NYC is shimmering with snow"
+  ]);
+  if (weather.includes('fog')) return pick([
+    "foggy",
+    "misty",
+    "shrouded in fog",
+    "the city is wrapped in mist",
+    "a mysterious, fog-laden day"
+  ]);
+  return weather;
+}
+
 // Helper to get text content from a message
 function getMessageText(msg: { parts?: Array<{ type: string; text?: string }>; content?: string }): string {
   if (msg.parts) {
@@ -16,8 +57,14 @@ export default function Page() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const latestMsgRef = useRef<HTMLDivElement>(null);
+  const latestPairRef = useRef<HTMLDivElement>(null);
   const [hasUserMessage, setHasUserMessage] = useState(false);
+  const [initialMessageSent, setInitialMessageSent] = useState(false);
+  const [weatherDesc, setWeatherDesc] = useState<string | null>(null);
+  const [nycTime, setNycTime] = useState<string | null>(null);
+  const [nycSeconds, setNycSeconds] = useState<string | null>(null);
   const [input, setInput] = useState('');
+  const prevPairCount = useRef(0);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const transport = useMemo(() => new DefaultChatTransport({ api: '/010/api/chat' }), []) as any;
@@ -31,13 +78,54 @@ export default function Page() {
     },
   });
 
+  // Fetch weather and time on mount
+  useEffect(() => {
+    async function fetchWeatherAndTime() {
+      try {
+        // Open-Meteo API for NYC: latitude=40.7128, longitude=-74.0060
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current_weather=true');
+        const data = await res.json();
+        const code = data.current_weather.weathercode;
+        // Map Open-Meteo weather codes to text
+        let weather = '';
+        if (code === 0) weather = 'clear';
+        else if ([1,2,3].includes(code)) weather = 'cloudy';
+        else if ([45,48].includes(code)) weather = 'foggy';
+        else if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) weather = 'rainy';
+        else if ([71,73,75,77,85,86].includes(code)) weather = 'snowy';
+        else weather = 'unknown';
+        setWeatherDesc(makeWeatherDescription(weather));
+        // Get current time in NYC (America/New_York)
+        const now = new Date();
+        const nycHour = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: true });
+        const nycSeconds = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', second: '2-digit' });
+        setNycTime(`${nycHour}`);
+        setNycSeconds(nycSeconds);
+      } catch {
+        setWeatherDesc(null);
+        setNycTime(null);
+        setNycSeconds(null);
+      }
+    }
+    fetchWeatherAndTime();
+  }, []);
+
+  // On first mount, send the initial user message after weatherDesc and nycTime are loaded
+  useEffect(() => {
+    if (!initialMessageSent && weatherDesc && nycTime && nycSeconds && messages.length === 0) {
+      sendMessage({
+        parts: [{ type: 'text', text: `The current weather in NYC is: ${weatherDesc}. The current time in NYC is: ${nycTime}. The current time in seconds is: ${nycSeconds}. State the time only by the hour (e.g., '5PM'), not the full time. Use the seconds value internally to help you randomize or select a topic. State the weather and time in the location, then add around six words of commentary on them. Then ask the user if they will do a specific activity that is fitting for the provided weather and time, but do not choose activities that are too obvious. The question should be surprising, succinct (under ten words), and not about the weather or time itself, nor include a greeting.` }],
+      });
+      setInitialMessageSent(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialMessageSent, weatherDesc, nycTime, nycSeconds, messages.length]);
+
   const prevMessagesLength = useRef(messages.length);
 
-  // Find the index of the last user message
-  const lastUserMsgIdx = [...messages].reverse().findIndex(m => m.role === 'user');
-  const lastUserMsgAbsIdx = lastUserMsgIdx === -1 ? -1 : messages.length - 1 - lastUserMsgIdx;
-
+  // Only scroll when a new user message is added
   useEffect(() => {
+    if (messages.length === 0) return;
     const lastMsg = messages[messages.length - 1];
     if (
       lastMsg &&
@@ -48,7 +136,6 @@ export default function Page() {
       requestAnimationFrame(() => {
         const el = document.getElementById('latest-user-message');
         if (el && scrollContainerRef.current) {
-          // Use scrollTop to bring the message to the top with a 24px gap
           scrollContainerRef.current.scrollTo({
             top: el.offsetTop - 24,
             behavior: 'smooth',
@@ -57,7 +144,35 @@ export default function Page() {
       });
     }
     prevMessagesLength.current = messages.length;
-  }, [messages.length]);
+  }, [messages.length, messages]);
+
+  // Track the first assistant message (opener)
+  const openerAssistantId = useRef<string | null>(null);
+  const prevAssistantCount = useRef(0);
+  useEffect(() => {
+    const assistantMessages = messages.filter(m => m.role === 'assistant');
+    if (assistantMessages.length === 0) return;
+    // If we haven't seen the opener, set it and do not scroll
+    if (!openerAssistantId.current) {
+      openerAssistantId.current = assistantMessages[0].id;
+      prevAssistantCount.current = assistantMessages.length;
+      return;
+    }
+    // If a new assistant message is added and it's not the opener, scroll
+    if (
+      assistantMessages.length > prevAssistantCount.current &&
+      assistantMessages[assistantMessages.length - 1].id !== openerAssistantId.current
+    ) {
+      setTimeout(() => {
+        latestPairRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
+    }
+    prevAssistantCount.current = assistantMessages.length;
+  }, [messages]);
+
+  // Helper: is this the initial user message?
+  const isInitialUserMessage = (msg: { role: string; parts?: Array<{ type: string; text?: string }>; content?: string }) =>
+    msg.role === 'user' && getMessageText(msg).startsWith('The current weather in NYC is:');
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
@@ -71,31 +186,108 @@ export default function Page() {
             id="chat-message-list"
             ref={scrollContainerRef}
           >
-            {messages.map((message, idx) => (
-              message.role === 'user' ? (
-                <div
-                  key={message.id}
-                  className="flex justify-end"
-                  id={idx === lastUserMsgAbsIdx ? 'latest-user-message' : undefined}
-                >
-                  <TextAnimate animation="blurInUp" className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right">
-                    {getMessageText(message)}
-                  </TextAnimate>
-                </div>
-              ) : (
-                <div
-                  key={message.id}
-                  className="flex justify-start w-[770px]"
-                  ref={idx === messages.length - 1 ? latestMsgRef : undefined}
-                >
-                  <div className="px-4 py-2 rounded-lg max-w-full text-left">
-                    <TextAnimate animation="blurIn">
-                      {getMessageText(message)}
-                    </TextAnimate>
-                  </div>
-                </div>
-              )
-            ))}
+            {/* Render pairs, but skip the initial user message bubble */}
+            {(() => {
+              const pairs = [];
+              let pairIdx = 0;
+              let totalPairs = 0;
+              // Find the index of the latest assistant message
+              let latestAssistantIdx = -1;
+              for (let i = 0; i < messages.length; i++) {
+                if (messages[i].role === 'assistant') latestAssistantIdx = i;
+              }
+              for (let i = 0; i < messages.length; i++) {
+                // Skip the initial user message bubble
+                if (isInitialUserMessage(messages[i])) {
+                  // If the next message is assistant, show it as the opener
+                  if (messages[i + 1] && messages[i + 1].role === 'assistant') {
+                    const assistantMsg = messages[i + 1];
+                    pairs.push(
+                      <div
+                        key={assistantMsg.id}
+                        className="min-h-screen w-full flex flex-col"
+                        ref={i + 1 === latestAssistantIdx ? latestPairRef : undefined}
+                      >
+                        <div className="flex-1 flex items-center w-full">
+                          <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
+                            <TextAnimate animation="blurIn">
+                              {getMessageText(assistantMsg)}
+                            </TextAnimate>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                    i++; // Skip the assistant message in the next loop
+                  }
+                  continue;
+                }
+                if (messages[i].role === 'user') {
+                  const userMsg = messages[i];
+                  const assistantMsg = messages[i + 1] && messages[i + 1].role === 'assistant' ? messages[i + 1] : null;
+                  if (assistantMsg) {
+                    pairs.push(
+                      <div
+                        key={userMsg.id + '-' + assistantMsg.id}
+                        className="min-h-screen w-full flex flex-col"
+                        ref={i + 1 === latestAssistantIdx ? latestPairRef : undefined}
+                      >
+                        {/* User message at top right */}
+                        <div className="w-full flex justify-end pt-8">
+                          <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
+                            {getMessageText(userMsg)}
+                          </div>
+                        </div>
+                        {/* Assistant message fills remaining height */}
+                        <div className="flex-1 flex items-center w-full">
+                          <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
+                            <TextAnimate animation="blurIn">
+                              {getMessageText(assistantMsg)}
+                            </TextAnimate>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                    i++; // Skip the assistant message in the next loop
+                  } else {
+                    // User message with no assistant response yet (no ref)
+                    pairs.push(
+                      <div
+                        key={userMsg.id}
+                        className="min-h-screen w-full flex flex-col"
+                      >
+                        <div className="w-full flex justify-end pt-8">
+                          <TextAnimate animation="blurInUp">
+                            <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
+                              {getMessageText(userMsg)}
+                            </div>
+                          </TextAnimate>
+                        </div>
+                      </div>
+                    );
+                  }
+                }
+                // If the first message is from assistant and not yet paired
+                if (i === 0 && messages[i].role === 'assistant') {
+                  const assistantMsg = messages[i];
+                  pairs.push(
+                    <div
+                      key={assistantMsg.id}
+                      className="min-h-screen w-full flex flex-col"
+                      ref={i === latestAssistantIdx ? latestPairRef : undefined}
+                    >
+                      <div className="flex-1 flex items-center w-full">
+                        <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
+                          <TextAnimate animation="blurIn">
+                            {getMessageText(assistantMsg)}
+                          </TextAnimate>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+              }
+              return pairs;
+            })()}
           </div>
         </div>
       </div>
