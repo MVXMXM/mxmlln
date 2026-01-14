@@ -1,14 +1,29 @@
 "use client";
 import { useChat } from '@ai-sdk/react';
-import { useRef, useEffect, useState } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { TextAnimate } from "@/registry/magicui/TextAnimate";
+
+// Helper to get text content from a message
+function getMessageText(msg: { parts?: Array<{ type: string; text?: string }>; content?: string }): string {
+  if (msg.parts) {
+    return msg.parts.map((part) => (part.type === 'text' ? part.text : '')).join('');
+  }
+  return msg.content ?? '';
+}
 
 export default function Page() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const latestMsgRef = useRef<HTMLDivElement>(null);
   const [hasUserMessage, setHasUserMessage] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
+  const [input, setInput] = useState('');
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transport = useMemo(() => new DefaultChatTransport({ api: '/010/api/chat' }), []) as any;
+  
+  const { messages, sendMessage, status } = useChat({
+    transport,
     onFinish: () => {
       setTimeout(() => {
         inputRef.current?.focus();
@@ -64,9 +79,7 @@ export default function Page() {
                   id={idx === lastUserMsgAbsIdx ? 'latest-user-message' : undefined}
                 >
                   <TextAnimate animation="blurInUp" className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right">
-                    {message.parts.map((part, idx) => (
-                      <span key={idx}>{part.type === 'text' ? part.text : null}</span>
-                    ))}
+                    {getMessageText(message)}
                   </TextAnimate>
                 </div>
               ) : (
@@ -77,9 +90,7 @@ export default function Page() {
                 >
                   <div className="px-4 py-2 rounded-lg max-w-full text-left">
                     <TextAnimate animation="blurIn">
-                      {message.parts.map((part, idx) =>
-                        part.type === 'text' ? part.text : ''
-                      ).join('')}
+                      {getMessageText(message)}
                     </TextAnimate>
                   </div>
                 </div>
@@ -99,7 +110,13 @@ export default function Page() {
         }}
       >
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (input.trim()) {
+              sendMessage({ parts: [{ type: 'text', text: input }] });
+              setInput('');
+            }
+          }}
           className="w-[770px] flex gap-2 justify-center items-center bg-[var(--background)] border border-[var(--stroke)] rounded-full shadow px-3 py-2 text-[var(--foreground)]"
         >
           <input
@@ -107,7 +124,7 @@ export default function Page() {
             className="flex-1 h-12 rounded-full border-none outline-none px-4 bg-transparent text-[var(--foreground)] placeholder:text-gray-500"
             style={{ minHeight: 48, maxHeight: 48 }}
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             disabled={status !== 'ready'}
             autoFocus
