@@ -87,9 +87,9 @@
             display: inline-block;
             padding: 1.2rem 3rem;
             background: linear-gradient(135deg, 
-                rgba(200, 200, 200, 0.15) 0%,
-                rgba(200, 200, 200, 0.05) 100%);
-            color: rgba(0, 0, 0, 0.5);
+                rgba(210, 210, 210, 0.75) 0%,
+                rgba(225, 225, 225, 0.5) 100%);
+            color: rgba(0, 0, 0, 0.55);
             text-decoration: none;
             border-radius: 60px;
             font-weight: 600;
@@ -97,7 +97,7 @@
             letter-spacing: 0.05em;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 
-                0 10px 32px rgba(0, 0, 0, 0.15),
+                0 10px 32px rgba(0, 50, 121, 0.15),
                 0 12px 35px rgba(255, 0, 120, 0.08),
                 0 14px 38px rgba(40, 255, 0, 0.06),
                 0 16px 42px rgba(58, 196, 255, 0.05),
@@ -130,10 +130,12 @@
             right: 4px;
             height: 40%;
             background: linear-gradient(90deg,
-                rgba(233, 229, 1, 0) 0%,    /* Purple */
-                rgba(255, 0, 120, 0.25) 60%,    /* Magenta */
+                rgba(233, 229, 1, 0) 20%,    /* Purple */
+                rgba(255, 0, 120, 0.5) 30%,    /* Magenta */
+                rgba(233, 229, 1, 0) 40%,    /* Purple */
+                rgba(246, 255, 85, 1) 60%,     /* Green */
                 rgba(40, 255, 0, 0.75) 70%,     /* Green */
-                rgb(58, 196, 255, 0.95) 85%,    /* Cyan-Blue */
+                rgba(58, 232, 255, 1) 85%,    /* Cyan-Blue */
                 rgba(0, 100, 255, 0.45) 100%);  /* Blue */
             border-radius: 0px 0px 56px 56px;
             pointer-events: none;
@@ -145,10 +147,10 @@
         .cta-button:hover {
             transform: translateY(-2px);
             box-shadow: 
-                0 16px 48px rgba(0, 0, 0, 0.25),
+                0 20px 32px rgba(0, 50, 121, 0.18),
                 0 18px 52px rgba(255, 0, 120, 0.15),
                 0 20px 56px rgba(40, 255, 0, 0.12),
-                0 22px 60px rgba(58, 196, 255, 0.1),
+                0 22px 60px rgba(58, 232, 255, 0.1),
                 0 4px 8px rgba(255, 255, 255, 0.3) inset,
                 0 6px 15px rgba(255, 255, 255, 0.6) inset,
                 0 -3px 12px rgba(255, 255, 255, 0.4) inset,
@@ -166,6 +168,8 @@
         .cta-button:hover::after {
             opacity: 0.4;
             filter: blur(15px);
+            bottom: 10px;
+            height: 60%;
         }
 
         /* Shimmer effect using ::before */

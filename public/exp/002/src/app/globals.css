@@ -92,7 +92,7 @@ body {
   z-index: 0;
   width: calc(100% - var(--shadow-cutoff-fix) - 4px);
   height: calc(100% - var(--shadow-cutoff-fix) - 4px);
-  top: calc(var(--shadow-cutoff-fix) / 2 - 2px);
+  top: calc(var(--shadow-cutoff-fix) / 2 + 10px);
   left: calc(var(--shadow-cutoff-fix) / 2 - 2px);
   border-radius: 50%;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
