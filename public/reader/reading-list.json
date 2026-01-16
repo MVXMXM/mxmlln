@@ -321,6 +321,30 @@
       "read": false
     },
     {
+      "id": "41",
+      "url": "https://arxiv.org/pdf/2506.01622",
+      "title": "General Agents Contain World Models",
+      "createdAt": "2026-01-04T00:00:00Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "42",
+      "url": "https://arxiv.org/pdf/2503.02113",
+      "title": "Deep Learning is Not So Mysterious or Different",
+      "createdAt": "2026-01-04T00:01:00Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "43",
+      "url": "https://arxiv.org/pdf/1611.03530",
+      "title": "Understanding Deep Learning Requires Rethinking Generalization",
+      "createdAt": "2026-01-04T00:02:00Z",
+      "metadata": {},
+      "read": false
+    },
+    {
       "id": "1761370460525",
       "url": "https://www.inkandswitch.com/patchwork/notebook/04/",
       "title": "diffs",
@@ -349,6 +373,30 @@
       "url": "https://www.shopify.com/news/unserious-exploration",
       "title": "shopty unserious",
       "createdAt": "2025-11-07T05:39:17.976Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1736632800001",
+      "url": "https://openai.com/index/understanding-neural-networks-through-sparse-circuits/",
+      "title": "Understanding Neural Networks Through Sparse Circuits",
+      "createdAt": "2026-01-11T20:00:00.001Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1736632800002",
+      "url": "https://basecase.vc/blog/understanding-untranslatability",
+      "title": "Understanding Untranslatability",
+      "createdAt": "2026-01-11T20:00:00.002Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1736632800003",
+      "url": "https://en.wikipedia.org/wiki/As_We_May_Think",
+      "title": "As We May Think - Vannevar Bush (1945)",
+      "createdAt": "2026-01-11T20:00:00.003Z",
       "metadata": {},
       "read": false
     }
