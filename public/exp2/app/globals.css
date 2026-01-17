@@ -99,12 +99,6 @@ body {
   border: none;
   display: block;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.experiment-preview.loaded {
-  opacity: 1;
 }
 
 .experiment-preview-wrapper {
