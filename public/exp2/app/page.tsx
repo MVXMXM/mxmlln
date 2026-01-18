@@ -8,7 +8,7 @@ interface Experiment {
 }
 
 // Full Next.js experiments (not static redirects)
-const NEXTJS_EXPERIMENTS = ['006', '007', '010', '025'];
+const NEXTJS_EXPERIMENTS = ['006', '007', '010', '012', '013', '014', '025', '031'];
 
 // Get list of experiment directories
 function getExperiments(): Experiment[] {
@@ -16,11 +16,8 @@ function getExperiments(): Experiment[] {
   const appDir = dirname(__filename);
   const staticDir = join(appDir, '..', 'public', 'static');
   
-  console.log('Looking for static experiments in:', staticDir);
-  
   try {
     const entries = readdirSync(staticDir);
-    console.log('Found entries:', entries);
     
     const staticExperiments = entries
       .filter((entry) => {
