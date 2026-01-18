@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'fs';
+import { readdirSync, statSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7,28 +7,44 @@ interface Experiment {
   path: string;
 }
 
-// Get list of experiment directories at build time
+// Full Next.js experiments (not static redirects)
+const NEXTJS_EXPERIMENTS = ['006', '007', '010', '025'];
+
+// Get list of experiment directories
 function getExperiments(): Experiment[] {
-  // Get the directory of this file (app/)
   const __filename = fileURLToPath(import.meta.url);
   const appDir = dirname(__filename);
+  const staticDir = join(appDir, '..', 'public', 'static');
   
   try {
-    const entries = readdirSync(appDir);
+    const entries = readdirSync(staticDir);
     
-    return entries
+    const staticExperiments = entries
       .filter((entry) => {
-        // Only include numbered directories (e.g., 001, 002, etc.)
+        // Only include numbered directories with index.html
         if (!/^\d{3}$/.test(entry)) return false;
         
-        const fullPath = join(appDir, entry);
-        return statSync(fullPath).isDirectory();
+        const fullPath = join(staticDir, entry);
+        if (!statSync(fullPath).isDirectory()) return false;
+        
+        // Check if index.html exists
+        return existsSync(join(fullPath, 'index.html'));
       })
-      .sort()
       .map((dir) => ({
         id: dir,
-        path: `/${dir}`,
+        // Use Next.js route for full pages, static path for others
+        path: NEXTJS_EXPERIMENTS.includes(dir) 
+          ? `/${dir}` 
+          : `/static/${dir}/index.html`,
       }));
+    
+    // Add Next.js-only experiments (not in static folder)
+    const nextjsOnly = NEXTJS_EXPERIMENTS
+      .filter(id => !staticExperiments.find(e => e.id === id))
+      .filter(id => existsSync(join(appDir, id, 'page.tsx')))
+      .map(id => ({ id, path: `/${id}` }));
+    
+    return [...staticExperiments, ...nextjsOnly].sort((a, b) => a.id.localeCompare(b.id));
   } catch (error) {
     console.error('Error reading experiments directory:', error);
     return [];
