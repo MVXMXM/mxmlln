@@ -16,8 +16,11 @@ function getExperiments(): Experiment[] {
   const appDir = dirname(__filename);
   const staticDir = join(appDir, '..', 'public', 'static');
   
+  console.log('Looking for static experiments in:', staticDir);
+  
   try {
     const entries = readdirSync(staticDir);
+    console.log('Found entries:', entries);
     
     const staticExperiments = entries
       .filter((entry) => {
