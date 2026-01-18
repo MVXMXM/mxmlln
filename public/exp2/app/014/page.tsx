@@ -1,6 +1,7 @@
 "use client";
 import { useChat } from '@ai-sdk/react';
-import { useRef, useEffect, useState } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { TextAnimate } from "@/registry/magicui/TextAnimate";
 
 // Helper to generate a variable weather description for the LLM
@@ -44,6 +45,14 @@ function makeWeatherDescription(weather: string) {
   return weather;
 }
 
+// Helper to get text content from a message
+function getMessageText(msg: { parts?: Array<{ type: string; text?: string }>; content?: string }): string {
+  if (msg.parts) {
+    return msg.parts.map((part) => (part.type === 'text' ? part.text : '')).join('');
+  }
+  return msg.content ?? '';
+}
+
 export default function Page() {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -54,8 +63,14 @@ export default function Page() {
   const [weatherDesc, setWeatherDesc] = useState<string | null>(null);
   const [nycTime, setNycTime] = useState<string | null>(null);
   const [nycSeconds, setNycSeconds] = useState<string | null>(null);
+  const [input, setInput] = useState('');
   const prevPairCount = useRef(0);
-  const { messages, input, handleInputChange, handleSubmit, status, append } = useChat({
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transport = useMemo(() => new DefaultChatTransport({ api: '/api/chat' }), []) as any;
+  
+  const { messages, sendMessage, status } = useChat({
+    transport,
     onFinish: () => {
       setTimeout(() => {
         inputRef.current?.focus();
@@ -98,9 +113,8 @@ export default function Page() {
   // On first mount, send the initial user message after weatherDesc and nycTime are loaded
   useEffect(() => {
     if (!initialMessageSent && weatherDesc && nycTime && nycSeconds && messages.length === 0) {
-      append({
-        role: 'user',
-        content: `The current weather in NYC is: ${weatherDesc}. The current time in NYC is: ${nycTime}. The current time in seconds is: ${nycSeconds}. State the time only by the hour (e.g., '5PM'), not the full time. Use the seconds value internally to help you randomize or select a topic. State the weather and time in the location, then add around six words of commentary on them. Then ask the user if they will do a specific activity that is fitting for the provided weather and time, but do not choose activities that are too obvious. The question should be surprising, succinct (under ten words), and not about the weather or time itself, nor include a greeting.`,
+      sendMessage({
+        parts: [{ type: 'text', text: `The current weather in NYC is: ${weatherDesc}. The current time in NYC is: ${nycTime}. The current time in seconds is: ${nycSeconds}. State the time only by the hour (e.g., '5PM'), not the full time. Use the seconds value internally to help you randomize or select a topic. State the weather and time in the location, then add around six words of commentary on them. Then ask the user if they will do a specific activity that is fitting for the provided weather and time, but do not choose activities that are too obvious. The question should be surprising, succinct (under ten words), and not about the weather or time itself, nor include a greeting.` }],
       });
       setInitialMessageSent(true);
     }
@@ -157,8 +171,8 @@ export default function Page() {
   }, [messages]);
 
   // Helper: is this the initial user message?
-  const isInitialUserMessage = (msg: any) =>
-    msg.role === 'user' && msg.content && msg.content.startsWith('The current weather in NYC is:');
+  const isInitialUserMessage = (msg: { role: string; parts?: Array<{ type: string; text?: string }>; content?: string }) =>
+    msg.role === 'user' && getMessageText(msg).startsWith('The current weather in NYC is:');
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-[var(--background)] text-[var(--foreground)]">
@@ -197,9 +211,7 @@ export default function Page() {
                         <div className="flex-1 flex items-center w-full">
                           <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
                             <TextAnimate animation="blurIn">
-                              {assistantMsg.parts.map((part, idx) =>
-                                part.type === 'text' ? part.text : ''
-                              ).join('')}
+                              {getMessageText(assistantMsg)}
                             </TextAnimate>
                           </div>
                         </div>
@@ -222,18 +234,14 @@ export default function Page() {
                         {/* User message at top right */}
                         <div className="w-full flex justify-end pt-8">
                           <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
-                            {userMsg.parts.map((part, idx) =>
-                              part.type === 'text' ? part.text : ''
-                            ).join('')}
+                            {getMessageText(userMsg)}
                           </div>
                         </div>
                         {/* Assistant message fills remaining height */}
                         <div className="flex-1 flex items-center w-full">
                           <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
                             <TextAnimate animation="blurIn">
-                              {assistantMsg.parts.map((part, idx) =>
-                                part.type === 'text' ? part.text : ''
-                              ).join('')}
+                              {getMessageText(assistantMsg)}
                             </TextAnimate>
                           </div>
                         </div>
@@ -250,9 +258,7 @@ export default function Page() {
                         <div className="w-full flex justify-end pt-8">
                           <TextAnimate animation="blurInUp">
                             <div className="bg-[var(--stroke)] text-[var(--foreground)] px-4 py-2 rounded-full max-w-[80%] text-right shadow-lg self-end">
-                              {userMsg.parts.map((part, idx) =>
-                                part.type === 'text' ? part.text : ''
-                              ).join('')}
+                              {getMessageText(userMsg)}
                             </div>
                           </TextAnimate>
                         </div>
@@ -272,9 +278,7 @@ export default function Page() {
                       <div className="flex-1 flex items-center w-full">
                         <div className="w-full max-w-[770px] px-8 py-6 pb-40 text-left text-[48px] font-thin text-gray-300">
                           <TextAnimate animation="blurIn">
-                            {assistantMsg.parts.map((part, idx) =>
-                              part.type === 'text' ? part.text : ''
-                            ).join('')}
+                            {getMessageText(assistantMsg)}
                           </TextAnimate>
                         </div>
                       </div>
@@ -298,7 +302,13 @@ export default function Page() {
         }}
       >
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (input.trim()) {
+              sendMessage({ parts: [{ type: 'text', text: input }] });
+              setInput('');
+            }
+          }}
           className="w-[770px] flex gap-2 justify-center items-center bg-[var(--background)] border border-[var(--stroke)] rounded-full shadow px-3 py-2 text-[var(--foreground)]"
         >
           <input
@@ -306,7 +316,7 @@ export default function Page() {
             className="flex-1 h-12 rounded-full border-none outline-none px-4 bg-transparent text-[var(--foreground)] placeholder:text-gray-500"
             style={{ minHeight: 48, maxHeight: 48 }}
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             disabled={status !== 'ready'}
             autoFocus
@@ -314,7 +324,7 @@ export default function Page() {
           <button
             type="submit"
             className="w-10 h-10 aspect-square bg-[var(--foreground)] text-white rounded-full flex items-center justify-center disabled:opacity-30 transition-opacity duration-200 p-0"
-            disabled={status !== 'ready' || !input.trim()}
+            disabled={status !== 'ready' || !input?.trim()}
             aria-label="Send"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ stroke: 'var(--stroke)' }} className="lucide lucide-arrow-up-icon lucide-arrow-up"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
