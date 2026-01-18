@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import BrowserWindow from "@/components/BrowserWindow";
+import BrowserWindow from "./components/BrowserWindow";
 
 export default function Page() {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
