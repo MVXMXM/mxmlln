@@ -112,6 +112,7 @@
         const progressRing = document.getElementById('progress');
         const dialContainer = dial.parentElement;
         let isDragging = false;
+        let hasMoved = false;
         let startAngle = 0;
         let currentAngle = -140;
 
@@ -151,8 +152,8 @@
         function rotateTo(angle) {
             const clamped = clampAngle(angle);
             currentAngle = clamped;
-            // Disable transition during drag for immediate response
-            if (isDragging) {
+            // Only disable transition when actually dragging (has moved), not on initial click
+            if (isDragging && hasMoved) {
                 dial.style.transition = 'none';
             } else {
                 dial.style.transition = 'transform 0.3s ease-out';
@@ -163,6 +164,7 @@
 
         dial.addEventListener('mousedown', (e) => {
             isDragging = true;
+            hasMoved = false;
             // Directly move the dot to where user clicked/dragged
             let angle = getRelativeAngle(e);
             rotateTo(angle);
@@ -170,6 +172,7 @@
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
+            hasMoved = true; // Mark that user has actually moved
             // Always align the dot with cursor position during drag
             let angle = getRelativeAngle(e);
             rotateTo(angle);
@@ -177,6 +180,7 @@
 
         document.addEventListener('mouseup', () => {
             isDragging = false;
+            hasMoved = false;
         });
 
         dial.addEventListener('click', (e) => {
@@ -196,12 +200,14 @@
 
         progressRing.addEventListener('mousedown', (e) => {
             isDragging = true;
+            hasMoved = false;
             let angle = getRelativeAngle(e);
             rotateTo(angle);
         });
 
         progressRing.addEventListener('touchstart', (e) => {
             isDragging = true;
+            hasMoved = false;
             let angle = getRelativeAngle(e);
             rotateTo(angle);
             e.preventDefault();
@@ -211,6 +217,7 @@
         // Touch support
         dial.addEventListener('touchstart', (e) => {
             isDragging = true;
+            hasMoved = false;
             // Directly move the dot to where user touched
             let angle = getRelativeAngle(e);
             rotateTo(angle);
@@ -220,6 +227,7 @@
 
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
+            hasMoved = true; // Mark that user has actually moved
             // Always align the dot with touch position during drag
             let angle = getRelativeAngle(e);
             rotateTo(angle);
@@ -232,6 +240,7 @@
                 e.preventDefault();
             }
             isDragging = false;
+            hasMoved = false;
         });
 
         // Init
