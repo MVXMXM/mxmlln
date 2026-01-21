@@ -126,11 +126,16 @@
             const x = clientX - centerX;
             const y = clientY - centerY;
 
-            let angle = Math.atan2(y, x) * (180 / Math.PI); // -180 to 180
-            angle = angle - 90; // Make top = 0
+            // Math.atan2(y, x) returns: 0° = right, 90° = down, -90° = up, 180° = left
+            // We want: 0° = top, 90° = right, -90° = left, 180° = bottom
+            // So we add 90° to shift the coordinate system
+            let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+            
+            // Normalize to -180 to 180 range
+            if (angle > 180) angle -= 360;
             if (angle < -180) angle += 360;
 
-            return angle; // now ranges roughly from -270 to 90
+            return angle;
         }
 
         function clampAngle(angle) {
