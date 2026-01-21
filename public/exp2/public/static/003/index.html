@@ -110,12 +110,14 @@
     <script>
         const dial = document.getElementById('dial');
         const progressRing = document.getElementById('progress');
+        const dialContainer = dial.parentElement;
         let isDragging = false;
         let startAngle = 0;
         let currentAngle = -140;
 
         function getRelativeAngle(e) {
-            const rect = dial.getBoundingClientRect();
+            // Use container center for more accurate positioning
+            const rect = dialContainer.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             // Handle both mouse and touch events
@@ -144,6 +146,12 @@
         function rotateTo(angle) {
             const clamped = clampAngle(angle);
             currentAngle = clamped;
+            // Disable transition during drag for immediate response
+            if (isDragging) {
+                dial.style.transition = 'none';
+            } else {
+                dial.style.transition = 'transform 0.3s ease-out';
+            }
             dial.style.transform = `rotate(${clamped}deg)`;
             updateProgress(clamped);
         }
