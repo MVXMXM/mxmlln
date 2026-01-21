@@ -131,7 +131,7 @@
         function updateProgress(angle) {
             const clamped = clampAngle(angle);
             const progressDegrees = clamped + 140;
-            progressRing.style.background = `conic-gradient(transparent 0deg ${progressDegrees}deg, #EEEEEE ${progressDegrees}deg 280deg, transparent 280deg)`;
+            progressRing.style.background = `conic-gradient(#FF6B35 0deg, #FF6B35 ${progressDegrees}deg, #EEEEEE ${progressDegrees}deg 280deg, transparent 280deg 360deg)`;
         }
 
         function rotateTo(angle) {
