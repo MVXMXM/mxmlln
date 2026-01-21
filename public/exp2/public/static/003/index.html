@@ -82,6 +82,8 @@
             background: conic-gradient(#FF6B35 0deg, #EEEEEE 0deg);
             z-index: 1;
             clip-path: path('M 120 120 L 120 0 A 120 120 0 1 1 1.82 99.17 Z');
+            cursor: pointer;
+            touch-action: none;
         }
 
         .progress-ring::before {
@@ -169,6 +171,28 @@
                 let angle = getRelativeAngle(e);
                 rotateTo(angle);
             }
+        });
+
+        // Click/touch on progress ring (arc)
+        progressRing.addEventListener('click', (e) => {
+            if (!isDragging) {
+                let angle = getRelativeAngle(e);
+                rotateTo(angle);
+            }
+        });
+
+        progressRing.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+        });
+
+        progressRing.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         // Touch support
