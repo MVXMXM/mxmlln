@@ -22,6 +22,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            touch-action: none;
         }
 
         .dial-shadow {
@@ -41,6 +42,7 @@
             height: 160px;
             border-radius: 50%;
             cursor: pointer;
+            touch-action: none;
             transition: transform 0.3s ease-out;
             background: #ffffff;
             box-shadow: 
@@ -114,8 +116,11 @@
             const rect = dial.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            const x = e.clientX - centerX;
-            const y = e.clientY - centerY;
+            // Handle both mouse and touch events
+            const clientX = e.clientX !== undefined ? e.clientX : e.touches?.[0]?.clientX ?? 0;
+            const clientY = e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY ?? 0;
+            const x = clientX - centerX;
+            const y = clientY - centerY;
 
             let angle = Math.atan2(y, x) * (180 / Math.PI); // -180 to 180
             angle = angle - 90; // Make top = 0
@@ -143,13 +148,16 @@
 
         dial.addEventListener('mousedown', (e) => {
             isDragging = true;
-            startAngle = getRelativeAngle(e) - currentAngle;
+            // Directly move the dot to where user clicked/dragged
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            let newAngle = getRelativeAngle(e) - startAngle;
-            rotateTo(newAngle);
+            // Always align the dot with cursor position during drag
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
         });
 
         document.addEventListener('mouseup', () => {
@@ -166,20 +174,26 @@
         // Touch support
         dial.addEventListener('touchstart', (e) => {
             isDragging = true;
-            const touch = e.touches[0];
-            startAngle = getRelativeAngle(touch) - currentAngle;
+            // Directly move the dot to where user touched
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
             e.preventDefault();
+            e.stopPropagation();
         });
 
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
-            const touch = e.touches[0];
-            let newAngle = getRelativeAngle(touch) - startAngle;
-            rotateTo(newAngle);
+            // Always align the dot with touch position during drag
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
             e.preventDefault();
+            e.stopPropagation();
         });
 
-        document.addEventListener('touchend', () => {
+        document.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+            }
             isDragging = false;
         });
 
