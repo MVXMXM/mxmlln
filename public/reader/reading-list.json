@@ -399,6 +399,14 @@
       "createdAt": "2026-01-11T20:00:00.003Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1736963200001",
+      "url": "https://ai.stanford.edu/blog/feedback-descent/",
+      "title": "Feedback Descent: Following the Text Gradient at Scale",
+      "createdAt": "2026-01-15T12:00:00.001Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
