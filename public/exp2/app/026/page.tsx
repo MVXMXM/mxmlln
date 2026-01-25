@@ -57,6 +57,13 @@ export default function Page() {
     animateText("What's on your mind?");
   }, [animateText]);
 
+  // Refocus input when loading completes
+  useEffect(() => {
+    if (!isLoading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isLoading]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -124,7 +131,7 @@ export default function Page() {
       animateText('Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus();
+      // Focus is handled by useEffect watching isLoading
     }
   };
 
