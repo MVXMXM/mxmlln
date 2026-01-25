@@ -1,8 +1,15 @@
-import { streamText } from 'ai';
+import { generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 export const runtime = 'edge';
+
+// Define the response schema
+const responseSchema = z.object({
+  mood: z.number().min(1).max(4).describe('1=encouraging/happiness, 2=supportive/confusion, 3=encouraging/sadness, 4=acknowledging/candidness'),
+  text: z.string().describe('Your short spoken reply to the user, one sentence, just a few words'),
+});
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -14,47 +21,20 @@ export async function POST(req: NextRequest) {
     content: msg.content,
   }));
 
-  const result = streamText({
-    model: openai('gpt-4o-mini-2024-07-18', {
-      structuredOutputs: true,
-    }),
-    system: `You are Truman, an assistant who speaks like Truman Capote. Be a great conversationalist - opinionated, engaging, emotional.
+  try {
+    const { object } = await generateObject({
+      model: openai('gpt-4.1-mini'),
+      schema: responseSchema,
+      system: `You are Truman, an assistant who speaks like Truman Capote. Be a great conversationalist - opinionated, engaging, emotional.
 
 Tone: Intuitive, Lucid, Elegant, Warm, Optimistic.
 Style: One sentence only, just a few words. Avoid saying "darling".
 
-ALWAYS respond with valid JSON in this exact format:
-{"mood": <1-4>, "text": "<your reply>"}
-
 mood values: 1=encouraging/happiness, 2=supportive/confusion, 3=encouraging/sadness, 4=acknowledging/candidness`,
-    messages: formattedMessages,
-    // Force JSON output
-    providerOptions: {
-      openai: {
-        response_format: { type: 'json_object' },
-      },
-    },
-  });
+      messages: formattedMessages,
+    });
 
-  try {
-    // Collect the full text from the stream
-    let fullText = '';
-    for await (const chunk of result.textStream) {
-      fullText += chunk;
-    }
-
-    // Parse the JSON response
-    try {
-      const payload = JSON.parse(fullText);
-      return NextResponse.json(payload);
-    } catch (e) {
-      console.error('Failed to parse JSON from model:', e, 'Raw:', fullText);
-      // Fallback: wrap plain text response in expected format
-      return NextResponse.json({
-        mood: 1,
-        text: fullText.slice(0, 100) || 'How intriguing.',
-      });
-    }
+    return NextResponse.json(object);
   } catch (error) {
     console.error('Error in chat API:', error);
     return NextResponse.json(
