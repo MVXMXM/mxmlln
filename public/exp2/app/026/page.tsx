@@ -16,6 +16,12 @@ interface Message {
   step?: number;
 }
 
+interface AnimatingPill {
+  id: number;
+  text: string;
+  isAnimating: boolean;
+}
+
 export default function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -24,7 +30,9 @@ export default function Page() {
   const [visibleChars, setVisibleChars] = useState<boolean[]>([]);
   const [bgColor, setBgColor] = useState('#E2E8F0');
   const [hasText, setHasText] = useState(false);
+  const [animatingPill, setAnimatingPill] = useState<AnimatingPill | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputWrapperRef = useRef<HTMLDivElement>(null);
 
   // Animate text character by character
   const animateText = useCallback((text: string) => {
@@ -56,6 +64,20 @@ export default function Page() {
     const userMessage = input.trim();
     setInput('');
     setIsLoading(true);
+
+    // Create animating pill
+    const pillId = Date.now();
+    setAnimatingPill({ id: pillId, text: userMessage, isAnimating: false });
+    
+    // Trigger animation after a brief delay
+    setTimeout(() => {
+      setAnimatingPill(prev => prev ? { ...prev, isAnimating: true } : null);
+      
+      // Remove pill after animation completes
+      setTimeout(() => {
+        setAnimatingPill(null);
+      }, 1500);
+    }, 50);
 
     // Clear display text
     setDisplayText('');
@@ -123,6 +145,35 @@ export default function Page() {
         @keyframes pulseBlur {
           0%, 100% { filter: blur(30px); }
           50% { filter: blur(15px); }
+        }
+        
+        .message-pill {
+          background: #fff;
+          color: #334155;
+          padding: 15px 20px;
+          border-radius: 16px;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          opacity: 0.75;
+          filter: blur(0px);
+          position: absolute;
+          bottom: 70px;
+          left: 50%;
+          transform: translateX(-50%) translateY(0);
+          transition: opacity 1.5s ease, filter 1.5s ease, transform 1s ease, width 1.5s ease;
+          pointer-events: none;
+          text-align: left;
+          word-wrap: break-word;
+          white-space: nowrap;
+          width: 700px;
+          max-width: calc(100% - 48px);
+        }
+        
+        .message-pill.animating {
+          opacity: 0;
+          filter: blur(125px);
+          width: 300px;
+          transform: translateX(-50%) translateY(-50vh);
         }
       `}</style>
 
@@ -220,7 +271,16 @@ export default function Page() {
       </div>
 
       {/* Input wrapper */}
-      <div className="fixed bottom-6 left-0 w-full flex justify-center items-center flex-col gap-3">
+      <div ref={inputWrapperRef} className="fixed bottom-6 left-0 w-full flex justify-center items-center flex-col gap-3">
+        {/* Animating message pill */}
+        {animatingPill && (
+          <div 
+            className={`message-pill ${animatingPill.isAnimating ? 'animating' : ''}`}
+          >
+            {animatingPill.text}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="w-full flex justify-center px-6">
           <input
             ref={inputRef}
