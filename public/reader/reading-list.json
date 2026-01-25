@@ -415,6 +415,14 @@
       "createdAt": "2026-01-15T12:00:00.002Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1736963200003",
+      "url": "https://alexzhang13.github.io/blog/2025/rlm/",
+      "title": "Recursive Language Models",
+      "createdAt": "2026-01-15T12:00:00.003Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
