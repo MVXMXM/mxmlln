@@ -2,6 +2,80 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+// WebGL shader from 024 - vertex
+const VERTEX_SHADER_SOURCE = `
+  attribute vec2 a_position;
+  void main() {
+    gl_Position = vec4(a_position, 0.0, 1.0);
+  }
+`;
+
+// WebGL shader from 024 - fragment (flower/orb)
+const FRAGMENT_SHADER_SOURCE = `
+  precision mediump float;
+
+  uniform vec2 u_mouse;
+  uniform vec2 u_resolution;
+  uniform float u_time;
+  uniform float u_mood_hue;
+
+  vec3 hsv2rgb(vec3 c) {
+    vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+    rgb = rgb * rgb * (3.0 - 2.0 * rgb);
+    return c.z * mix(vec3(1.0), rgb, c.y);
+  }
+
+  void main() {
+    vec2 center = u_resolution * 0.5;
+    vec2 diff = (gl_FragCoord.xy - center) / u_resolution.y;
+    float dist = length(diff);
+
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float angle = atan(diff.y, diff.x);
+    float petalCount = 11.0;
+    float baseRadius = 0.28 + 0.03 * sin(u_time * 0.6);
+    float angularSpeed = mix(0.2, 26.0, u_mouse.x);
+    float petalWave = 0.08 * sin(petalCount * angle + u_time * angularSpeed);
+    float radius = baseRadius + petalWave;
+    float edgeSoftness = 0.12;
+    vec2 mousePos = vec2(u_mouse.x, u_mouse.y);
+    float mouseDist = length(mousePos - vec2(0.5));
+    float proximity = 1.0 - clamp(mouseDist / 0.5, 0.0, 1.0);
+    radius *= mix(1.0, 0.4, proximity);
+    float ring = smoothstep(radius + edgeSoftness, radius - edgeSoftness, dist);
+
+    float hue = mix(u_mood_hue, u_mouse.y, 0.15);
+    vec3 highlight = hsv2rgb(vec3(hue, 0.7, 0.6));
+
+    gl_FragColor = vec4(highlight, ring);
+  }
+`;
+
+function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+  const shader = gl.createShader(type)!;
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const err = gl.getShaderInfoLog(shader);
+    gl.deleteShader(shader);
+    throw new Error('Shader compile failed: ' + err);
+  }
+  return shader;
+}
+
+function createProgram(gl: WebGLRenderingContext, vSource: string, fSource: string): WebGLProgram {
+  const vert = createShader(gl, gl.VERTEX_SHADER, vSource);
+  const frag = createShader(gl, gl.FRAGMENT_SHADER, fSource);
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vert);
+  gl.attachShader(program, frag);
+  gl.linkProgram(program);
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    throw new Error('Program link failed: ' + gl.getProgramInfoLog(program));
+  }
+  return program;
+}
+
 // Helper to generate a variable weather description for the LLM
 function makeWeatherDescription(weather: string) {
   const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
@@ -13,12 +87,12 @@ function makeWeatherDescription(weather: string) {
   return weather;
 }
 
-// Background colors for different mood steps
-const MOOD_COLORS: Record<number, string> = {
-  1: '#E2E8F0', // lightest gray - encouraging/happiness
-  2: '#CBD5E1', // light gray - supportive/confusion
-  3: '#94A3B8', // medium gray - encouraging/sadness
-  4: '#475569', // darkest gray - acknowledging/candidness
+// Single palette: mood drives both page bg and shader flower color
+const MOOD_PALETTE: Record<number, { bg: string; flowerHue: number }> = {
+  1: { bg: '#E2E8F0', flowerHue: 0.42 }, // lightest - encouraging/happiness (green)
+  2: { bg: '#CBD5E1', flowerHue: 0.45 }, // light - supportive
+  3: { bg: '#94A3B8', flowerHue: 0.50 }, // medium - encouraging/sadness (cyan)
+  4: { bg: '#475569', flowerHue: 0.55 }, // darkest - acknowledging/candidness (cooler)
 };
 
 interface Message {
@@ -40,6 +114,7 @@ export default function Page() {
   const [displayText, setDisplayText] = useState('');
   const [visibleChars, setVisibleChars] = useState<boolean[]>([]);
   const [bgColor, setBgColor] = useState('#E2E8F0');
+  const [moodHue, setMoodHue] = useState(0.42);
   const [hasText, setHasText] = useState(false);
   const [animatingPill, setAnimatingPill] = useState<AnimatingPill | null>(null);
   const [initialMessageSent, setInitialMessageSent] = useState(false);
@@ -49,6 +124,14 @@ export default function Page() {
   const [nycSeconds, setNycSeconds] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const shaderCanvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: 0.5, y: 0.5 });
+  const moodHueRef = useRef(0.42);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    moodHueRef.current = moodHue;
+  }, [moodHue]);
 
   // Fetch weather and time on mount
   useEffect(() => {
@@ -128,7 +211,10 @@ export default function Page() {
         const data = await response.json();
         if (data.text) {
           animateText(data.text);
-          if (data.mood && MOOD_COLORS[data.mood]) setBgColor(MOOD_COLORS[data.mood]);
+          if (data.mood && MOOD_PALETTE[data.mood]) {
+            setBgColor(MOOD_PALETTE[data.mood].bg);
+            setMoodHue(MOOD_PALETTE[data.mood].flowerHue);
+          }
           setMessages([
             { role: 'user', content: initialContext },
             { role: 'assistant', content: data.text, step: data.mood },
@@ -155,6 +241,85 @@ export default function Page() {
       inputRef.current.focus();
     }
   }, [isLoading]);
+
+  // WebGL shader from 024 - init and render loop
+  useEffect(() => {
+    const canvas = shaderCanvasRef.current;
+    if (!canvas) return;
+
+    const gl = canvas.getContext('webgl', { alpha: true });
+    if (!gl) return;
+
+    const c = canvas;
+    const g = gl;
+
+    g.getExtension('OES_vertex_array_object'); // optional
+    const program = createProgram(g, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    g.useProgram(program);
+
+    const positions = new Float32Array([-1, -1, 3, -1, -1, 3]);
+    const positionBuffer = g.createBuffer();
+    g.bindBuffer(g.ARRAY_BUFFER, positionBuffer);
+    g.bufferData(g.ARRAY_BUFFER, positions, g.STATIC_DRAW);
+
+    const posAttrib = g.getAttribLocation(program, 'a_position');
+    g.enableVertexAttribArray(posAttrib);
+    g.vertexAttribPointer(posAttrib, 2, g.FLOAT, false, 0, 0);
+
+    const uMouse = g.getUniformLocation(program, 'u_mouse');
+    const uResolution = g.getUniformLocation(program, 'u_resolution');
+    const uTime = g.getUniformLocation(program, 'u_time');
+    const uMoodHue = g.getUniformLocation(program, 'u_mood_hue');
+
+    function resize() {
+      const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+      const w = Math.floor(c.clientWidth * dpr);
+      const h = Math.floor(c.clientHeight * dpr);
+      if (c.width !== w || c.height !== h) {
+        c.width = w;
+        c.height = h;
+      }
+    }
+
+    function render(now: number) {
+      resize();
+      g.viewport(0, 0, g.drawingBufferWidth, g.drawingBufferHeight);
+      g.clearColor(0, 0, 0, 0);
+      g.clear(g.COLOR_BUFFER_BIT);
+
+      const seconds = now * 0.001;
+      const { x, y } = mouseRef.current;
+      g.uniform2f(uMouse, x, y);
+      g.uniform2f(uResolution, g.drawingBufferWidth, g.drawingBufferHeight);
+      g.uniform1f(uTime, seconds);
+      g.uniform1f(uMoodHue, moodHueRef.current);
+      g.drawArrays(g.TRIANGLES, 0, 3);
+
+      rafRef.current = requestAnimationFrame(render);
+    }
+
+    rafRef.current = requestAnimationFrame(render);
+
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = c.getBoundingClientRect();
+      mouseRef.current = {
+        x: Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1),
+        y: Math.min(Math.max(1 - (e.clientY - rect.top) / rect.height, 0), 1),
+      };
+    };
+    const onMouseLeave = () => {
+      mouseRef.current = { x: 0.5, y: 0.5 };
+    };
+
+    c.addEventListener('mousemove', onMouseMove);
+    c.addEventListener('mouseleave', onMouseLeave);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      c.removeEventListener('mousemove', onMouseMove);
+      c.removeEventListener('mouseleave', onMouseLeave);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,9 +369,10 @@ export default function Page() {
         // Animate the assistant's reply
         animateText(data.text);
 
-        // Update background based on mood
-        if (data.mood && MOOD_COLORS[data.mood]) {
-          setBgColor(MOOD_COLORS[data.mood]);
+        // Update background and shader hue from shared mood palette
+        if (data.mood && MOOD_PALETTE[data.mood]) {
+          setBgColor(MOOD_PALETTE[data.mood].bg);
+          setMoodHue(MOOD_PALETTE[data.mood].flowerHue);
         }
 
         // Store assistant message
@@ -227,7 +393,7 @@ export default function Page() {
     }
   };
 
-  const isDarkStep = bgColor === '#475569';
+  const isDarkStep = bgColor === MOOD_PALETTE[4].bg;
 
   return (
     <div 
@@ -240,11 +406,7 @@ export default function Page() {
     >
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        @keyframes pulseBlur {
-          0%, 100% { filter: blur(30px); }
-          50% { filter: blur(15px); }
-        }
-        
+
         .message-pill {
           background: #fff;
           color: #334155;
@@ -275,45 +437,25 @@ export default function Page() {
         }
       `}</style>
 
-      <div className="relative w-full max-w-[700px] h-full flex flex-col justify-center items-center">
-        {/* Animated blur sphere */}
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center z-[1] h-[200px] w-[300px] mt-6 transition-all duration-600"
-          style={{ 
-            filter: hasText ? 'blur(150px)' : 'blur(0px)',
-            opacity: 1,
-          }}
-        >
-          <svg 
-            width="300" 
-            height="300" 
-            viewBox="0 0 200 200" 
-            preserveAspectRatio="xMidYMid meet"
-            style={{ animation: 'pulseBlur 3s infinite' }}
-          >
-            <defs>
-              <linearGradient id="shimmer" x1="-350" y1="0" x2="50" y2="0" gradientUnits="userSpaceOnUse" spreadMethod="repeat">
-                <stop offset="0%" stopColor="rgba(29, 205, 152, 0.25)"/>
-                <stop offset="15%" stopColor="rgba(29, 205, 152, 0.25)"/>
-                <stop offset="50%" stopColor="rgba(29, 205, 152, 0.75)"/>
-                <stop offset="85%" stopColor="rgba(29, 205, 152, 0.25)"/>
-                <stop offset="100%" stopColor="rgba(29, 205, 152, 0.25)"/>
-                <animate attributeName="x1" values="-350;50" dur="3s" repeatCount="indefinite" calcMode="linear" />
-                <animate attributeName="x2" values="50;450" dur="3s" repeatCount="indefinite" calcMode="linear" />
-              </linearGradient>
-              <radialGradient id="sphereLight" cx="-100" cy="100" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="rgba(29, 205, 152, 0.5)"/>
-                <stop offset="30%" stopColor="rgba(29, 205, 152, 0.4)"/>
-                <stop offset="50%" stopColor="rgba(29, 205, 152, 0.3)"/>
-                <stop offset="70%" stopColor="rgba(29, 205, 152, 0)"/>
-                <animate attributeName="cx" values="-100;300" dur="3s" repeatCount="indefinite" calcMode="linear" />
-              </radialGradient>
-            </defs>
-            <circle cx="100" cy="100" r="80" fill="url(#shimmer)" />
-            <circle cx="100" cy="100" r="80" fill="url(#sphereLight)" />
-          </svg>
-        </div>
+      {/* Shader from 024 - full viewport; shrinks, blurs, and sits above text when hasText */}
+      <div 
+        className="fixed inset-0 pointer-events-none transition-all duration-600 ease-out"
+        style={{ 
+          zIndex: hasText ? 2 : 0,
+          transform: hasText ? 'scale(0.4)' : 'scale(1)',
+          filter: hasText ? 'blur(150px)' : 'blur(0px)',
+        }}
+      >
+        <canvas
+          ref={shaderCanvasRef}
+          className="w-full h-full block"
+          width={1}
+          height={1}
+          style={{ width: '100%', height: '100%', display: 'block' }}
+        />
+      </div>
 
+      <div className="relative w-full max-w-[700px] h-full flex flex-col justify-center items-center">
         {/* Animated text display */}
         <h1 
           className="text-center text-[48px] leading-[110%] tracking-[-1.44px] mb-8 flex flex-wrap justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] w-full pointer-events-none mt-6"
