@@ -239,6 +239,7 @@ export default function Page() {
       }}
     >
       <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         @keyframes pulseBlur {
           0%, 100% { filter: blur(30px); }
           50% { filter: blur(15px); }
@@ -315,8 +316,8 @@ export default function Page() {
 
         {/* Animated text display */}
         <h1 
-          className="text-center text-[48px] font-thin leading-[110%] tracking-[-1.44px] mb-8 flex flex-wrap justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] w-full pointer-events-none mt-6"
-          style={{ color: isDarkStep ? '#F9FAFB' : '#334155' }}
+          className="text-center text-[48px] leading-[110%] tracking-[-1.44px] mb-8 flex flex-wrap justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] w-full pointer-events-none mt-6"
+          style={{ fontFamily: "'Inter', sans-serif", fontWeight: 200, color: isDarkStep ? '#F9FAFB' : '#334155' }}
         >
           {displayText.split(/(\s+)/).map((word, wordIdx) => {
             if (word.trim() === '' && word.includes(' ')) {
