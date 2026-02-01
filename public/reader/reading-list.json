@@ -423,6 +423,22 @@
       "createdAt": "2026-01-15T12:00:00.003Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1736963200004",
+      "url": "https://maggieappleton.com/gastown",
+      "title": "Gas Town's Agent Patterns, Design Bottlenecks, and Vibecoding at Scale",
+      "createdAt": "2026-01-15T12:00:00.004Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1736963200005",
+      "url": "https://www.darioamodei.com/essay/the-adolescence-of-technology",
+      "title": "The Adolescence of Technology",
+      "createdAt": "2026-01-15T12:00:00.005Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
