@@ -2,6 +2,17 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+// Helper to generate a variable weather description for the LLM
+function makeWeatherDescription(weather: string) {
+  const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  if (weather.includes('rain')) return pick(["rainy", "showery", "wet and drizzly", "a day of steady rain", "NYC is getting a good soaking"]);
+  if (weather.includes('cloud')) return pick(["cloudy", "overcast", "a sky full of clouds", "gray and subdued", "the sun is hiding behind clouds"]);
+  if (weather.includes('clear') || weather.includes('sun')) return pick(["sunny", "bright and clear", "bathed in sunshine", "a perfect blue sky", "NYC is sparkling in the sun"]);
+  if (weather.includes('snow')) return pick(["snowy", "blanketed in snow", "flurries are falling", "a winter wonderland", "NYC is shimmering with snow"]);
+  if (weather.includes('fog')) return pick(["foggy", "misty", "shrouded in fog", "the city is wrapped in mist", "a mysterious, fog-laden day"]);
+  return weather;
+}
+
 // Background colors for different mood steps
 const MOOD_COLORS: Record<number, string> = {
   1: '#E2E8F0', // lightest gray - encouraging/happiness
@@ -26,13 +37,47 @@ export default function Page() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [displayText, setDisplayText] = useState("What's on your mind?");
+  const [displayText, setDisplayText] = useState('');
   const [visibleChars, setVisibleChars] = useState<boolean[]>([]);
   const [bgColor, setBgColor] = useState('#E2E8F0');
   const [hasText, setHasText] = useState(false);
   const [animatingPill, setAnimatingPill] = useState<AnimatingPill | null>(null);
+  const [initialMessageSent, setInitialMessageSent] = useState(false);
+  const [weatherFetched, setWeatherFetched] = useState(false);
+  const [weatherDesc, setWeatherDesc] = useState<string | null>(null);
+  const [nycTime, setNycTime] = useState<string | null>(null);
+  const [nycSeconds, setNycSeconds] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const inputWrapperRef = useRef<HTMLDivElement>(null);
+
+  // Fetch weather and time on mount
+  useEffect(() => {
+    async function fetchWeatherAndTime() {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current_weather=true');
+        const data = await res.json();
+        const code = data.current_weather.weathercode;
+        let weather = '';
+        if (code === 0) weather = 'clear';
+        else if ([1,2,3].includes(code)) weather = 'cloudy';
+        else if ([45,48].includes(code)) weather = 'foggy';
+        else if ([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code)) weather = 'rainy';
+        else if ([71,73,75,77,85,86].includes(code)) weather = 'snowy';
+        else weather = 'unknown';
+        setWeatherDesc(makeWeatherDescription(weather));
+        const now = new Date();
+        setNycTime(now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: true }));
+        setNycSeconds(now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', second: '2-digit' }));
+      } catch {
+        setWeatherDesc(null);
+        setNycTime(null);
+        setNycSeconds(null);
+      } finally {
+        setWeatherFetched(true);
+      }
+    }
+    fetchWeatherAndTime();
+  }, []);
 
   // Animate text character by character
   const animateText = useCallback((text: string) => {
@@ -52,10 +97,57 @@ export default function Page() {
     });
   }, []);
 
-  // Initial animation
+  // Fallback to "What's on your mind?" only when weather fetch failed (opener won't load)
   useEffect(() => {
-    animateText("What's on your mind?");
-  }, [animateText]);
+    if (weatherFetched && !weatherDesc && !initialMessageSent) {
+      animateText("What's on your mind?");
+    }
+  }, [animateText, weatherFetched, weatherDesc, initialMessageSent]);
+
+  // Send initial weather-based opener when weather/time is loaded
+  useEffect(() => {
+    if (initialMessageSent || !weatherDesc || !nycTime || !nycSeconds || messages.length > 0) return;
+
+    const sendInitialOpener = async () => {
+      setInitialMessageSent(true);
+      setIsLoading(true);
+
+      const initialContext = `The current weather in NYC is: ${weatherDesc}. The current time in NYC is: ${nycTime}. The current time in seconds is: ${nycSeconds}. State the time only by the hour (e.g., '5PM'), not the full time. Use the seconds value internally to help you randomize or select a topic. State the weather and time in the location, then add around six words of commentary on them. Then ask the user if they will do a specific activity that is fitting for the provided weather and time, but do not choose activities that are too obvious. The question should be surprising, succinct (under ten words), and not about the weather or time itself, nor include a greeting.`;
+
+      try {
+        const response = await fetch('/026/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: initialContext }],
+          }),
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+        if (data.text) {
+          animateText(data.text);
+          if (data.mood && MOOD_COLORS[data.mood]) setBgColor(MOOD_COLORS[data.mood]);
+          setMessages([
+            { role: 'user', content: initialContext },
+            { role: 'assistant', content: data.text, step: data.mood },
+          ]);
+        } else {
+          animateText("What's on your mind?");
+          setInitialMessageSent(false);
+        }
+      } catch (error) {
+        console.error('Error loading opener:', error);
+        animateText("What's on your mind?");
+        setInitialMessageSent(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    sendInitialOpener();
+  }, [initialMessageSent, weatherDesc, nycTime, nycSeconds, messages.length, animateText]);
 
   // Refocus input when loading completes
   useEffect(() => {
@@ -142,13 +234,11 @@ export default function Page() {
       className="min-h-screen w-full flex justify-center items-center transition-colors duration-600"
       style={{ 
         backgroundColor: bgColor,
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        fontFamily: "var(--font-sans), 'Archivo', sans-serif",
         paddingBottom: '100px',
       }}
     >
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Spectral:wght@200&display=swap');
-        
         @keyframes pulseBlur {
           0%, 100% { filter: blur(30px); }
           50% { filter: blur(15px); }
@@ -159,7 +249,7 @@ export default function Page() {
           color: #334155;
           padding: 15px 20px;
           border-radius: 16px;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          font-family: var(--font-sans), 'Archivo', sans-serif;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           opacity: 0.75;
           filter: blur(0px);
@@ -225,7 +315,7 @@ export default function Page() {
 
         {/* Animated text display */}
         <h1 
-          className="text-center font-[Spectral] text-[48px] font-extralight leading-[110%] tracking-[-1.44px] mb-8 flex flex-wrap justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] w-full pointer-events-none mt-6"
+          className="text-center text-[48px] font-thin leading-[110%] tracking-[-1.44px] mb-8 flex flex-wrap justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[2] w-full pointer-events-none mt-6"
           style={{ color: isDarkStep ? '#F9FAFB' : '#334155' }}
         >
           {displayText.split(/(\s+)/).map((word, wordIdx) => {
@@ -297,7 +387,7 @@ export default function Page() {
             placeholder="Ask anything"
             disabled={isLoading}
             autoFocus
-            className="w-full max-w-[700px] py-4 px-5 border border-[#e0e0e0] rounded-2xl bg-white text-[#333] text-base font-extralight transition-all duration-300 outline-none disabled:bg-[#e8edf2] disabled:shadow-none"
+            className="w-full max-w-[700px] py-4 px-5 border border-[#e0e0e0] rounded-2xl bg-white text-[#333] text-base font-thin transition-all duration-300 outline-none disabled:bg-[#e8edf2] disabled:shadow-none"
             style={{
               caretColor: '#1DCD98',
               boxShadow: '0 481px 135px 0 rgba(0, 0, 0, 0.00), 0 308px 123px 0 rgba(0, 0, 0, 0.01), 0 173px 104px 0 rgba(0, 0, 0, 0.05), 0 77px 77px 0 rgba(0, 0, 0, 0.09), 0 19px 42px 0 rgba(0, 0, 0, 0.10)',

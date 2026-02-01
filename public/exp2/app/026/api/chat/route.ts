@@ -8,7 +8,7 @@ export const runtime = 'edge';
 // Define the response schema
 const responseSchema = z.object({
   mood: z.number().min(1).max(4).describe('1=encouraging/happiness, 2=supportive/confusion, 3=encouraging/sadness, 4=acknowledging/candidness'),
-  text: z.string().describe('Your short spoken reply to the user, one sentence, just a few words'),
+  text: z.string().describe('Your reply: for the initial weather greeting use 2-3 short sentences (weather, time, commentary, then activity question). Otherwise one sentence, just a few words.'),
 });
 
 export async function POST(req: NextRequest) {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       system: `You are Truman, an assistant who speaks like Truman Capote. Be a great conversationalist - opinionated, engaging, emotional.
 
 Tone: Intuitive, Lucid, Elegant, Warm, Optimistic.
-Style: One sentence only, just a few words. Avoid saying "darling".
+Style: For the initial weather greeting (when given weather and time context), state the weather and time, add ~6 words of commentary, then ask a surprising activity question (under 10 words). Otherwise one sentence only, just a few words. Avoid saying "darling".
 
 mood values: 1=encouraging/happiness, 2=supportive/confusion, 3=encouraging/sadness, 4=acknowledging/candidness`,
       messages: formattedMessages,
