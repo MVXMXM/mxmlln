@@ -74,6 +74,7 @@
         /* 007 - Blur in up */
         .blur-char {
             display: inline-block;
+            cursor: pointer;
             opacity: 0;
             filter: blur(10px);
             transform: translateY(30px);
@@ -85,10 +86,28 @@
         }
 
         @keyframes blurInUp {
+            from {
+                opacity: 0;
+                filter: blur(10px);
+                transform: translateY(30px);
+            }
             to {
                 opacity: 1;
                 filter: blur(0);
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes blurOutDown {
+            from {
+                opacity: 1;
+                filter: blur(0);
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                filter: blur(10px);
+                transform: translateY(30px);
             }
         }
 
@@ -103,8 +122,8 @@
 </head>
 <body>
     <div class="toggle">
-        <button data-exp="001" class="active">001 — Ripple</button>
-        <button data-exp="007">007 — Blur</button>
+        <button data-exp="001" class="active">Interpolation</button>
+        <button data-exp="007">Emergence</button>
     </div>
 
     <div id="exp-001" class="exp-content active">
@@ -189,9 +208,23 @@
         rippleBlock.addEventListener('mouseleave', resetWeights);
 
         // 007 - Blur in up (Intelligence)
-        const blurText = "Intelligence";
+        const blurText = "Emergence";
         const blurBlock = document.getElementById('blur-block');
         const blurCharDelay = 50;
+
+        const blurAnim = '0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+
+        function blurOut(char) {
+            char.style.animation = 'none';
+            char.offsetHeight;
+            char.style.animation = `blurOutDown ${blurAnim}`;
+        }
+
+        function blurIn(char) {
+            char.style.animation = 'none';
+            char.offsetHeight;
+            char.style.animation = `blurInUp ${blurAnim}`;
+        }
 
         function initBlur() {
             blurBlock.innerHTML = '';
@@ -200,6 +233,8 @@
                 span.className = char === ' ' ? 'blur-char space' : 'blur-char';
                 span.textContent = char;
                 span.style.animationDelay = `${index * blurCharDelay}ms`;
+                span.addEventListener('mouseenter', () => blurOut(span));
+                span.addEventListener('mouseleave', () => blurIn(span));
                 blurBlock.appendChild(span);
             });
         }
