@@ -15,7 +15,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 3rem;
+            gap: 6rem;
             background-color: #2A2C2F;
         }
 
@@ -93,12 +93,14 @@
         <div class="text-block" id="ripple-block"></div>
     </div>
 
+    <hr width="550px" style="opacity: 0.15;">
+    
     <div id="exp-007" class="exp-content">
         <div class="text-block" id="blur-block"></div>
     </div>
 
     <script>
-        // 001 - Ripple (Interpolation)
+        // Interpolation
         const rippleText = "Interpolation";
         const rippleBlock = document.getElementById('ripple-block');
         const minWeight = 100;
@@ -152,7 +154,7 @@
         });
         rippleBlock.addEventListener('mouseleave', resetWeights);
 
-        // 007 - Blur (Emergence) with ripple
+        // Emergence
         const blurText = "Emergence";
         const blurBlock = document.getElementById('blur-block');
         const blurCharDelay = 50;
