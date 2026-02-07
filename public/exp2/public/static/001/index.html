@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Ripple Effect</title>
+    <title>Text Experiments</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
@@ -12,9 +12,41 @@
             margin: 0;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 3rem;
             background-color: #2A2C2F;
+        }
+
+        .toggle {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: transparent;
+            color: #94a3b8;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .toggle button:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle button.active {
+            background-color: #4b5563;
+            color: white;
         }
 
         .text-block {
@@ -28,6 +60,7 @@
             display: flex;
         }
 
+        /* 001 - Ripple */
         .char {
             transition: font-weight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
@@ -37,95 +70,139 @@
             width: 0.25em;
             display: inline-block;
         }
+
+        /* 007 - Blur in up */
+        .blur-char {
+            display: inline-block;
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(30px);
+            animation: blurInUp 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .blur-char.space {
+            width: 0.25em;
+        }
+
+        @keyframes blurInUp {
+            to {
+                opacity: 1;
+                filter: blur(0);
+                transform: translateY(0);
+            }
+        }
+
+        .exp-content {
+            display: none;
+        }
+
+        .exp-content.active {
+            display: flex;
+        }
     </style>
 </head>
 <body>
-    <div class="text-block"></div>
+    <div class="toggle">
+        <button data-exp="001" class="active">001 — Ripple</button>
+        <button data-exp="007">007 — Blur</button>
+    </div>
+
+    <div id="exp-001" class="exp-content active">
+        <div class="text-block" id="ripple-block"></div>
+    </div>
+
+    <div id="exp-007" class="exp-content">
+        <div class="text-block" id="blur-block"></div>
+    </div>
+
     <script>
-        const text = "Interpolation";
-        const textBlock = document.querySelector('.text-block');
+        // Toggle
+        const toggleButtons = document.querySelectorAll('.toggle button');
+        const exp001 = document.getElementById('exp-001');
+        const exp007 = document.getElementById('exp-007');
+
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const exp = btn.dataset.exp;
+                toggleButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                exp001.classList.toggle('active', exp === '001');
+                exp007.classList.toggle('active', exp === '007');
+                if (exp === '007') {
+                    initBlur();
+                }
+            });
+        });
+
+        // 001 - Ripple (Interpolation)
+        const rippleText = "Interpolation";
+        const rippleBlock = document.getElementById('ripple-block');
         const minWeight = 100;
         const maxWeight = 900;
         const initialWeight = 500;
-        const weightRange = maxWeight - minWeight;
 
-        // Split text into characters and create spans
         const charElements = [];
-        text.split('').forEach(char => {
+        rippleText.split('').forEach(char => {
             const span = document.createElement('span');
             span.className = char === ' ' ? 'char space' : 'char';
             span.textContent = char;
             span.style.fontWeight = initialWeight;
-            textBlock.appendChild(span);
+            rippleBlock.appendChild(span);
             charElements.push(span);
         });
 
         let animationFrame;
-        let lastHoveredIndex = null;
 
         function updateWeights(hoveredIndex) {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-
+            if (animationFrame) cancelAnimationFrame(animationFrame);
             animationFrame = requestAnimationFrame(() => {
-                // Get the hovered character's position
                 const hoveredChar = charElements[hoveredIndex];
                 const hoveredRect = hoveredChar.getBoundingClientRect();
                 const hoveredCenter = hoveredRect.left + hoveredRect.width / 2;
 
                 charElements.forEach((char, index) => {
-                    if (text[index] === ' ') {
+                    if (rippleText[index] === ' ') {
                         char.style.fontWeight = minWeight;
                         return;
                     }
-
-                    // Get the current character's position
                     const charRect = char.getBoundingClientRect();
                     const charCenter = charRect.left + charRect.width / 2;
-                    
-                    // Calculate distance in pixels
                     const distanceInPixels = Math.abs(hoveredCenter - charCenter);
-                    
-                    // Convert pixel distance to character distance using a fixed reference width
-                    // This prevents issues with narrow characters like 'I'
-                    const referenceWidth = 40; // Approximate width of a typical character
+                    const referenceWidth = 40;
                     const distance = Math.round(distanceInPixels / referenceWidth);
-                    
-                    // The hovered character gets the highest weight
-                    if (distance === 0) {
-                        char.style.fontWeight = maxWeight;
-                    } else {
-                        // For surrounding characters, calculate weight based on distance
-                        // Use smooth interpolation between min and max weights
-                        const weight = Math.max(minWeight, maxWeight - (distance * 200));
-                        char.style.fontWeight = weight;
-                    }
+                    const weight = distance === 0 ? maxWeight : Math.max(minWeight, maxWeight - distance * 200);
+                    char.style.fontWeight = weight;
                 });
             });
         }
 
-        // Reset all weights to initial value
         function resetWeights() {
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-
+            if (animationFrame) cancelAnimationFrame(animationFrame);
             animationFrame = requestAnimationFrame(() => {
-                charElements.forEach(char => {
-                    char.style.fontWeight = initialWeight;
-                });
+                charElements.forEach(char => char.style.fontWeight = initialWeight);
             });
         }
 
-        // Add event listeners
         charElements.forEach((char, index) => {
-            char.addEventListener('mouseenter', () => {
-                updateWeights(index);
-            });
+            char.addEventListener('mouseenter', () => updateWeights(index));
         });
+        rippleBlock.addEventListener('mouseleave', resetWeights);
 
-        textBlock.addEventListener('mouseleave', resetWeights);
+        // 007 - Blur in up (Intelligence)
+        const blurText = "Intelligence";
+        const blurBlock = document.getElementById('blur-block');
+        const blurCharDelay = 50;
+
+        function initBlur() {
+            blurBlock.innerHTML = '';
+            blurText.split('').forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = char === ' ' ? 'blur-char space' : 'blur-char';
+                span.textContent = char;
+                span.style.animationDelay = `${index * blurCharDelay}ms`;
+                blurBlock.appendChild(span);
+            });
+        }
     </script>
 </body>
-</html> 
+</html>
