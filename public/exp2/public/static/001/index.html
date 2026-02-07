@@ -215,8 +215,11 @@
         const blurRefWidth = 40;
 
         const blurAnimBase = '0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+        const blurAnimDuration = 700;
         let blurCharElements = [];
         let lastBlurHoveredIndex = 0;
+        let blurIsHidden = false;
+        let blurStateTimeout = null;
 
         function getBlurDelay(centerIndex, charIndex) {
             const center = blurCharElements[centerIndex]?.getBoundingClientRect();
@@ -230,7 +233,9 @@
         }
 
         function blurOutRipple(centerIndex) {
+            if (blurStateTimeout) clearTimeout(blurStateTimeout);
             lastBlurHoveredIndex = centerIndex;
+            blurIsHidden = true;
             blurCharElements.forEach((char) => {
                 char.style.opacity = '1';
                 char.style.filter = 'blur(0)';
@@ -244,8 +249,10 @@
             });
         }
 
-        function blurInRipple() {
-            const center = lastBlurHoveredIndex;
+        function blurInRipple(centerIndex) {
+            if (blurStateTimeout) clearTimeout(blurStateTimeout);
+            lastBlurHoveredIndex = centerIndex;
+            blurIsHidden = false;
             blurCharElements.forEach((char) => {
                 char.style.opacity = '0';
                 char.style.filter = 'blur(10px)';
@@ -254,25 +261,39 @@
             });
             blurBlock.offsetHeight;
             blurCharElements.forEach((char, i) => {
-                const delay = getBlurDelay(center, i);
+                const delay = getBlurDelay(centerIndex, i);
                 char.style.animation = `blurInUp ${blurAnimBase} ${delay}ms forwards`;
             });
         }
 
+        function onBlurCharHover(index) {
+            if (blurIsHidden) {
+                blurInRipple(index);
+            } else {
+                blurOutRipple(index);
+            }
+        }
+
+        function onBlurBlockLeave() {
+            blurInRipple(lastBlurHoveredIndex);
+        }
+
         function initBlur() {
-            blurBlock.removeEventListener('mouseleave', blurInRipple);
+            blurBlock.removeEventListener('mouseleave', onBlurBlockLeave);
             blurBlock.innerHTML = '';
             blurCharElements = [];
+            blurIsHidden = false;
+            if (blurStateTimeout) clearTimeout(blurStateTimeout);
             blurText.split('').forEach((char, index) => {
                 const span = document.createElement('span');
                 span.className = char === ' ' ? 'blur-char space' : 'blur-char';
                 span.textContent = char;
                 span.style.animationDelay = `${index * blurCharDelay}ms`;
-                span.addEventListener('mouseenter', () => blurOutRipple(index));
+                span.addEventListener('mouseenter', () => onBlurCharHover(index));
                 blurBlock.appendChild(span);
                 blurCharElements.push(span);
             });
-            blurBlock.addEventListener('mouseleave', blurInRipple);
+            blurBlock.addEventListener('mouseleave', onBlurBlockLeave);
         }
     </script>
 </body>
