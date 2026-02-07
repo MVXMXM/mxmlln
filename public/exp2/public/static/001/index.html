@@ -207,36 +207,72 @@
         });
         rippleBlock.addEventListener('mouseleave', resetWeights);
 
-        // 007 - Blur in up (Intelligence)
+        // 007 - Blur (Emergence) with ripple
         const blurText = "Emergence";
         const blurBlock = document.getElementById('blur-block');
         const blurCharDelay = 50;
+        const blurRippleDelay = 45;
+        const blurRefWidth = 40;
 
-        const blurAnim = '0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+        const blurAnimBase = '0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+        let blurCharElements = [];
+        let lastBlurHoveredIndex = 0;
 
-        function blurOut(char) {
-            char.style.animation = 'none';
-            char.offsetHeight;
-            char.style.animation = `blurOutDown ${blurAnim}`;
+        function getBlurDelay(centerIndex, charIndex) {
+            const center = blurCharElements[centerIndex]?.getBoundingClientRect();
+            const char = blurCharElements[charIndex]?.getBoundingClientRect();
+            if (!center || !char) return 0;
+            const centerX = center.left + center.width / 2;
+            const charX = char.left + char.width / 2;
+            const distPx = Math.abs(centerX - charX);
+            const dist = Math.round(distPx / blurRefWidth);
+            return dist * blurRippleDelay;
         }
 
-        function blurIn(char) {
-            char.style.animation = 'none';
-            char.offsetHeight;
-            char.style.animation = `blurInUp ${blurAnim}`;
+        function blurOutRipple(centerIndex) {
+            lastBlurHoveredIndex = centerIndex;
+            blurCharElements.forEach((char) => {
+                char.style.opacity = '1';
+                char.style.filter = 'blur(0)';
+                char.style.transform = 'translateY(0)';
+                char.style.animation = 'none';
+            });
+            blurBlock.offsetHeight;
+            blurCharElements.forEach((char, i) => {
+                const delay = getBlurDelay(centerIndex, i);
+                char.style.animation = `blurOutDown ${blurAnimBase} ${delay}ms forwards`;
+            });
+        }
+
+        function blurInRipple() {
+            const center = lastBlurHoveredIndex;
+            blurCharElements.forEach((char) => {
+                char.style.opacity = '0';
+                char.style.filter = 'blur(10px)';
+                char.style.transform = 'translateY(30px)';
+                char.style.animation = 'none';
+            });
+            blurBlock.offsetHeight;
+            blurCharElements.forEach((char, i) => {
+                const delay = getBlurDelay(center, i);
+                char.style.animation = `blurInUp ${blurAnimBase} ${delay}ms forwards`;
+            });
         }
 
         function initBlur() {
+            blurBlock.removeEventListener('mouseleave', blurInRipple);
             blurBlock.innerHTML = '';
+            blurCharElements = [];
             blurText.split('').forEach((char, index) => {
                 const span = document.createElement('span');
                 span.className = char === ' ' ? 'blur-char space' : 'blur-char';
                 span.textContent = char;
                 span.style.animationDelay = `${index * blurCharDelay}ms`;
-                span.addEventListener('mouseenter', () => blurOut(span));
-                span.addEventListener('mouseleave', () => blurIn(span));
+                span.addEventListener('mouseenter', () => blurOutRipple(index));
                 blurBlock.appendChild(span);
+                blurCharElements.push(span);
             });
+            blurBlock.addEventListener('mouseleave', blurInRipple);
         }
     </script>
 </body>
