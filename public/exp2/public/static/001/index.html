@@ -19,36 +19,6 @@
             background-color: #2A2C2F;
         }
 
-        .toggle {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .toggle button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            background: transparent;
-            color: #94a3b8;
-            transition: color 0.2s, background-color 0.2s;
-        }
-
-        .toggle button:hover {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .toggle button.active {
-            background-color: #4b5563;
-            color: white;
-        }
-
         .text-block {
             font-family: 'Inter', sans-serif;
             font-size: 6rem;
@@ -112,21 +82,14 @@
         }
 
         .exp-content {
-            display: none;
-        }
-
-        .exp-content.active {
             display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <div class="toggle">
-        <button data-exp="001" class="active">Interpolation</button>
-        <button data-exp="007">Emergence</button>
-    </div>
-
-    <div id="exp-001" class="exp-content active">
+    <div id="exp-001" class="exp-content">
         <div class="text-block" id="ripple-block"></div>
     </div>
 
@@ -135,24 +98,6 @@
     </div>
 
     <script>
-        // Toggle
-        const toggleButtons = document.querySelectorAll('.toggle button');
-        const exp001 = document.getElementById('exp-001');
-        const exp007 = document.getElementById('exp-007');
-
-        toggleButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const exp = btn.dataset.exp;
-                toggleButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                exp001.classList.toggle('active', exp === '001');
-                exp007.classList.toggle('active', exp === '007');
-                if (exp === '007') {
-                    initBlur();
-                }
-            });
-        });
-
         // 001 - Ripple (Interpolation)
         const rippleText = "Interpolation";
         const rippleBlock = document.getElementById('ripple-block');
@@ -215,11 +160,9 @@
         const blurRefWidth = 40;
 
         const blurAnimBase = '0.7s cubic-bezier(0.4, 0, 0.2, 1)';
-        const blurAnimDuration = 700;
         let blurCharElements = [];
         let lastBlurHoveredIndex = 0;
         let blurIsHidden = false;
-        let blurStateTimeout = null;
 
         function getBlurDelay(centerIndex, charIndex) {
             const center = blurCharElements[centerIndex]?.getBoundingClientRect();
@@ -233,7 +176,6 @@
         }
 
         function blurOutRipple(centerIndex) {
-            if (blurStateTimeout) clearTimeout(blurStateTimeout);
             lastBlurHoveredIndex = centerIndex;
             blurIsHidden = true;
             blurCharElements.forEach((char) => {
@@ -250,7 +192,6 @@
         }
 
         function blurInRipple(centerIndex) {
-            if (blurStateTimeout) clearTimeout(blurStateTimeout);
             lastBlurHoveredIndex = centerIndex;
             blurIsHidden = false;
             blurCharElements.forEach((char) => {
@@ -283,7 +224,6 @@
             blurBlock.innerHTML = '';
             blurCharElements = [];
             blurIsHidden = false;
-            if (blurStateTimeout) clearTimeout(blurStateTimeout);
             blurText.split('').forEach((char, index) => {
                 const span = document.createElement('span');
                 span.className = char === ' ' ? 'blur-char space' : 'blur-char';
@@ -295,6 +235,8 @@
             });
             blurBlock.addEventListener('mouseleave', onBlurBlockLeave);
         }
+
+        initBlur();
     </script>
 </body>
 </html>
