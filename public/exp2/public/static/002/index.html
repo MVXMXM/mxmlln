@@ -3,29 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nav Bar Prototype</title>
+    <title>Yutori UI Elements</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            gap: 80px;
+            padding: 80px 24px;
             background-color: #1A1B1F;
             font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
         }
+        * { box-sizing: border-box; }
 
-        .nav-container {
+        .exp-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+            width: 100%;
+        }
+        /* 005 - CTA Button */
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            height: 40px;
+            padding: 0 16px;
+            background: linear-gradient(350deg, #18AA7E 13.61%, #148F6A 43.85%, #148F6A 64.01%, #159871 80.81%, #18AA7E 100%);
+            background-size: 300% 100%;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: -1px 3px 4px 0px rgba(255, 255, 255, 0.40) inset, 1px -2px 4px 0px rgba(255, 255, 255, 0.15) inset, 0px 32px 13px 0px rgba(16, 103, 111, 0.01), 0px 18px 11px 0px rgba(16, 103, 111, 0.04), 0px 8px 8px 0px rgba(16, 103, 111, 0.06), 0px 2px 4px 0px rgba(16, 103, 111, 0.07);
+            position: relative;
+            overflow: hidden;
+            --x: 50%; --y: 0%;
+        }
+        @keyframes animatedgradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes exitGradient { 0% { background-position: var(--last-bg-pos, 0% 50%); } 100% { background-position: 0% 50%; } }
+        .cta-button:hover { animation: animatedgradient 2s ease infinite; }
+        .cta-button:not(:hover) { animation: exitGradient 0.5s ease forwards; }
+        .cta-button:focus { outline: none; box-shadow: 0 0 0 2px rgba(90, 232, 189, 0.75); }
+        .cta-button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 60%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        @keyframes moveToCenter {
+            from { --x: var(--last-x, 50%); --y: var(--last-y, 0%); }
+            to { --x: 50%; --y: 0%; }
+        }
+        .cta-button:not(:hover)::before { animation: moveToCenter 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .cta-button:hover::before { opacity: 1; animation: none; }
+
+        /* 030 - Code Block */
+        .exp-section-wide {
+            width: 100%;
+            max-width: 700px;
+            min-height: auto;
+        }
+        .code-block-wrapper {
+            width: 100%;
+            padding: 24px;
+        }
+        .code-tabs-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+        .code-tabs {
             display: flex;
             height: 40px;
             padding: 0 16px;
-            justify-content: center;
             align-items: center;
             gap: 24px;
-            flex-shrink: 0;
+            width: fit-content;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.10);
@@ -33,12 +103,15 @@
             position: relative;
             overflow: visible;
         }
-
-        .nav-item {
-            color: rgba(255, 255, 255, 0.5);
+        .code-tab {
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 14px;
             font-weight: 400;
-            text-decoration: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
             height: 40px;
             display: flex;
             align-items: center;
@@ -46,62 +119,311 @@
             transition: color 0.3s ease;
             z-index: 1;
         }
-
-        .nav-item.active {
-            color: #fff;
-        }
-
-        .active-indicator {
+        .code-tab:hover { color: #fff; }
+        .code-tab.active { color: #fff; }
+        .code-tabs .active-indicator {
             position: absolute;
             bottom: -1px;
             height: 1px;
             background: linear-gradient(270deg, rgba(29, 205, 152, 0.00) 0%, #1DCD98 50%, rgba(29, 205, 152, 0.00) 100%);
             z-index: 2;
         }
-
-        .nav-item:hover {
-            color: #fff;
+        .code-example { display: none; min-height: 0; }
+        .code-example.active { display: block; }
+        pre {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            overflow-x: scroll;
+            padding: 16px 0;
+            gap: 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(26, 27, 31, 0.5);
         }
+        pre code { margin: 0; padding: 0; }
+        .code-content { color: #64748B; }
+        .code-content .important, .code-content span.important { color: #64748B; transition: color 0.2s ease-in; }
+        .code-content .important.fade-in, .code-content span.important.fade-in { color: #1DCD98; }
+        .code-content .method { color: #64748B; transition: color 0.2s ease-in; }
+        .code-content .method.fade-in { color: #35A4B9; }
+        .code-lines {
+            vertical-align: top;
+            margin: 0;
+            background: none;
+            font-family: 'IBM Plex Mono', monospace;
+            color: rgba(51, 65, 85, 0.75);
+            text-align: right;
+            font-size: 14px;
+            font-weight: 100;
+            line-height: 170%;
+            width: 32px;
+        }
+        .code-content {
+            width: 100%;
+            overflow: scroll;
+            padding: 0;
+            margin: 0;
+            white-space: pre;
+            vertical-align: top;
+            background: transparent !important;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 170%;
+        }
+        .copy-btn {
+            position: absolute;
+            visibility: hidden;
+            z-index: 10;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(77, 77, 77, 0);
+            border: none;
+            border-radius: 8px;
+            font-size: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        pre:hover .copy-btn { visibility: visible; }
+        .copy-btn:hover { background: rgba(77, 77, 77, 1); }
+        .copied-label { margin-left: 0.45em; font-size: 0.96em; font-weight: 600; letter-spacing: 0.03em; }
     </style>
 </head>
 <body>
-    <nav class="nav-container">
-        <a href="#" class="nav-item active">Home</a>
-        <a href="#" class="nav-item">About</a>
-        <a href="#" class="nav-item">Contact</a>
-        <div class="active-indicator"></div>
-    </nav>
+    <section class="exp-section exp-section-wide" id="exp-005-030">
+        <div class="code-block-wrapper">
+            <div class="code-tabs-row">
+                <div class="code-tabs">
+                <button class="code-tab active" data-tab="0">One</button>
+                <button class="code-tab" data-tab="1">Two</button>
+                <button class="code-tab" data-tab="2">Three</button>
+                <div class="active-indicator"></div>
+                </div>
+                <button class="cta-button">
+                    <span>See more</span>
+                </button>
+            </div>
+            <div class="code-example active" data-example="0">
+                <pre>
+                    <button class="copy-btn" data-copy="0" title="Copy code">
+                        <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                    </button>
+                    <code class="code-lines" aria-hidden="true"></code>
+                    <code class="code-content">curl --request <span class="method">POST</span> \
+  --url <span class="important">https://api.yutori.com/v1/browsing/tasks</span> \
+  --header 'X-API-Key: <span class="important">YOUR_API_KEY</span>' \
+  --header 'Content-Type: application/json' \
+  --data '{
+  "task": <span class="important">"Give me a list of all employees (names and titles) of Yutori."</span>,
+  "start_url": <span class="important">"https://yutori.com"</span>
+}'</code>
+                </pre>
+            </div>
+            <div class="code-example" data-example="1">
+                <pre>
+                    <button class="copy-btn" data-copy="1" title="Copy code">
+                        <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                    </button>
+                    <code class="code-lines" aria-hidden="true"></code>
+                    <code class="code-content">const response = await fetch(<span class="important">'https://api.yutori.com/v1/browsing/tasks'</span>, {
+  method: <span class="method">'POST'</span>,
+  headers: {
+    <span class="important">'X-API-Key'</span>: <span class="important">'YOUR_API_KEY'</span>,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    task: <span class="important">"Give me a list of all employees (names and titles) of Yutori."</span>,
+    start_url: <span class="important">"https://yutori.com"</span>
+  })
+});
+
+const data = await response.json();</code>
+                </pre>
+            </div>
+            <div class="code-example" data-example="2">
+                <pre>
+                    <button class="copy-btn" data-copy="2" title="Copy code">
+                        <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                    </button>
+                    <code class="code-lines" aria-hidden="true"></code>
+                    <code class="code-content">import requests
+
+response = requests.<span class="method">post</span>(
+  <span class="important">'https://api.yutori.com/v1/browsing/tasks'</span>,
+  headers={
+    <span class="important">'X-API-Key'</span>: <span class="important">'YOUR_API_KEY'</span>,
+    'Content-Type': 'application/json'
+  },
+  json={
+    'task': <span class="important">'Give me a list of all employees (names and titles) of Yutori.'</span>,
+    'start_url': <span class="important">'https://yutori.com'</span>
+  }
+)
+
+data = response.json()</code>
+                </pre>
+            </div>
+        </div>
+    </section>
 
     <script>
-        const navItems = document.querySelectorAll('.nav-item');
-        const indicator = document.querySelector('.active-indicator');
-        
-        function updateIndicator(item) {
-            const rect = item.getBoundingClientRect();
-            const containerRect = item.parentElement.getBoundingClientRect();
-            const newLeft = rect.left - containerRect.left;
-            
-            indicator.style.width = `${rect.width}px`;
-            indicator.style.transition = 'left 0.3s ease, width 0.3s ease';
-            indicator.style.left = `${newLeft}px`;
-            
-            setTimeout(() => {
-                indicator.style.transition = '';
-            }, 300);
-        }
-        
-        // Initialize indicator position
-        updateIndicator(document.querySelector('.nav-item.active'));
-        
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const previousActive = document.querySelector('.nav-item.active');
-                navItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                updateIndicator(item);
+        (function() {
+            // 005 - CTA button
+            const button = document.querySelector('#exp-005-030 .cta-button');
+            let animationFrame;
+            let lastBgPos = '0% 50%';
+            button.addEventListener('mouseenter', () => {
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                button.style.animation = 'animatedgradient 2s ease infinite';
             });
-        });
+            button.addEventListener('mouseleave', () => {
+                const style = window.getComputedStyle(button);
+                lastBgPos = style.backgroundPosition;
+                button.style.animation = 'none';
+                button.style.backgroundPosition = lastBgPos;
+                let startTime;
+                function animate(currentTime) {
+                    if (!startTime) startTime = currentTime;
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / 500, 1);
+                    const easeProgress = 1 - Math.pow(1 - progress, 3);
+                    const [startX, startY] = lastBgPos.split(' ').map(p => parseFloat(p));
+                    const newX = startX + (0 - startX) * easeProgress;
+                    button.style.backgroundPosition = newX + '% 50%';
+                    if (progress < 1) animationFrame = requestAnimationFrame(animate);
+                }
+                animationFrame = requestAnimationFrame(animate);
+            });
+            button.addEventListener('mousemove', (e) => {
+                const rect = button.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                button.style.setProperty('--last-x', x + '%');
+                button.style.setProperty('--last-y', y + '%');
+                button.style.setProperty('--x', x + '%');
+                button.style.setProperty('--y', y + '%');
+            });
+        })();
+
+        (function() {
+            // 030 - Code block
+            const wrapper = document.querySelector('#exp-005-030 .code-block-wrapper');
+            const tabs = wrapper.querySelectorAll('.code-tab');
+            const examples = wrapper.querySelectorAll('.code-example');
+
+            function generateLineNumbers(codeEl, linesEl) {
+                let raw = codeEl.textContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/^\s*\n/, '').replace(/\s+$/, '');
+                const lines = raw.split('\n');
+                linesEl.innerHTML = lines.map((_, i) => i + 1).join('<br>');
+            }
+
+            function scrambleTextWithHTML(element, finalHTML, duration) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = finalHTML;
+                const finalText = tempDiv.textContent || tempDiv.innerText;
+                const initialSpaces = finalText.split('').map(c => (c === ' ' || c === '\n') ? c : ' ').join('');
+                element.textContent = initialSpaces;
+                const charStates = finalText.split('').map(c => ({ char: c, started: false, resolved: false, scrambleCount: 0, currentScramble: ' ' }));
+                let totalResolved = 0, wavePosition = 0, frameCount = 0;
+                const frameTime = 10;
+                const interval = setInterval(() => {
+                    frameCount++;
+                    for (let i = 0; i < Math.min(wavePosition + 3, charStates.length); i++) {
+                        if (!charStates[i].started && (i === 0 || charStates[i - 1].started)) charStates[i].started = true;
+                    }
+                    wavePosition += 3;
+                    const scrambled = charStates.map(state => {
+                        if (state.char === ' ' || state.char === '\n') return state.char;
+                        if (!state.started) return ' ';
+                        if (state.resolved) return state.char;
+                        if (frameCount % 6 === 0 || state.scrambleCount === 0) {
+                            state.currentScramble = chars[Math.floor(Math.random() * chars.length)];
+                            state.scrambleCount++;
+                        }
+                        if (state.scrambleCount >= 3) { state.resolved = true; totalResolved++; return state.char; }
+                        return state.currentScramble;
+                    }).join('');
+                    element.textContent = scrambled;
+                    if (totalResolved >= charStates.filter(s => s.char !== ' ' && s.char !== '\n').length) {
+                        clearInterval(interval);
+                        element.innerHTML = finalHTML;
+                        setTimeout(() => {
+                            element.querySelectorAll('.important, .method').forEach((s, i) => setTimeout(() => s.classList.add('fade-in'), i * 20));
+                        }, 50);
+                    }
+                }, frameTime);
+            }
+
+            examples.forEach(ex => {
+                const code = ex.querySelector('.code-content');
+                const codeLines = ex.querySelector('.code-lines');
+                if (code && codeLines) {
+                    generateLineNumbers(code, codeLines);
+                    code.querySelectorAll('.important, .method').forEach(s => s.classList.add('fade-in'));
+                }
+            });
+
+            function updateCodeTabIndicator(tab) {
+                const indicator = wrapper.querySelector('.code-tabs .active-indicator');
+                const rect = tab.getBoundingClientRect();
+                const containerRect = tab.parentElement.getBoundingClientRect();
+                indicator.style.width = rect.width + 'px';
+                indicator.style.left = (rect.left - containerRect.left) + 'px';
+                indicator.style.transition = 'left 0.3s ease, width 0.3s ease';
+            }
+            updateCodeTabIndicator(wrapper.querySelector('.code-tab.active'));
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabIndex = tab.getAttribute('data-tab');
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    updateCodeTabIndicator(tab);
+                    examples.forEach(ex => {
+                        ex.classList.remove('active');
+                        if (ex.getAttribute('data-example') === tabIndex) {
+                            ex.classList.add('active');
+                            ex.style.display = 'block';
+                            const codeContent = ex.querySelector('.code-content');
+                            if (codeContent) {
+                                codeContent.querySelectorAll('.important, .method').forEach(s => s.classList.remove('fade-in'));
+                                scrambleTextWithHTML(codeContent, codeContent.innerHTML, 500);
+                            }
+                        } else { ex.style.display = 'none'; }
+                    });
+                });
+            });
+
+            wrapper.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const ex = wrapper.querySelector(`[data-example="${btn.getAttribute('data-copy')}"]`);
+                    navigator.clipboard.writeText(ex.querySelector('.code-content').innerText).then(() => {
+                        let label = btn.querySelector('.copied-label');
+                        if (!label) { label = document.createElement('span'); label.className = 'copied-label'; btn.appendChild(label); }
+                        label.textContent = 'Copied!';
+                        setTimeout(() => { if (btn.contains(label)) btn.removeChild(label); }, 1400);
+                    });
+                });
+            });
+        })();
     </script>
 </body>
-</html> 
+</html>
