@@ -62,6 +62,7 @@ export default function Home() {
             key={exp.id}
             href={exp.path}
             className="experiment-card"
+            data-exp={exp.id}
           >
             <div className="experiment-preview-wrapper">
               <iframe

@@ -1,16 +1,27 @@
 <html>
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>011</title>
         <style>
             html, body {
-                margin: 0 auto;
+                margin: 0;
                 padding: 0;
                 width: 100%;
                 height: 100%;
+                overflow: hidden;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 background-color: #F8FAFC;
+            }
+            .ascii-wrap {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                transform-origin: center center;
             }
             .ascii span {
                 transition: opacity 0.5s;
@@ -22,6 +33,7 @@
         </style>
     </head>
     <body>
+        <div class="ascii-wrap" id="ascii-wrap">
         <span class="ascii" data-text-scramble style="
             color: #94A3B8; 
             display:inline-block;
@@ -67,7 +79,20 @@
             <span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span>(</span><span>P</span><span>g</span><span>></span><span>k</span><span>f</span><span>|</span><span>}</span><span>L</span><span>}</span><span>6</span><span>s</span><span>?</span><span>+</span><span>¥</span><span>3</span><span>F</span><span>~</span><span>]</span><span>Q</span><span>_</span><span>H</span><span>a</span><span>,</span><span>+</span><span>g</span><span>I</span><span>i</span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span>n</span><span>B</span><span>•</span><span>y</span><span>R</span><span>;</span><span>g</span><span>I</span><span>f</span><span>i</span><span>¢</span><span>S</span><span>8</span><span>|</span><span>T</span><span>F</span><span>n</span><span>o</span><span>E</span><span>%</span><span>€</span><span>y</span><span>2</span><span>u</span><span>g</span><span>¥</span><span>K</span><span>,</span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span>
             <span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span>Z</span><span>8</span><span>3</span><span>W</span><span>4</span><span>K</span><span>/</span><span>&</span><span>@</span><span>#</span><span>L</span><span>A</span><span>5</span><span>J</span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span>?</span><span>O</span><span>$</span><span>W</span><span>E</span><span>T</span><span>#</span><span>u</span><span>&</span><span>*</span><span>%</span><span>#</span><span>B</span><span>L</span><span>^</span><span>Z</span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span><span> </span>
         </span>
+        </div>
 
+        <script>
+            (function fitViewport() {
+                const wrap = document.getElementById('ascii-wrap');
+                const baseW = 1300, baseH = 600;
+                function update() {
+                    const scale = Math.min(window.innerWidth / baseW, window.innerHeight / baseH, 1);
+                    wrap.style.transform = 'scale(' + scale + ')';
+                }
+                update();
+                window.addEventListener('resize', update);
+            })();
+        </script>
         <script>
             class TextScramble {
                 constructor(element) {

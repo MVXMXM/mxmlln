@@ -106,6 +106,10 @@ body {
   left: 50%;
 }
 
+.experiment-card[data-exp="011"] .experiment-preview {
+  transform: scale(0.25) translate(-50%, -50%) translateX(-3%);
+}
+
 .experiment-preview-wrapper {
   width: 100%;
   height: 100%;
