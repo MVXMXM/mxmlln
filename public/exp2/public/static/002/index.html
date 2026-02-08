@@ -14,8 +14,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 80px;
-            padding: 80px 24px;
+            padding: 24px;
             background-color: #1A1B1F;
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
@@ -80,14 +81,23 @@
         }
         .code-block-wrapper {
             width: 100%;
-            padding: 24px;
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(26, 27, 31, 0.5);
+            overflow: hidden;
         }
         .code-tabs-row {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            z-index: 5;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 24px;
-            margin-bottom: 16px;
         }
         .code-tabs {
             display: flex;
@@ -96,7 +106,7 @@
             align-items: center;
             gap: 24px;
             width: fit-content;
-            border-radius: 12px;
+            border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.10);
             backdrop-filter: blur(15px);
@@ -130,17 +140,52 @@
         }
         .code-example { display: none; min-height: 0; }
         .code-example.active { display: block; }
+        .code-example {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
         pre {
             position: relative;
             width: 100%;
+            height: 100%;
             display: flex;
             align-items: flex-start;
             overflow-x: scroll;
-            padding: 16px 0;
+            padding: 64px 0 16px 0;
             gap: 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            background: rgba(26, 27, 31, 0.5);
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+        }
+        pre.ascii-pre {
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 64px 0 0 0;
+        }
+        pre.ascii-pre .copy-btn,
+        pre.ascii-pre .code-lines { display: none !important; }
+        .ascii-display {
+            font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
+            line-height: 1;
+            white-space: pre;
+            color: #1DCD98;
+            letter-spacing: 0px;
+            text-shadow: 0 0 4px #1DCD9866;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .ascii-display .ascii-content {
+            flex-shrink: 0;
         }
         pre code { margin: 0; padding: 0; }
         .code-content { color: #64748B; }
@@ -200,11 +245,12 @@
 <body>
     <section class="exp-section exp-section-wide" id="exp-005-030">
         <div class="code-block-wrapper">
-            <div class="code-tabs-row">
+            <div class="code-tabs-row" id="outer-tabs-row">
                 <div class="code-tabs">
                 <button class="code-tab active" data-tab="0">One</button>
                 <button class="code-tab" data-tab="1">Two</button>
                 <button class="code-tab" data-tab="2">Three</button>
+                <button class="code-tab" data-tab="3">Four</button>
                 <div class="active-indicator"></div>
                 </div>
                 <button class="cta-button">
@@ -212,8 +258,15 @@
                 </button>
             </div>
             <div class="code-example active" data-example="0">
+                <pre class="ascii-pre">
+                    <video id="ascii-video" playsinline muted autoplay loop style="display:none;"></video>
+                    <canvas id="ascii-canvas" style="display:none;"></canvas>
+                    <div id="ascii-display" class="ascii-display"><span class="ascii-content">Loading...</span></div>
+                </pre>
+            </div>
+            <div class="code-example" data-example="1">
                 <pre>
-                    <button class="copy-btn" data-copy="0" title="Copy code">
+                    <button class="copy-btn" data-copy="1" title="Copy code">
                         <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" />
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -230,9 +283,9 @@
 }'</code>
                 </pre>
             </div>
-            <div class="code-example" data-example="1">
+            <div class="code-example" data-example="2">
                 <pre>
-                    <button class="copy-btn" data-copy="1" title="Copy code">
+                    <button class="copy-btn" data-copy="2" title="Copy code">
                         <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" />
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -254,9 +307,9 @@
 const data = await response.json();</code>
                 </pre>
             </div>
-            <div class="code-example" data-example="2">
+            <div class="code-example" data-example="3">
                 <pre>
-                    <button class="copy-btn" data-copy="2" title="Copy code">
+                    <button class="copy-btn" data-copy="3" title="Copy code">
                         <svg class="clipboard-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" />
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -284,6 +337,109 @@ data = response.json()</code>
     </section>
 
     <script>
+        (function() {
+            // ASCII video
+            const asciiVideo = document.getElementById('ascii-video');
+            const asciiCanvas = document.getElementById('ascii-canvas');
+            const asciiDisplay = document.getElementById('ascii-display');
+            const chars = "        ·:~=+*#@IROTUY";
+            const ctx = asciiCanvas.getContext('2d');
+            let asciiVisible = false;
+            const asciiExample = document.querySelector('[data-example="0"]');
+            const observer = new MutationObserver(() => {
+                asciiVisible = asciiExample.classList.contains('active');
+                if (asciiVisible && asciiVideo.paused) asciiVideo.play();
+                else if (!asciiVisible) asciiVideo.pause();
+            });
+            observer.observe(asciiExample, { attributes: true, attributeFilter: ['class'] });
+            asciiVisible = asciiExample.classList.contains('active');
+            const asciiPre = asciiExample.querySelector('pre');
+            const asciiContent = asciiDisplay.querySelector('.ascii-content');
+            asciiVideo.src = 'bg.mp4';
+            asciiVideo.loop = true;
+            asciiVideo.muted = true;
+            asciiVideo.addEventListener('loadeddata', () => asciiVideo.play().catch(() => {}));
+            asciiVideo.addEventListener('error', () => { asciiContent.textContent = 'Video unavailable'; });
+
+            // Measure the actual character cell size by rendering a test string
+            let cellW = 1, cellH = 1;
+            function measureCell() {
+                const test = document.createElement('span');
+                test.style.cssText = asciiDisplay.style.cssText;
+                test.style.font = window.getComputedStyle(asciiDisplay).font;
+                test.style.letterSpacing = window.getComputedStyle(asciiDisplay).letterSpacing;
+                test.style.lineHeight = '1';
+                test.style.whiteSpace = 'pre';
+                test.style.position = 'absolute';
+                test.style.visibility = 'hidden';
+                test.textContent = 'MMMMMMMMMM\nMMMMMMMMMM';
+                document.body.appendChild(test);
+                cellW = test.offsetWidth / 10;
+                cellH = test.offsetHeight / 2;
+                document.body.removeChild(test);
+            }
+
+            let rows = 0, cols = 0, fontSize = 8;
+            function calcGrid() {
+                const rect = asciiPre.getBoundingClientRect();
+                const containerW = rect.width;
+                const containerH = rect.height;
+                if (!containerW || !containerH) return;
+
+                // We want the ASCII to render 2.5x larger than the container,
+                // with overflow hidden cropping the edges.
+                const scale = 2.0;
+                rows = 120;
+                fontSize = (containerH * scale) / rows;
+                asciiDisplay.style.fontSize = fontSize + 'px';
+
+                // Measure cell with new font size
+                measureCell();
+
+                // Calculate cols so the rendered width matches the video aspect ratio
+                // relative to the container. We want the ASCII to fill the height
+                // and be as wide as the video's aspect ratio demands.
+                const vw = asciiVideo.videoWidth || 1708;
+                const vh = asciiVideo.videoHeight || 1064;
+                const videoAspect = vw / vh;
+
+                // Rendered width should match the scaled height's aspect ratio
+                const targetW = containerH * scale * videoAspect;
+                cols = Math.round(targetW / cellW);
+
+                // Update canvas
+                asciiCanvas.width = cols;
+                asciiCanvas.height = rows;
+            }
+
+            const resizeObs = new ResizeObserver(calcGrid);
+            resizeObs.observe(asciiPre);
+
+            function frameToAscii() {
+                if (!asciiVisible || asciiVideo.readyState < 2 || asciiVideo.paused) {
+                    requestAnimationFrame(frameToAscii);
+                    return;
+                }
+                if (!cols || !rows) calcGrid();
+                try {
+                    ctx.drawImage(asciiVideo, 0, 0, cols, rows);
+                    const img = ctx.getImageData(0, 0, cols, rows);
+                    let out = "";
+                    for (let y = 0; y < rows; y++) {
+                        for (let x = 0; x < cols; x++) {
+                            const i = (y * cols + x) * 4;
+                            const lum = 0.2126 * img.data[i] + 0.7152 * img.data[i+1] + 0.0722 * img.data[i+2];
+                            out += chars[Math.floor((lum / 255) * (chars.length - 1))];
+                        }
+                        out += "\n";
+                    }
+                    asciiContent.textContent = out;
+                } catch (_) {}
+                requestAnimationFrame(frameToAscii);
+            }
+            frameToAscii();
+        })();
+
         (function() {
             // 005 - CTA button
             const button = document.querySelector('#exp-005-030 .cta-button');
