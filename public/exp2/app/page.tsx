@@ -71,9 +71,6 @@ export default function Home() {
                 title={`Experiment ${exp.id}`}
               />
             </div>
-            <div className="experiment-number">
-              {exp.id}
-            </div>
           </a>
         ))}
       </div>

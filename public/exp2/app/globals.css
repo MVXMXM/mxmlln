@@ -29,9 +29,7 @@ body {
 /* Experiments section */
 .experiments-section {
   width: 100%;
-  max-width: 1400px;
-  padding: 80px 40px;
-  margin: 0 auto;
+  padding: 24px;
   box-sizing: border-box;
 }
 
@@ -48,13 +46,11 @@ body {
   flex-wrap: wrap;
   gap: 24px;
   width: 100%;
-  justify-content: center;
 }
 
 .experiment-card {
-  flex: 0 0 calc((100% - 48px) / 3);
-  max-width: 400px;
-  min-width: 280px;
+  flex: 1 1 100%;
+  min-width: 100%;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -65,24 +61,27 @@ body {
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
+}
+
+@media (min-width: 600px) {
+  .experiment-card {
+    flex: 1 1 calc((100% - 24px) / 2);
+    min-width: calc((100% - 24px) / 2);
+  }
+}
+
+@media (min-width: 900px) {
+  .experiment-card {
+    flex: 1 1 calc((100% - 48px) / 3);
+    min-width: calc((100% - 48px) / 3);
+  }
 }
 
 @media (min-width: 1200px) {
   .experiment-card {
-    flex: 0 0 calc((100% - 72px) / 4);
-  }
-}
-
-@media (max-width: 900px) {
-  .experiment-card {
-    flex: 0 0 calc((100% - 24px) / 2);
-  }
-}
-
-@media (max-width: 600px) {
-  .experiment-card {
-    flex: 0 0 100%;
+    flex: 1 1 calc((100% - 72px) / 4);
+    min-width: calc((100% - 72px) / 4);
   }
 }
 
@@ -120,31 +119,7 @@ body {
   background: #f9fafb;
 }
 
-.experiment-number {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 6px 12px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-  z-index: 2;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
 @media (max-width: 768px) {
-  .experiments-section {
-    padding: 60px 24px;
-  }
-
-  .experiments-grid {
-    gap: 20px;
-  }
-
   .experiments-title {
     font-size: 28px;
     margin-bottom: 32px;
