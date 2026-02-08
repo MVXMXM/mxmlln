@@ -8,7 +8,7 @@ interface Experiment {
 }
 
 // Full Next.js experiments (not static redirects)
-const NEXTJS_EXPERIMENTS = ['006', '010', '012', '013', '025', '026', '027', '028'];
+const NEXTJS_EXPERIMENTS = ['006', '012', '013', '025', '026', '027', '028'];
 
 // Get list of experiment directories
 function getExperiments(): Experiment[] {
