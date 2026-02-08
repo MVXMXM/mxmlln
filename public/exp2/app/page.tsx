@@ -10,9 +10,6 @@ interface Experiment {
 // Full Next.js experiments (not static redirects)
 const NEXTJS_EXPERIMENTS = ['006', '012', '013', '025', '026', '027', '028'];
 
-// Combined into other experiments (don't show separate cards)
-const EXCLUDED_STATIC = ['005', '030'];
-
 // Get list of experiment directories
 function getExperiments(): Experiment[] {
   const __filename = fileURLToPath(import.meta.url);
@@ -26,7 +23,6 @@ function getExperiments(): Experiment[] {
       .filter((entry) => {
         // Only include numbered directories with index.html
         if (!/^\d{3}$/.test(entry)) return false;
-        if (EXCLUDED_STATIC.includes(entry)) return false;
         
         const fullPath = join(staticDir, entry);
         if (!statSync(fullPath).isDirectory()) return false;
