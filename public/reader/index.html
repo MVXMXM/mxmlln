@@ -7,55 +7,57 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             line-height: 1.6;
-            background-color: #f8f9fa;
         }
         
         ul {
             list-style: none;
             padding: 0;
             margin: 0;
+            padding-top: 70px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 0;
             width: 100%;
         }
         
         li {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             align-items: stretch;
-            min-height: 120px;
+            min-height: 100vh;
+            width: 100%;
         }
         
-        li:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        li:nth-child(odd) {
+            background-color: #f8f9fa;
+        }
+        
+        li:nth-child(even) {
+            background-color: #ffffff;
         }
         
         a {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 20px 24px;
             text-decoration: none;
             color: #333;
-            height: 100%;
             width: 100%;
-            flex: 1 1 auto;
-            transition: background-color 0.2s ease;
+            min-height: 100vh;
+        }
+        
+        .link-thumbnail {
+            flex: 0 0 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
         }
         
         .favicon {
-            width: 52px;
-            height: 52px;
+            width: 80px;
+            height: 80px;
             flex-shrink: 0;
             border-radius: 12px;
         }
@@ -75,11 +77,13 @@
         }
         
         .link-content {
-            flex: 1;
+            flex: 0 0 50%;
             min-width: 0;
-            text-align: left;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            text-align: left;
+            padding: 24px 48px 24px 24px;
             gap: 8px;
         }
         
@@ -220,14 +224,13 @@
         }
         
         .header-row {
-            position: sticky;
-            top: 0;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            margin: -20px -20px 20px -20px;
-            background: #f8f9fa;
             z-index: 100;
         }
         
@@ -400,52 +403,14 @@
             background: #545b62;
         }
         
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 6px 12px;
-            border-radius: 999px;
-            background: #e2e8f0;
-            color: #475569;
-            border: 1px solid #cbd5f5;
-            cursor: pointer;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-        }
-        
-        li.read .status-pill {
-            background: #d1e7dd;
-            color: #0f5132;
-            border-color: #badbcc;
-        }
-        .status-pill:hover {
-            background: #dfe7fb;
-        }
-        
-        
-        li.read {
-            opacity: 0.65;
-        }
-        
-        li.read .link-title {
-            text-decoration: line-through;
-        }
-        
         li.empty-state {
-            min-height: 140px;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             padding: 24px;
             color: #6c757d;
-            background: transparent;
-            box-shadow: none;
-            border: 1px dashed #ced4da;
         }
     </style>
 </head>
@@ -699,12 +664,6 @@
         async function enhanceLink(link) {
             const url = link.href;
             const faviconUrl = getFaviconUrl(url);
-            const articleId = link.dataset.articleId;
-            const matchedArticle = articleId 
-                ? allArticles.find(article => article.id === articleId) 
-                : allArticles.find(article => article.url === url);
-            const isRead = matchedArticle ? Boolean(matchedArticle.read) : link.dataset.read === 'true';
-            
             // Add click handler to load in iframe
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -714,17 +673,19 @@
             // Add loading class
             link.classList.add('loading');
             
-            // Create favicon element
+            // Create thumbnail pane (left 50%)
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'link-thumbnail';
             const favicon = document.createElement('img');
             favicon.className = 'favicon';
             favicon.src = faviconUrl;
             favicon.alt = '';
             favicon.onerror = function() {
-                // Fallback to a default icon or hide
                 this.style.display = 'none';
             };
+            thumbnail.appendChild(favicon);
             
-            // Create content wrapper
+            // Create content pane (right 50%)
             const content = document.createElement('div');
             content.className = 'link-content';
             
@@ -741,29 +702,7 @@
             urlElement.className = 'link-url';
             urlElement.textContent = url;
             
-            const statusButton = document.createElement('button');
-            statusButton.type = 'button';
-            statusButton.className = 'status-pill';
-            statusButton.textContent = isRead ? 'Read' : 'Unread';
-            statusButton.setAttribute('aria-pressed', isRead ? 'true' : 'false');
-            statusButton.addEventListener('click', async (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                
-                const currentArticle = articleId 
-                    ? allArticles.find(article => article.id === articleId) 
-                    : allArticles.find(article => article.url === url);
-                
-                if (!currentArticle || !currentArticle.id) {
-                    console.warn('Unable to toggle read state: missing article ID');
-                    return;
-                }
-                
-                await toggleReadStatus(currentArticle.id, !Boolean(currentArticle.read));
-            });
-            
             meta.appendChild(urlElement);
-            meta.appendChild(statusButton);
             
             // Assemble the new structure
             content.appendChild(title);
@@ -771,7 +710,7 @@
             
             // Clear the link content and add new elements
             link.innerHTML = '';
-            link.appendChild(favicon);
+            link.appendChild(thumbnail);
             link.appendChild(content);
             
             // Remove loading class
