@@ -55,14 +55,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            overflow: hidden;
+            background: #e5e7eb;
         }
-        
-        .favicon {
-            width: 80px;
-            height: 80px;
-            flex-shrink: 0;
-            border-radius: 12px;
+
+        .link-thumbnail img {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            object-fit: cover;
         }
         
         .link-title {
@@ -647,7 +648,6 @@
         // Function to enhance a single link
         async function enhanceLink(link) {
             const url = link.href;
-            const faviconUrl = getFaviconUrl(url);
             // Add click handler to load in iframe
             link.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -657,17 +657,18 @@
             // Add loading class
             link.classList.add('loading');
             
-            // Create thumbnail pane (left 50%)
+            // Create thumbnail pane (left 50%) - Screenshot One
             const thumbnail = document.createElement('div');
             thumbnail.className = 'link-thumbnail';
-            const favicon = document.createElement('img');
-            favicon.className = 'favicon';
-            favicon.src = faviconUrl;
-            favicon.alt = '';
-            favicon.onerror = function() {
+            const screenshotImg = document.createElement('img');
+            screenshotImg.alt = '';
+            screenshotImg.loading = 'lazy';
+            const apiBase = window.location.origin;
+            screenshotImg.src = `${apiBase}/api/screenshot?url=${encodeURIComponent(url)}`;
+            screenshotImg.onerror = function() {
                 this.style.display = 'none';
             };
-            thumbnail.appendChild(favicon);
+            thumbnail.appendChild(screenshotImg);
             
             // Create content pane (right 50%)
             const content = document.createElement('div');
