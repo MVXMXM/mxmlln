@@ -223,12 +223,11 @@
             position: sticky;
             top: 0;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 20px;
             margin: -20px -20px 20px -20px;
             background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
             z-index: 100;
         }
         
@@ -452,37 +451,9 @@
 </head>
 <body>
     <div class="header-row">
-        <h1>Reading List Prototype</h1>
-        <div class="header-actions">
-            <div class="segmented-control">
-                <button type="button" id="segAntilibrary" class="active" data-filter="unread">Antilibrary</button>
-                <button type="button" id="segLibrary" data-filter="read">Library</button>
-            </div>
-            <button id="addArticleBtn" class="add-article-btn">+ Add Article</button>
-        </div>
-    </div>
-    
-    <!-- Add Article Modal -->
-    <div id="addArticleModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content add-article-modal">
-            <div class="modal-header">
-                <h2>Add New Article</h2>
-                <button id="closeAddModal" class="close-btn">✕</button>
-            </div>
-            <form id="addArticleForm" class="add-article-form">
-                <div class="form-group">
-                    <label for="articleTitle">Title</label>
-                    <input type="text" id="articleTitle" name="title" required placeholder="Enter article title">
-                </div>
-                <div class="form-group">
-                    <label for="articleUrl">URL</label>
-                    <input type="url" id="articleUrl" name="url" required placeholder="https://example.com/article">
-                </div>
-                <div class="form-actions">
-                    <button type="button" id="cancelAdd" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Add Article</button>
-                </div>
-            </form>
+        <div class="segmented-control">
+            <button type="button" id="segAntilibrary" class="active" data-filter="unread">Antilibrary</button>
+            <button type="button" id="segLibrary" data-filter="read">Library</button>
         </div>
     </div>
     
@@ -870,54 +841,9 @@
             }
         });
         
-        // Add Article functionality
-        function openAddModal() {
-            document.getElementById('addArticleModal').style.display = 'flex';
-            document.getElementById('articleTitle').focus();
-        }
-        
-        function closeAddModal() {
-            document.getElementById('addArticleModal').style.display = 'none';
-            document.getElementById('addArticleForm').reset();
-        }
-        
-        async function addArticle(title, url) {
-            try {
-                const response = await fetch('http://localhost:3002/api/reading-list', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ title, url })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const newArticle = await response.json();
-                console.log('Article added:', newArticle);
-                
-                // Reload the reading list to show the new article
-                await loadReadingList();
-                
-                // Close the modal
-                closeAddModal();
-                
-            } catch (error) {
-                console.error('Error adding article:', error);
-                alert('Failed to add article. Please try again.');
-            }
-        }
-        
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             loadReadingList();
-            
-            // Add article button event listeners
-            document.getElementById('addArticleBtn').addEventListener('click', openAddModal);
-            document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
-            document.getElementById('cancelAdd').addEventListener('click', closeAddModal);
             
             const segButtons = document.querySelectorAll('.segmented-control button');
             segButtons.forEach(btn => {
@@ -927,24 +853,6 @@
                     this.classList.add('active');
                     await renderReadingList();
                 });
-            });
-            
-            // Form submission
-            document.getElementById('addArticleForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const title = document.getElementById('articleTitle').value.trim();
-                const url = document.getElementById('articleUrl').value.trim();
-                
-                if (title && url) {
-                    addArticle(title, url);
-                }
-            });
-            
-            // Close modal when clicking outside
-            document.getElementById('addArticleModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeAddModal();
-                }
             });
         });
     </script>
