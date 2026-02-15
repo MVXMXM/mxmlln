@@ -55,15 +55,84 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            min-height: 100vh;
+            perspective: 1200px;
             background: #e5e7eb;
         }
 
-        .link-thumbnail img {
+        .book-3d {
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateY(-8deg) rotateX(2deg);
+            transition: transform 0.3s ease;
+            width: 65%;
+            max-width: 420px;
+            aspect-ratio: 3 / 4;
+            cursor: grab;
+        }
+
+        .book-3d:active {
+            cursor: grabbing;
+        }
+
+        .book-3d.dragging {
+            transition: none;
+        }
+
+        /* Front face: the screenshot */
+        .book-front {
+            position: absolute;
             width: 100%;
             height: 100%;
-            min-height: 200px;
+            backface-visibility: hidden;
+            background: #ddd;
+            border-radius: 2px 6px 6px 2px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.25), 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .book-front img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+            display: block;
+        }
+
+        /* Spine: right edge visible from the Y rotation */
+        .book-spine {
+            position: absolute;
+            top: 0;
+            right: -30px;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to right, #b0b0b0, #999);
+            transform-origin: left center;
+            transform: rotateY(90deg);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Top edge */
+        .book-top {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to bottom, #e8e8e8, #d8d8d8);
+            transform-origin: bottom center;
+            transform: rotateX(90deg);
+        }
+
+        /* Bottom edge (shadow catcher) */
+        .book-bottom {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: linear-gradient(to top, #c0c0c0, #d0d0d0);
+            transform-origin: top center;
+            transform: rotateX(-90deg);
         }
         
         .link-title {
@@ -467,6 +536,9 @@
             }
         }
         
+        // Reader server origin (same for API and screenshot images)
+        const READER_ORIGIN = 'http://localhost:3002';
+
         // Global variables for article navigation
         let allArticles = [];
         let currentArticleIndex = -1;
@@ -571,7 +643,7 @@
         
         async function toggleReadStatus(id, nextValue) {
             try {
-                const response = await fetch(`http://localhost:3002/api/reading-list/${id}`, {
+                const response = await fetch(`${READER_ORIGIN}/api/reading-list/${id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -637,7 +709,8 @@
                 link.textContent = article.title;
                 link.dataset.articleId = article.id;
                 link.dataset.read = article.read ? 'true' : 'false';
-                
+                if (article.screenshotHash) link.dataset.screenshotHash = article.screenshotHash;
+
                 listItem.appendChild(link);
                 readingList.appendChild(listItem);
             });
@@ -645,6 +718,103 @@
             await enhanceAllLinks();
         }
         
+        // Build a CSS 3D book (like press.stripe.com)
+        function build3DBook(imgUrl) {
+            const book = document.createElement('div');
+            book.className = 'book-3d';
+
+            const front = document.createElement('div');
+            front.className = 'book-front';
+            if (imgUrl) {
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.alt = '';
+                img.loading = 'lazy';
+                front.appendChild(img);
+            }
+
+            const spine = document.createElement('div');
+            spine.className = 'book-spine';
+
+            const top = document.createElement('div');
+            top.className = 'book-top';
+
+            const bottom = document.createElement('div');
+            bottom.className = 'book-bottom';
+
+            book.appendChild(front);
+            book.appendChild(spine);
+            book.appendChild(top);
+            book.appendChild(bottom);
+
+            // Drag to rotate
+            let isDragging = false;
+            let lastX = 0, lastY = 0;
+            let dragStartX = 0, dragStartY = 0;
+            let rotY = -8, rotX = 2;
+            const baseY = -8, baseX = 2;
+
+            function updateTransform() {
+                book.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+            }
+
+            book.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                lastX = e.clientX;
+                lastY = e.clientY;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                book.classList.add('dragging');
+                book.setPointerCapture(e.pointerId);
+                e.preventDefault();
+            });
+
+            book.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                rotY += dx * 0.3;
+                rotX -= dy * 0.3;
+                rotX = Math.max(-30, Math.min(30, rotX));
+                lastX = e.clientX;
+                lastY = e.clientY;
+                updateTransform();
+            });
+
+            book.addEventListener('pointerup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                book.classList.remove('dragging');
+                const moved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+                if (moved < 5) return; // was a click, not a drag
+                // Spring back to resting position
+                rotY = baseY;
+                rotX = baseX;
+                updateTransform();
+            });
+
+            book.addEventListener('pointerleave', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    book.classList.remove('dragging');
+                    rotY = baseY;
+                    rotX = baseX;
+                    updateTransform();
+                }
+            });
+
+            // Block link click if it was a drag
+            book.addEventListener('click', (e) => {
+                const moved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+                if (moved >= 5) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+
+            return book;
+        }
+
         // Function to enhance a single link
         async function enhanceLink(link) {
             const url = link.href;
@@ -657,18 +827,14 @@
             // Add loading class
             link.classList.add('loading');
             
-            // Create thumbnail pane (left 50%) - Screenshot One
+            // Create thumbnail pane (left 50%) - CSS 3D book
             const thumbnail = document.createElement('div');
             thumbnail.className = 'link-thumbnail';
-            const screenshotImg = document.createElement('img');
-            screenshotImg.alt = '';
-            screenshotImg.loading = 'lazy';
-            const apiBase = window.location.origin;
-            screenshotImg.src = `${apiBase}/api/screenshot?url=${encodeURIComponent(url)}`;
-            screenshotImg.onerror = function() {
-                this.style.display = 'none';
-            };
-            thumbnail.appendChild(screenshotImg);
+            const article = allArticles.find(a => a.url === link.href);
+            const screenshotHash = link.dataset.screenshotHash || (article && article.screenshotHash) || '';
+            const imgUrl = screenshotHash ? (READER_ORIGIN + '/screenshots/' + screenshotHash + '.jpg') : '';
+            const book = build3DBook(imgUrl);
+            thumbnail.appendChild(book);
             
             // Create content pane (right 50%)
             const content = document.createElement('div');
@@ -700,7 +866,7 @@
                 loadingIndicator.style.display = 'block';
                 errorMessage.style.display = 'none';
                 
-                const response = await fetch('http://localhost:3002/api/reading-list');
+                const response = await fetch(READER_ORIGIN + '/api/reading-list');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }

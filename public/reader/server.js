@@ -11,6 +11,10 @@ if (!fs.existsSync(SCREENSHOTS_DIR)) {
   console.log(`Created screenshots folder at ${SCREENSHOTS_DIR}`);
 }
 
+function getScreenshotHash(url) {
+  return crypto.createHash('md5').update(String(url)).digest('hex');
+}
+
 const app = express();
 const PORT = 3002; // Different port to avoid conflicts
 
@@ -18,6 +22,16 @@ const PORT = 3002; // Different port to avoid conflicts
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname)); // Serve static files from this directory
+app.use('/screenshots', express.static(SCREENSHOTS_DIR)); // Direct image URLs for textures
+
+// Explicit screenshot route so images get correct Content-Type and CORS
+app.get(/^\/screenshots\/([a-f0-9]{32})\.jpg$/, (req, res) => {
+  const hash = req.params[0];
+  const filePath = path.join(SCREENSHOTS_DIR, hash + '.jpg');
+  if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
+  res.type('jpeg');
+  res.sendFile(filePath);
+});
 
 // Reading List Data
 const DATA_FILE = path.join(__dirname, 'reading-list.json');
@@ -48,7 +62,11 @@ function writeData(data) {
 app.get('/api/reading-list', (req, res) => {
   try {
     const data = readData();
-    res.json(data);
+    const links = (data.links || []).map(link => ({
+      ...link,
+      screenshotHash: getScreenshotHash(link.url),
+    }));
+    res.json({ ...data, links });
   } catch (error) {
     console.error('Error fetching reading list:', error);
     res.status(500).json({ error: 'Failed to load reading list' });
@@ -69,12 +87,14 @@ app.post('/api/reading-list', (req, res) => {
       title,
       createdAt: new Date().toISOString(),
       metadata: {},
-      read: false
+      read: false,
+      screenshotHash: getScreenshotHash(url),
     };
 
     data.links.push(newLink);
-    
+
     if (writeData(data)) {
+      captureScreenshot(url).catch(() => {}); // fire-and-forget when adding
       res.status(201).json(newLink);
     } else {
       res.status(500).json({ error: 'Failed to save link' });
@@ -113,34 +133,20 @@ app.put('/api/reading-list/:id', (req, res) => {
   }
 });
 
-// Screenshot: fetch from Screenshot One, save to folder, serve from disk on next request
+// Screenshot: only when adding an entry; stored in screenshots/ and served statically
 function getScreenshotPath(url) {
-  const hash = crypto.createHash('md5').update(url).digest('hex');
-  return path.join(SCREENSHOTS_DIR, `${hash}.jpg`);
+  return path.join(SCREENSHOTS_DIR, `${getScreenshotHash(url)}.jpg`);
 }
 
-app.get('/api/screenshot', async (req, res) => {
+async function captureScreenshot(url) {
+  const accessKey = process.env.SCREENSHOT_ONE_ACCESS_KEY;
+  if (!accessKey) {
+    console.warn('Screenshot skipped: SCREENSHOT_ONE_ACCESS_KEY not set');
+    return;
+  }
+  const filePath = getScreenshotPath(url);
+  if (fs.existsSync(filePath)) return;
   try {
-    const { url } = req.query;
-    if (!url || typeof url !== 'string') {
-      return res.status(400).json({ error: 'URL is required' });
-    }
-
-    const filePath = getScreenshotPath(url);
-
-    // Serve from disk if we have it
-    if (fs.existsSync(filePath)) {
-      res.set('Content-Type', 'image/jpeg');
-      res.set('Cache-Control', 'public, max-age=86400');
-      return res.sendFile(filePath);
-    }
-
-    // Fetch from Screenshot One
-    const accessKey = process.env.SCREENSHOT_ONE_ACCESS_KEY;
-    if (!accessKey) {
-      return res.status(503).json({ error: 'Screenshot service not configured. Set SCREENSHOT_ONE_ACCESS_KEY.' });
-    }
-
     const params = new URLSearchParams({
       url,
       access_key: accessKey,
@@ -151,31 +157,21 @@ app.get('/api/screenshot', async (req, res) => {
       block_ads: 'true',
       block_cookie_banners: 'true',
     });
-
-    const screenshotRes = await fetch(`https://api.screenshotone.com/take?${params}`);
-
-    if (!screenshotRes.ok) {
-      const err = await screenshotRes.json().catch(() => ({}));
-      console.error('Screenshot One error:', err);
-      return res.status(screenshotRes.status).json({ error: 'Failed to capture screenshot' });
+    const res = await fetch(`https://api.screenshotone.com/take?${params}`);
+    if (!res.ok) {
+      console.error('Screenshot One error for', url, await res.text());
+      return;
     }
-
-    const buffer = Buffer.from(await screenshotRes.arrayBuffer());
-
-    // Save to folder
+    const buffer = Buffer.from(await res.arrayBuffer());
     if (!fs.existsSync(SCREENSHOTS_DIR)) {
       fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
     }
     fs.writeFileSync(filePath, buffer);
-
-    res.set('Content-Type', 'image/jpeg');
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.send(buffer);
-  } catch (error) {
-    console.error('Screenshot proxy error:', error);
-    res.status(500).json({ error: 'Failed to capture screenshot' });
+    console.log('Screenshot saved:', filePath);
+  } catch (err) {
+    console.error('Screenshot capture error:', err);
   }
-});
+}
 
 app.delete('/api/reading-list/:id', (req, res) => {
   try {
