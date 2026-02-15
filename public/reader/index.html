@@ -65,9 +65,9 @@
             transform-style: preserve-3d;
             transform: rotateY(-8deg) rotateX(2deg);
             transition: transform 0.3s ease;
-            width: 65%;
-            max-width: 420px;
-            aspect-ratio: 3 / 4;
+            width: 75%;
+            max-width: 540px;
+            aspect-ratio: 3 / 2;
             cursor: grab;
         }
 
@@ -98,8 +98,8 @@
             display: block;
         }
 
-        /* Spine: right edge visible from the Y rotation */
-        .book-spine {
+        /* Right spine */
+        .book-spine-right {
             position: absolute;
             top: 0;
             right: -30px;
@@ -108,7 +108,18 @@
             background: linear-gradient(to right, #b0b0b0, #999);
             transform-origin: left center;
             transform: rotateY(90deg);
-            border-radius: 0 4px 4px 0;
+        }
+
+        /* Left spine */
+        .book-spine-left {
+            position: absolute;
+            top: 0;
+            left: -30px;
+            width: 30px;
+            height: 100%;
+            background: linear-gradient(to left, #b0b0b0, #999);
+            transform-origin: right center;
+            transform: rotateY(-90deg);
         }
 
         /* Top edge */
@@ -123,7 +134,7 @@
             transform: rotateX(90deg);
         }
 
-        /* Bottom edge (shadow catcher) */
+        /* Bottom edge */
         .book-bottom {
             position: absolute;
             bottom: -30px;
@@ -133,6 +144,15 @@
             background: linear-gradient(to top, #c0c0c0, #d0d0d0);
             transform-origin: top center;
             transform: rotateX(-90deg);
+        }
+
+        /* Back face */
+        .book-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #c0c0c0;
+            transform: translateZ(-30px) rotateY(180deg);
         }
         
         .link-title {
@@ -733,8 +753,11 @@
                 front.appendChild(img);
             }
 
-            const spine = document.createElement('div');
-            spine.className = 'book-spine';
+            const spineRight = document.createElement('div');
+            spineRight.className = 'book-spine-right';
+
+            const spineLeft = document.createElement('div');
+            spineLeft.className = 'book-spine-left';
 
             const top = document.createElement('div');
             top.className = 'book-top';
@@ -742,10 +765,15 @@
             const bottom = document.createElement('div');
             bottom.className = 'book-bottom';
 
+            const back = document.createElement('div');
+            back.className = 'book-back';
+
             book.appendChild(front);
-            book.appendChild(spine);
+            book.appendChild(spineRight);
+            book.appendChild(spineLeft);
             book.appendChild(top);
             book.appendChild(bottom);
+            book.appendChild(back);
 
             // Drag to rotate
             let isDragging = false;
