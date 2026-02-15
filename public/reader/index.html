@@ -259,30 +259,42 @@
             transform: translateY(-1px);
         }
         
-        .filter-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
+        .segmented-control {
+            display: inline-flex;
             background: white;
             border-radius: 8px;
             border: 1px solid #e9ecef;
-            font-size: 14px;
-            color: #495057;
+            padding: 4px;
+            gap: 0;
         }
         
-        .filter-controls label {
-            font-weight: 500;
-        }
-        
-        .filter-controls select {
+        .segmented-control button {
+            padding: 8px 20px;
             border: none;
             background: transparent;
             font-size: 14px;
-            color: #212529;
-            outline: none;
-            padding-right: 4px;
+            font-weight: 500;
+            color: #6c757d;
             cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .segmented-control button:first-child {
+            border-radius: 6px 0 0 6px;
+        }
+        
+        .segmented-control button:last-child {
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .segmented-control button:hover {
+            color: #212529;
+        }
+        
+        .segmented-control button.active {
+            background: #e9ecef;
+            color: #212529;
         }
         
         .add-article-modal {
@@ -442,13 +454,9 @@
     <div class="header-row">
         <h1>Reading List Prototype</h1>
         <div class="header-actions">
-            <div class="filter-controls">
-                <label for="statusFilter">Show</label>
-                <select id="statusFilter">
-                    <option value="all">All</option>
-                    <option value="unread">Unread</option>
-                    <option value="read">Read</option>
-                </select>
+            <div class="segmented-control">
+                <button type="button" id="segAntilibrary" class="active" data-filter="unread">Antilibrary</button>
+                <button type="button" id="segLibrary" data-filter="read">Library</button>
             </div>
             <button id="addArticleBtn" class="add-article-btn">+ Add Article</button>
         </div>
@@ -541,7 +549,7 @@
         // Global variables for article navigation
         let allArticles = [];
         let currentArticleIndex = -1;
-        let currentFilter = 'all';
+        let currentFilter = 'unread';
         
         // Function to load URL in iframe
         function loadInFrame(url) {
@@ -688,11 +696,9 @@
                 emptyState.className = 'empty-state';
                 
                 if (currentFilter === 'read') {
-                    emptyState.textContent = 'No articles marked as read yet.';
-                } else if (currentFilter === 'unread') {
-                    emptyState.textContent = 'All caught up! Everything here is read.';
+                    emptyState.textContent = 'No articles in your library yet.';
                 } else {
-                    emptyState.textContent = 'No articles in the reading list yet.';
+                    emptyState.textContent = 'All caught up! Everything here is read.';
                 }
                 
                 readingList.appendChild(emptyState);
@@ -913,11 +919,14 @@
             document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
             document.getElementById('cancelAdd').addEventListener('click', closeAddModal);
             
-            const statusFilter = document.getElementById('statusFilter');
-            statusFilter.value = currentFilter;
-            statusFilter.addEventListener('change', async function(e) {
-                currentFilter = e.target.value;
-                await renderReadingList();
+            const segButtons = document.querySelectorAll('.segmented-control button');
+            segButtons.forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    currentFilter = this.dataset.filter;
+                    segButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    await renderReadingList();
+                });
             });
             
             // Form submission
