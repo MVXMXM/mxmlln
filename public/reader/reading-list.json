@@ -455,6 +455,14 @@
       "createdAt": "2026-02-01T12:00:00.002Z",
       "metadata": {},
       "read": true
+    },
+    {
+      "id": "1738368000003",
+      "url": "https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus",
+      "title": "Context Engineering for AI Agents — Manus",
+      "createdAt": "2026-02-01T12:00:00.003Z",
+      "metadata": {},
+      "read": true
     }
   ]
 }
