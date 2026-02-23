@@ -64,7 +64,7 @@ export function TextAnimate({
       opacity: 1,
       filter: "blur(0px)",
       y: 0,
-      transition: { duration: 1.2, delay: 0.2, ease: [0.4, 0, 0.2, 1] },
+      transition: { duration: 1.2, delay: 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
     },
   };
   return (
