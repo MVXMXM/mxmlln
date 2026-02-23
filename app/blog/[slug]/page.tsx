@@ -4,13 +4,31 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import type { MDXComponents } from 'mdx/types';
 
-const mdxComponents: MDXComponents = {
-  img: (props) => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function BlogImage(props: any) {
+  return (
     <figure className="blog-figure">
       <img {...props} />
       {props.alt && <figcaption>{props.alt}</figcaption>}
     </figure>
-  ),
+  );
+}
+
+const mdxComponents: MDXComponents = {
+  img: BlogImage,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  p: (props: any) => {
+    const children = props.children;
+    if (
+      children &&
+      typeof children === 'object' &&
+      'type' in children &&
+      children.type === BlogImage
+    ) {
+      return <>{children}</>;
+    }
+    return <p {...props} />;
+  },
 };
 
 interface PageProps {
