@@ -19,7 +19,7 @@
             list-style: none;
             padding: 0;
             margin: 0;
-            padding-top: 70px;
+            padding-top: 0;
             display: flex;
             flex-direction: column;
             gap: 0;
@@ -932,6 +932,7 @@
                     currentFilter = this.dataset.filter;
                     segButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     await renderReadingList();
                 });
             });
