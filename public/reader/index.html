@@ -41,17 +41,15 @@
             background-color: #ffffff;
         }
         
-        a {
+        .card-wrapper {
             display: flex;
             align-items: center;
-            text-decoration: none;
-            color: #333;
             width: 100%;
             min-height: 100vh;
         }
         
         .link-thumbnail {
-            flex: 0 0 50%;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -724,14 +722,14 @@
                     listItem.classList.add('read');
                 }
                 
-                const link = document.createElement('a');
-                link.href = article.url;
-                link.textContent = article.title;
-                link.dataset.articleId = article.id;
-                link.dataset.read = article.read ? 'true' : 'false';
-                if (article.screenshotHash) link.dataset.screenshotHash = article.screenshotHash;
+                const card = document.createElement('div');
+                card.className = 'card-wrapper';
+                card.dataset.url = article.url;
+                card.dataset.articleId = article.id;
+                card.dataset.read = article.read ? 'true' : 'false';
+                if (article.screenshotHash) card.dataset.screenshotHash = article.screenshotHash;
 
-                listItem.appendChild(link);
+                listItem.appendChild(card);
                 readingList.appendChild(listItem);
             });
             
@@ -792,6 +790,8 @@
                 lastY = e.clientY;
                 dragStartX = e.clientX;
                 dragStartY = e.clientY;
+                book._dragStartX = e.clientX;
+                book._dragStartY = e.clientY;
                 book.classList.add('dragging');
                 book.setPointerCapture(e.pointerId);
                 e.preventDefault();
@@ -831,58 +831,32 @@
                 }
             });
 
-            // Block link click if it was a drag
-            book.addEventListener('click', (e) => {
-                const moved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
-                if (moved >= 5) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            }, true);
-
             return book;
         }
 
         // Function to enhance a single link
         async function enhanceLink(link) {
-            const url = link.href;
-            // Add click handler to load in iframe
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                loadInFrame(url);
-            });
+            const url = link.dataset.url;
             
-            // Add loading class
-            link.classList.add('loading');
-            
-            // Create thumbnail pane (left 50%) - CSS 3D book
+            // Create thumbnail pane - CSS 3D book
             const thumbnail = document.createElement('div');
             thumbnail.className = 'link-thumbnail';
-            const article = allArticles.find(a => a.url === link.href);
+            const article = allArticles.find(a => a.url === url);
             const screenshotHash = link.dataset.screenshotHash || (article && article.screenshotHash) || '';
             const imgUrl = screenshotHash ? (READER_ORIGIN + '/screenshots/' + screenshotHash + '.jpg') : '';
             const book = build3DBook(imgUrl);
+            // Click on the book opens the article (only if not a drag)
+            book.addEventListener('click', function(e) {
+                const moved = Math.hypot(e.clientX - book._dragStartX, e.clientY - book._dragStartY);
+                if (moved < 5) {
+                    loadInFrame(url);
+                }
+            });
             thumbnail.appendChild(book);
             
-            // Create content pane (right 50%)
-            const content = document.createElement('div');
-            content.className = 'link-content';
-            
-            // Create title element
-            const title = document.createElement('div');
-            title.className = 'link-title';
-            title.textContent = link.textContent;
-            
-            // Assemble the new structure
-            content.appendChild(title);
-            
-            // Clear the link content and add new elements
+            // Clear the link content and add the 3D book
             link.innerHTML = '';
             link.appendChild(thumbnail);
-            link.appendChild(content);
-            
-            // Remove loading class
-            link.classList.remove('loading');
         }
         
         // Function to load reading list from API
@@ -916,7 +890,7 @@
         
         // Function to enhance all links
         async function enhanceAllLinks() {
-            const links = document.querySelectorAll('ul li a');
+            const links = document.querySelectorAll('ul li .card-wrapper');
             
             // Process links in batches to avoid overwhelming the browser
             const batchSize = 5;
