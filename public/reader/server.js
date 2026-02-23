@@ -173,6 +173,25 @@ async function captureScreenshot(url) {
   }
 }
 
+// Capture screenshots for any entries missing one
+app.post('/api/capture-missing', async (req, res) => {
+  try {
+    const data = readData();
+    const missing = data.links.filter(link => !fs.existsSync(getScreenshotPath(link.url)));
+    if (missing.length === 0) {
+      return res.json({ message: 'All screenshots present', captured: 0 });
+    }
+    res.json({ message: `Capturing ${missing.length} screenshots in background`, urls: missing.map(l => l.url) });
+    for (const link of missing) {
+      await captureScreenshot(link.url);
+    }
+    console.log(`Finished capturing ${missing.length} missing screenshots`);
+  } catch (error) {
+    console.error('Error capturing missing screenshots:', error);
+    res.status(500).json({ error: 'Failed to capture screenshots' });
+  }
+});
+
 app.delete('/api/reading-list/:id', (req, res) => {
   try {
     const { id } = req.params;
