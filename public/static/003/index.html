@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dieter Rams Dial</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .dial-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+        }
+
+        .dial-shadow {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            box-shadow: 
+                2px 2px 15px rgba(0, 0, 0, 0.1),
+                4px 4px 30px rgba(0, 0, 0, 0.15);
+            z-index: 1;
+        }
+
+        .dial {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            cursor: pointer;
+            touch-action: none;
+            transition: transform 0.3s ease-out;
+            background: #ffffff;
+            box-shadow: 
+                inset -1px -1px 5px rgba(0, 0, 0, 0.05),
+                inset 1px 1px 5px rgba(255, 255, 255, 0.1);
+            z-index: 2;
+            transform: rotate(-140deg);
+        }
+
+        .dial:active {
+            box-shadow: 
+                inset -1px -1px 3px rgba(0, 0, 0, 0.05),
+                inset 1px 1px 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .dial::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 9.2px;
+            height: 9.2px;
+            background: #FF6B35;
+            border-radius: 50%;
+            transform: translate(-50%, 0);
+            box-shadow: 1px 1px 4px rgba(255, 107, 53, 0.3);
+        }
+
+        .progress-ring {
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-140deg);
+            background: conic-gradient(#FF6B35 0deg, #EEEEEE 0deg);
+            z-index: 1;
+            clip-path: path('M 120 120 L 120 0 A 120 120 0 1 1 1.82 99.17 Z');
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .progress-ring::before {
+            content: '';
+            position: absolute;
+            width: 227.5px;
+            height: 227.5px;
+            background: #ffffff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="dial-container">
+        <div class="progress-ring" id="progress"></div>
+        <div class="dial-shadow"></div>
+        <div class="dial" id="dial"></div>
+    </div>
+
+    <script>
+        const dial = document.getElementById('dial');
+        const progressRing = document.getElementById('progress');
+        const dialContainer = dial.parentElement;
+        let isDragging = false;
+        let hasMoved = false;
+        let startAngle = 0;
+        let currentAngle = -140;
+
+        function getRelativeAngle(e) {
+            // Use container center for more accurate positioning
+            const rect = dialContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            // Handle both mouse and touch events
+            const clientX = e.clientX !== undefined ? e.clientX : e.touches?.[0]?.clientX ?? 0;
+            const clientY = e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY ?? 0;
+            const x = clientX - centerX;
+            const y = clientY - centerY;
+
+            // Math.atan2(y, x) returns: 0° = right, 90° = down, -90° = up, 180° = left
+            // We want: 0° = top, 90° = right, -90° = left, 180° = bottom
+            // So we add 90° to shift the coordinate system
+            let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+            
+            // Normalize to -180 to 180 range
+            if (angle > 180) angle -= 360;
+            if (angle < -180) angle += 360;
+
+            return angle;
+        }
+
+        function clampAngle(angle) {
+            return Math.max(-140, Math.min(140, angle));
+        }
+
+        function updateProgress(angle) {
+            const clamped = clampAngle(angle);
+            const progressDegrees = clamped + 140;
+            progressRing.style.background = `conic-gradient(#FF6B35 0deg, #FF6B35 ${progressDegrees}deg, #EEEEEE ${progressDegrees}deg 280deg, transparent 280deg 360deg)`;
+        }
+
+        function rotateTo(angle) {
+            const clamped = clampAngle(angle);
+            currentAngle = clamped;
+            // Only disable transition when actually dragging (has moved), not on initial click
+            if (isDragging && hasMoved) {
+                dial.style.transition = 'none';
+            } else {
+                dial.style.transition = 'transform 0.3s ease-out';
+            }
+            dial.style.transform = `rotate(${clamped}deg)`;
+            updateProgress(clamped);
+        }
+
+        dial.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            // Directly move the dot to where user clicked/dragged
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            hasMoved = true; // Mark that user has actually moved
+            // Always align the dot with cursor position during drag
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            hasMoved = false;
+        });
+
+        dial.addEventListener('click', (e) => {
+            if (!isDragging) {
+                let angle = getRelativeAngle(e);
+                rotateTo(angle);
+            }
+        });
+
+        // Click/touch on progress ring (arc)
+        progressRing.addEventListener('click', (e) => {
+            if (!isDragging) {
+                let angle = getRelativeAngle(e);
+                rotateTo(angle);
+            }
+        });
+
+        progressRing.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+        });
+
+        progressRing.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Touch support
+        dial.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            // Directly move the dot to where user touched
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            hasMoved = true; // Mark that user has actually moved
+            // Always align the dot with touch position during drag
+            let angle = getRelativeAngle(e);
+            rotateTo(angle);
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        document.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+            }
+            isDragging = false;
+            hasMoved = false;
+        });
+
+        // Init
+        rotateTo(currentAngle);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --font-sans: 'Archivo', sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Experiments section */
+.experiments-section {
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.experiments-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 48px;
+  text-align: center;
+  color: var(--foreground);
+}
+
+.experiments-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  width: 100%;
+}
+
+.experiment-card {
+  flex: 1 1 100%;
+  min-width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 0;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+}
+
+@media (min-width: 600px) {
+  .experiment-card {
+    flex: 1 1 calc((100% - 24px) / 2);
+    min-width: calc((100% - 24px) / 2);
+  }
+}
+
+@media (min-width: 900px) {
+  .experiment-card {
+    flex: 1 1 calc((100% - 48px) / 3);
+    min-width: calc((100% - 48px) / 3);
+  }
+}
+
+@media (min-width: 1200px) {
+  .experiment-card {
+    flex: 1 1 calc((100% - 72px) / 4);
+    min-width: calc((100% - 72px) / 4);
+  }
+}
+
+.experiment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+}
+
+.experiment-preview {
+  width: 400%;
+  height: 400%;
+  background: #f9fafb;
+  border: none;
+  display: block;
+  pointer-events: none;
+  transform: scale(0.25) translate(-50%, -50%);
+  transform-origin: top left;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.experiment-card[data-exp="011"] .experiment-preview {
+  transform: scale(0.25) translate(-50%, -50%) translateX(-3%);
+}
+
+.experiment-preview-wrapper {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+@media (max-width: 768px) {
+  .experiments-title {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+}
+
+/* Chat container and text styles */
+.text-block {
+  font-family: var(--font-sans);
+  font-size: 6rem;
+  font-weight: 500;
+  color: var(--foreground);
+  text-align: center;
+  line-height: 110%;
+  letter-spacing: -4px;
+  display: flex;
+}
+
+.char {
+  transition: font-weight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.char.space {
+  width: 0.25em;
+  display: inline-block;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

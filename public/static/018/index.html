@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Expand</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #F8FAFC;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 100;
+            letter-spacing: 1px;
+            color: #8e8e8e;
+            margin-bottom: 16px;
+            font-family: "Georgia Pro Condensed", Georgia, serif;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 100;
+            letter-spacing: 0px;
+            color: #4e4e4e;
+            margin-bottom: 16px;
+            font-family: "Georgia Pro Condensed", Georgia, serif;
+        }
+
+        .search-container {
+            position: relative;
+            width: 568px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background: #fff;
+            color: #333;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #E2E8F0;
+            border-radius: 12px;
+        }
+
+        .search-modal {
+            position: absolute;
+            top: -103px;
+            left: -16px;
+            width: 600px;
+            background-color: #F8FAFC;
+            border: 0px solid #E2E8F0;
+            border-radius: 24px;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(150px);
+            box-shadow: 0 0px 0px rgba(0,0,0,0);
+            z-index: 2;
+            /* Fast transition for closing */
+            transition: opacity 0.3s ease 0.6s, visibility 0.3s ease 0.6s, background-color 0.3s ease, border 0.3s ease, transform 0.6s ease, box-shadow 0.4s ease;
+        }
+
+        .search-modal.active {
+            opacity: 1;
+            visibility: visible;
+            width: 600px;
+            background-color: rgba(241, 245, 249, 1);
+            border: 1px solid #E2E8F0;
+            transform: translateY(0px);
+            box-shadow: 0 308px 123px 0 rgba(0, 0, 0, 0.01), 0 173px 104px 0 rgba(0, 0, 0, 0.05), 0 77px 77px 0 rgba(0, 0, 0, 0.09), 0 19px 42px 0 rgba(0, 0, 0, 0.10);
+            /* Slower transition for opening with delayed shadow */
+            transition: opacity 0.1s ease, visibility 0.01s ease, background-color 0.3s ease 0.1s, border 0.3s ease 0.1s, transform 0.6s ease 0.1s, box-shadow 0.6s ease 0.1s;
+        }
+
+        .settings {
+            margin-top: 30px;
+            color: #333;
+            opacity: 0;
+            width: 100%;
+        }
+
+        .search-modal.active .settings {
+            opacity: 1;
+            margin: 16px 0 0 0;
+            background-color: #ebeef2;
+            border-radius: 12px;
+            padding: 16px;
+            gap: 20px;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            height: 100%;
+        }
+
+        .setting-group {
+            width: 100%;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #5e6d83;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 130%;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            transition: all 0.5s ease 0.3s;
+        }
+
+        .match-sensitivity {
+            width: 100%;
+            padding: 15px 20px;
+            background: #F1F5F9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            height: 48px;
+        }
+
+        .match-sensitivity:focus-within {
+            border-color: #E2E8F0;
+            border-radius: 8px;
+        }
+
+        .match-sensitivity input[type="range"] {
+            width: 100%;
+            height: 2px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .segmented-control {
+            display: flex;
+            background: transparent;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .segment {
+            flex: 1;
+            padding: 11px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: #334155;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 130%;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .segment:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .segment.active {
+            background: #F1F5F9;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="search-container">
+        <div style="display: flex; width: 100%;justify-content: center; align-items: center;">
+            <h1>Search the horizon</h1>
+        </div>
+        <input type="text" class="search-input" placeholder="What does your heart desire..." autofocus>
+        <div class="search-modal">
+            <input type="text" class="search-input" placeholder="What does your heart desire...">
+            <div class="settings">
+                <div class="setting-group">
+                    <label>Sensitivity</label>
+                    <div class="match-sensitivity">
+                        <input type="range" min="0" max="100" value="50">
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>Scope</label>
+                    <div class="segmented-control">
+                        <button class="segment active" data-value="all">Option 1</button>
+                        <button class="segment" data-value="title">Option 2</button>
+                        <button class="segment" data-value="description">Option 3</button>
+                        <button class="segment" data-value="tags">Option 4</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.querySelector('.search-input');
+        const searchModal = document.querySelector('.search-modal');
+        const modalInput = searchModal.querySelector('.search-input');
+        const modalOverlay = document.getElementById('modalOverlay');
+
+        searchInput.addEventListener('input', () => {
+            if (searchInput.value.length >= 2) {
+                searchModal.classList.add('active');
+                modalOverlay.classList.add('active');
+                modalInput.value = searchInput.value;
+                setTimeout(() => {
+                    modalInput.focus();
+                }, 400);
+            } else {
+                searchModal.classList.remove('active');
+                modalOverlay.classList.remove('active');
+                searchInput.focus();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchModal.contains(e.target) && e.target !== searchInput) {
+                searchModal.classList.remove('active');
+                modalOverlay.classList.remove('active');
+                searchInput.focus();
+            }
+        });
+
+        modalInput.addEventListener('input', (e) => {
+            searchInput.value = e.target.value;
+            // Check if modal should close when typing in modal
+            if (e.target.value.length < 2) {
+                searchModal.classList.remove('active');
+                modalOverlay.classList.remove('active');
+                searchInput.focus();
+            }
+        });
+
+        modalInput.addEventListener('focus', () => {
+            searchModal.classList.add('active');
+            modalOverlay.classList.add('active');
+        });
+
+        // Segmented control functionality
+        const segments = document.querySelectorAll('.segment');
+        segments.forEach(segment => {
+            segment.addEventListener('click', () => {
+                // Remove active class from all segments
+                segments.forEach(s => s.classList.remove('active'));
+                // Add active class to clicked segment
+                segment.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+---
+title: "Hammers don't interrupt (digital tools shouldn't either)"
+date: "2020-01-26"
+description: "Interrupting users with banners, alerts, & notifications has negative consequences for your product's user experience."
+tags: ["ux", "product design", "technology", "startup"]
+originalPublication:
+  name: "UX Collective"
+  url: "https://medium.com/user-experience-design-1/hammers-dont-interrupt-design-without-dual-task-interference-cc94de614cdb"
+---
+
+![Photograph by Anne Nygård](/blog/hammers-dont-interrupt/hero.jpeg)
+
+Take a second to imagine this scenario: you need to hang a picture, so you grab a hammer—but as you pick it up, **it begins talking**. It explains some dense & seemingly random information, distracting you from your task. You try to comprehend, but you have things to focus on: which wall to choose, how high to hang, where the nails are... so when your hammer asks if you agree, you just blindly confirm & move on. Unbeknownst to you, your hammer was disclosing its new privacy policy & detailing how it will now record your usage, map geo-coordinates for every hole you make, & scan your fingerprints to infer demographic data it can sell to marketers… great.
+
+Luckily our hammers don't do that — but our digital products often do.
+
+Just take a look at what happened when I simply tried to read an article:
+
+![Can you spot the article in this obstacle course of interruptions?](/blog/hammers-dont-interrupt/interruptions.jpeg)
+
+Experiences like this are unfortunately common place. We visit a product for a specific task—only to be interrupted by alerts, banners, & notifications full of unrelated features, dense legal documents, & advertisements.
+
+However, a [study by Information Systems Research](https://pubsonline.informs.org/doi/pdf/10.1287/isre.2016.0644) explains why we should reconsider this approach to product design. Interruptive alerts have a "substantial negative impact in terms of reduced productivity, increased stress, and increased task-completion time". These are not traits we want associated with our products. At the root of these negative effects is a cognitive limitation called dual-task interference (DTI), in which we experience significant performance loss when we try to complete tasks simultaneously—even if they are simple.
+
+> "Even the most well-meaning application has the potential to cause interruption overload." [Adamczyk & Bailey 2004](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.85.354&rep=rep1&type=pdf)
+
+## Capacity-sharing & bottlenecks
+
+DTI is easily explained via two cognitive models, [capacity-sharing](https://pdfs.semanticscholar.org/8898/795c231262dcefac6c6407e898b646e3119a.pdf?_ga=2.208649490.1214755908.1578279156-300715734.1578279156) & [bottlenecks](https://www.sciencedirect.com/science/article/pii/S0010028501907674), which theorize that we share mental capacity among tasks with a limited amount to allocate. Increasing mental capacity for one task will decease the available amount for another, affecting processing time. Attempting multiple tasks at once creates a bottleneck, causing processing time to ballon for at least one task — if not all of them.
+
+Our brains aren't designed for multi-tasking, nor should our products be.
+
+## Timing is everything
+
+With this research in mind, we should strive to design products that do not interrupt users but instead find natural pauses in the experience to introduce secondary information. Avoiding DTI not only creates more pleasant & productive experiences, but also increases the likelihood alerts, banners, & notifications will be read because attention is available.
+
+> "HCI research on interruptions suggests that the severity of an interruption can be reduced by introducing it at a more opportune moment" [Adamczyk & Bailey 2004](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.85.354&rep=rep1&type=pdf)
+
+Here's an example we recently implemented in our product at [Headliner](https://www.headliner.app/), a browser based video editor, by repositioning our announcement modal. It initially displayed after log in, interrupting the initial intent of a user's visit:
+
+![Original journey with DTI inducing modal](/blog/hammers-dont-interrupt/journey-original.png)
+
+By moving the modal from the beginning of the funnel to the end, we utilize the idle time a user encounters while waiting for their video to render:
+
+![Revised journey with a "Post-Task Prompt"](/blog/hammers-dont-interrupt/journey-revised.png)
+
+This placement yields significant conversion without interruption, because it avoids DTI. We call it the "Post-Task Prompt":
+
+![An example of Headliner's Post-Task Prompt](/blog/hammers-dont-interrupt/post-task-prompt.gif)
+
+Not every context provides an opportune moment, but the effort to find one is worthwhile. This can be applied to all aspects of a product, from [new user onboarding](https://www.invisionapp.com/inside-design/3-user-onboarding-pitfalls-every-designer-should-avoid/) to [security alerts](http://people.cs.vt.edu/~kafura/cs6204/Readings/Usability/AliigningSecurityUsability.pdf).
+
+## DTI as a dark pattern
+
+My fear is that our cognitive limitation is an opportunity for manipulation, allowing controversial information (like privacy policy updates) to be perniciously placed at moments when we are less fit for critical analysis. Designers should use this research to defend against these dark patterns by pushing secondary information to natural pauses in the user experience. Not only will this make products more productive, efficient, & less stressful but it will also give banners, alerts, & notifications the attention they deserve.
+
+Hammers don't interrupt, nor should our other products.
