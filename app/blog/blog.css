@@ -1,11 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 .blog-layout {
   min-height: 100vh;
   background: #fff;
   color: #1a1a1a;
-  font-family: 'Archivo', sans-serif;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
 }
 
 /* Nav */
@@ -29,7 +28,7 @@
 }
 
 .blog-nav a {
-  font-family: 'Archivo', sans-serif;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 1px;
@@ -81,50 +80,89 @@
   padding: 24px 24px 80px;
 }
 
-.blog-index h1 {
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #999;
+/* Title block: script on top (portfolio-style), main heading below */
+.blog-index-title-block {
+  margin-top: 12px;
   margin-bottom: 48px;
+}
+
+.blog-index-title-script {
+  font-family: var(--font-homemade-apple), 'Homemade Apple', cursive;
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.blog-index h1 {
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: 0;
+  line-height: 1.1;
+  color: #1a1a1a;
+  margin: 0;
 }
 
 .blog-post-list {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 0;
 }
 
 .blog-post-preview {
   text-decoration: none;
   color: inherit;
   display: block;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid #e0e0e0;
   transition: opacity 0.2s ease;
+}
+
+.blog-post-preview:first-child {
+  padding-top: 0;
+}
+
+.blog-post-preview:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .blog-post-preview:hover {
   opacity: 0.7;
 }
 
+/* Index list: date = Homemade Apple (as before); title/description = about page time period style */
 .blog-post-preview time {
-  font-size: 13px;
-  color: #999;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-homemade-apple), 'Homemade Apple', cursive;
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: #1a1a1a;
 }
 
 .blog-post-preview h2 {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 6px 0 8px;
-  line-height: 1.3;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 0 0 8px;
+  line-height: 1.2;
 }
 
 .blog-post-preview p {
-  font-size: 15px;
-  color: #666;
-  line-height: 1.5;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  line-height: 24px;
+  color: #1a1a1a;
   margin: 0;
+  text-align: left;
 }
 
 /* Post page */
@@ -139,17 +177,21 @@
 }
 
 .blog-post-header time {
-  font-size: 13px;
-  color: #999;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-homemade-apple), 'Homemade Apple', cursive;
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: #1a1a1a;
 }
 
 .blog-post-header h1 {
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.1;
   margin: 8px 0 12px;
-  letter-spacing: -0.5px;
 }
 
 .blog-post-header .description {
@@ -224,13 +266,23 @@
   font-style: italic;
 }
 
-.blog-prose ul, .blog-prose ol {
+.blog-prose ul {
   margin: 0 0 24px;
-  padding-left: 24px;
+  padding-left: 1.5em;
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.blog-prose ol {
+  margin: 0 0 24px;
+  padding-left: 1.5em;
+  list-style-type: decimal;
+  list-style-position: outside;
 }
 
 .blog-prose li {
   margin-bottom: 8px;
+  padding-left: 0.25em;
 }
 
 .blog-prose code {
@@ -291,8 +343,20 @@
 }
 
 @media (max-width: 640px) {
+  .blog-index-title-script {
+    font-size: 18px;
+  }
+
+  .blog-index h1 {
+    font-size: 28px;
+  }
+
   .blog-post-header h1 {
     font-size: 28px;
+  }
+
+  .blog-post-preview h2 {
+    font-size: 22px;
   }
 
   .blog-prose {

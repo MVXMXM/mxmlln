@@ -11,6 +11,7 @@ export interface BlogPost {
   description: string;
   tags?: string[];
   originalPublication?: { name: string; url: string };
+  location?: string;
   content: string;
 }
 
@@ -32,6 +33,7 @@ export function getAllPosts(): BlogPost[] {
       description: data.description || '',
       tags: data.tags || [],
       originalPublication: data.originalPublication || undefined,
+      location: data.location ?? 'NYC',
       content,
     };
   });
@@ -53,6 +55,7 @@ export function getPostBySlug(slug: string): BlogPost | null {
     description: data.description || '',
     tags: data.tags || [],
     originalPublication: data.originalPublication || undefined,
+    location: data.location ?? 'NYC',
     content,
   };
 }

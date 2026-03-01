@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps) {
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
   const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${pad(month)}.${pad(day)}.${year}`;
+  return `${pad(month)}/${pad(day)}/${year}`;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -62,7 +62,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <article className="blog-post">
       <header className="blog-post-header">
-        <time dateTime={post.date}>{formatDate(post.date)}</time>
+        <time dateTime={post.date}>{formatDate(post.date)} • {' '}{post.location ?? 'NYC'}</time>
         <h1>{post.title}</h1>
         {post.description && (
           <p className="description">{post.description}</p>
