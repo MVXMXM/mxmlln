@@ -16,8 +16,8 @@ const homemadeApple = Homemade_Apple({
 });
 
 export const metadata: Metadata = {
-  title: "Blog — Maximillian Piras",
-  description: "Writing on software design.",
+  title: "Blog by Maximillian Piras",
+  description: "Writing on software design (UX, UI, AI & so on).",
 };
 
 export default function BlogLayout({

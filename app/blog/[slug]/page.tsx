@@ -75,6 +75,14 @@ export default async function BlogPostPage({ params }: PageProps) {
             <a href={post.originalPublication.url} target="_blank" rel="noopener noreferrer">
               {post.originalPublication.name}
             </a>
+            {post.additionalPublications?.map((pub, i) => (
+              <span key={i}>
+                {' & '}
+                <a href={pub.url} target="_blank" rel="noopener noreferrer">
+                  {pub.name}
+                </a>
+              </span>
+            ))}
           </p>
         )}
       </header>
