@@ -14,7 +14,7 @@ export default function BlogIndex() {
     <main className="blog-index">
       <div className="blog-index-title-block">
         <div className="blog-index-title-script">Words by Maximillian Piras</div>
-        <h1>Designer&apos;s Log</h1>
+        <h1>Form follows functionality.</h1>
       </div>
       {posts.length === 0 ? (
         <p className="blog-empty">Nothing here yet.</p>
@@ -26,7 +26,7 @@ export default function BlogIndex() {
               href={`/blog/${post.slug}`}
               className="blog-post-preview"
             >
-              <time dateTime={post.date}>{formatDate(post.date)} • {' '}{post.location ?? 'NYC'}</time>
+              <time dateTime={post.date}>{formatDate(post.date)}</time>
               <h2>{post.title}</h2>
               {post.description && <p>{post.description}</p>}
             </Link>
