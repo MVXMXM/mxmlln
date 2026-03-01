@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getAllSlugs, getPostBySlug } from '@/lib/blog';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import Link from 'next/link';
 import type { MDXComponents } from 'mdx/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,9 +61,6 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <article className="blog-post">
-      <Link href="/blog" className="blog-back">
-        ← All posts
-      </Link>
       <header className="blog-post-header">
         <time dateTime={post.date}>{formatDate(post.date)}</time>
         <h1>{post.title}</h1>

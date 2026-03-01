@@ -78,7 +78,7 @@
 .blog-index {
   max-width: 640px;
   margin: 0 auto;
-  padding: 140px 24px 80px;
+  padding: 24px 24px 80px;
 }
 
 .blog-index h1 {
@@ -131,7 +131,7 @@
 .blog-post {
   max-width: 640px;
   margin: 0 auto;
-  padding: 140px 24px 80px;
+  padding: 24px 24px 80px;
 }
 
 .blog-post-header {
@@ -282,25 +282,6 @@
   border: none;
   border-top: 1px solid #e0e0e0;
   margin: 48px 0;
-}
-
-/* Back link */
-.blog-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #999;
-  text-decoration: none;
-  margin-bottom: 32px;
-  transition: color 0.2s;
-}
-
-.blog-back:hover {
-  color: #1a1a1a;
 }
 
 /* Empty state */
