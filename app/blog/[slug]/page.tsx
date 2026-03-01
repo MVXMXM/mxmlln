@@ -62,7 +62,9 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <article className="blog-post">
       <header className="blog-post-header">
-        <time dateTime={post.date}>{formatDate(post.date)} • {' '}{post.location ?? 'NYC'}</time>
+        <div className="blog-post-header-meta">
+          Maximillian Piras • <time dateTime={post.date}>{formatDate(post.date)}</time> • {' '}{post.location ?? 'NYC'}
+        </div>
         <h1>{post.title}</h1>
         {post.description && (
           <p className="description">{post.description}</p>

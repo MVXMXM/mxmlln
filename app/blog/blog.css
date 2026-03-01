@@ -59,7 +59,30 @@
   box-sizing: border-box;
 }
 
+/* Full-width overlay; gradient only in corner so no sharp edges */
+.blog-logo::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  left: -24px;
+  width: 100vw;
+  min-height: 280px;
+  background: radial-gradient(
+    ellipse 320px 260px at 0 0,
+    rgba(255, 255, 255, 0.99) 0%,
+    rgba(255, 255, 255, 0.82) 28%,
+    rgba(255, 255, 255, 0.5) 52%,
+    rgba(255, 255, 255, 0.22) 75%,
+    transparent 100%
+  );
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  pointer-events: none;
+}
+
 .blog-logo a {
+  position: relative;
+  z-index: 1;
   display: block;
   line-height: 0;
   transition: opacity 0.3s ease;
@@ -69,21 +92,29 @@
   opacity: 0.6;
 }
 
-.blog-logo img {
+.blog-logo img,
+.blog-logo-lottie {
   filter: brightness(0);
+}
+
+.blog-logo-lottie {
+  width: 100px;
+  height: 100px;
 }
 
 /* Blog index */
 .blog-index {
-  max-width: 640px;
+  max-width: 700px;
   margin: 0 auto;
   padding: 24px 24px 80px;
 }
 
 /* Title block: script on top (portfolio-style), main heading below */
 .blog-index-title-block {
-  margin-top: 12px;
-  margin-bottom: 48px;
+  margin-top: 14px;
+  margin-bottom: 0;
+  padding-bottom: 48px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .blog-index-title-script {
@@ -122,9 +153,6 @@
   transition: opacity 0.2s ease;
 }
 
-.blog-post-preview:first-child {
-  padding-top: 0;
-}
 
 .blog-post-preview:last-child {
   padding-bottom: 0;
@@ -139,7 +167,7 @@
 .blog-post-preview time {
   font-family: var(--font-homemade-apple), 'Homemade Apple', cursive;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0;
   line-height: 1.5;
   color: #1a1a1a;
@@ -167,19 +195,20 @@
 
 /* Post page */
 .blog-post {
-  max-width: 640px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 24px 24px 80px;
+  padding: 48px 24px 80px;
 }
 
 .blog-post-header {
   margin-bottom: 48px;
 }
 
-.blog-post-header time {
+.blog-post-header-meta,
+.blog-post-header-meta time {
   font-family: var(--font-homemade-apple), 'Homemade Apple', cursive;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: 0;
   line-height: 1.5;
   color: #1a1a1a;
@@ -343,6 +372,41 @@
 }
 
 @media (max-width: 640px) {
+  /* Logo 24px smaller and closer to top-left */
+  .blog-logo {
+    top: 10px;
+    left: 10px;
+  }
+
+  .blog-logo::before {
+    top: -10px;
+    left: -10px;
+    background: radial-gradient(
+      ellipse 220px 200px at 0 0,
+      rgba(255, 255, 255, 0.99) 0%,
+      rgba(255, 255, 255, 0.82) 28%,
+      rgba(255, 255, 255, 0.5) 52%,
+      rgba(255, 255, 255, 0.22) 75%,
+      transparent 100%
+    );
+    min-height: 220px;
+  }
+
+  .blog-logo img,
+  .blog-logo-lottie {
+    width: 76px;
+    height: 76px;
+  }
+
+  /* Keep content below fixed logo (10px + 76px + gap) */
+  .blog-index {
+    padding-top: 102px;
+  }
+
+  .blog-post {
+    padding-top: 102px;
+  }
+
   .blog-index-title-script {
     font-size: 18px;
   }

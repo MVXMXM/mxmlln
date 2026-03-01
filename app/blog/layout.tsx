@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Homemade_Apple } from "next/font/google";
+import { BlogLogo } from "./BlogLogo";
 import "./blog.css";
 
 const archivo = Archivo({
@@ -26,11 +27,7 @@ export default function BlogLayout({
 }) {
   return (
     <div className={`blog-layout ${archivo.variable} ${homemadeApple.variable}`}>
-      <div className="blog-logo">
-        <a href="/blog">
-          <img src="/assets/Sig2026.gif" alt="MXMLLN" width={100} height={100} />
-        </a>
-      </div>
+      <BlogLogo />
       {children}
     </div>
   );
