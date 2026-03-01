@@ -1,0 +1,83 @@
+---
+title: "Redesigning a breaking Twitter"
+date: "2022-12-15"
+description: "As Elon Musk burns down the Twitter we know, will a drastically different user experience emerge from the ashes?"
+tags: ["product design", "artificial intelligence", "ux", "twitter", "user experience"]
+originalPublication:
+  name: "UX Collective"
+  url: "https://medium.com/user-experience-design-1/redesigning-a-breaking-twitter-4521b258e5aa"
+---
+
+![Illustration by Maximillian Piras](/blog/redesigning-a-breaking-twitter/hero.png)
+
+In the midst of the madness known as Elon Musk's Twitter takeover, I stumbled on something even more captivating than the drama. It was a video of [George Hotz poking around Twitter's code](https://twitter.com/realGeorgeHotz/status/1593109753579786240) while philosophizing on alternative executions. Out of admiration for the platform, he was speculating on what changes could let it thrive. This led me down a similar path in considering their product design. Were any assumptions overlooked in crafting the user experience? Have useful lessons from the competitive landscape gone un-leveraged? Is Twitter's beautiful simplicity keeping it interesting or holding it back? As a public company, Twitter was notorious for its inability to ship. This is evident in [how little their interface has evolved](https://www.quora.com/How-has-Twitters-UI-changed-over-time) since launching in 2006. Now it has gone private & the majority of its employees are gone, leading many to believe it will break…
+
+"...it was the first public crack in the edifice of Twitter's code base — a blip on the seismometer that warns of a bigger earthquake to come." [MIT Technology Review, 11.08.2022](https://www.technologyreview.com/2022/11/08/1062886/heres-how-a-twitter-engineer-says-it-will-break-in-the-coming-weeks/)
+
+I'm not too interested in the state of their servers, but I am fascinated by the aftermath of this possibility. Surviving such a breaking point could signify a drastic departure from the past. An invitation for new modes of thinking about the service. Some say in the midst of every crisis lies great opportunity. So as the bird app teeters on the verge of going up in flames, I'm curious about what reincarnations may rise from the ashes like a phoenix.
+
+I decided to explore this from three different perspectives:
+
+- Creators: how might new features allow creators to better express themselves, leading to higher quality content on the platform?
+- Audience: how might they showcase content in a more engaging way to remain competitive with other social media apps like TikTok?
+- Algorithm: how might an interface update improve the recommendation algorithm at the center of their user experience?
+
+## Exploration 1: algorithmic efficiency
+
+As a Twitter algorithm, I want the cleanest understanding of key user actions so that I can use them as input signals to improve relevancy of the content I recommend.
+
+It seems like [every platform is copying TikTok's interface](https://www.reddit.com/r/mildlyinfuriating/comments/nx2qkc/why_is_everything_trying_to_be_like_tiktok/)& there's a good reason. TikTok's success lies in its efficiency for training recommendation algorithms. This is thanks to the clarity with which its interface defines where a user is focusing. A notion of focus enables the backend to localize interactions (or lack thereof) to specific content as measures of quality. I've discussed this in depth in an article called [Designing Algorithm-friendly Interfaces](https://medium.com/user-experience-design-1/designing-algorithm-friendly-interfaces-84da3ed076a9), so I'll skip the technical details here. The upshot is that since social media platforms only succeed by engaging users with relevant content, algorithmic efficiency is a massive advantage. So what would happen if Twitter took a similar approach?
+
+![Adding a focus state to improve measurement of Tweet engagement (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/focus-state.gif)
+
+An algorithm-friendly interface ensures user actions are translated into clean signals for machine learning models to train off. Content recommendation quality is a direct function of this ability, which is referred to as an algorithm's vision. Improvements in content recommendation lead to better engagement & retention, which correspondingly strengthens the business by providing it with more opportunities to monetize users.
+
+![Analysis vectors enabled by a Tweet focus state (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/analysis-vectors.png)
+
+This thinking can be applied to Twitter's core component by introducing a focus state to Tweets. Enhancing backend visibility of how engaging any specific tweet is can drastically enhance the quality of future tweet recommendations. While this change does add friction to the user experience by slowing down the scroll mechanism, the longterm benefits can easily make the tradeoff worth it.
+
+![Algorithmic visibility comparison (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/visibility-comparison.gif)
+
+A clear example of this paradigm is apparent in comparing TikTok with Instagram, where the content is almost identical. The graphic above, from [my previous article on the topic](https://medium.com/user-experience-design-1/designing-algorithm-friendly-interfaces-84da3ed076a9), illustrates the differences in efficiency between the two interfaces.
+
+Sometimes the shortest distance to a destination isn't the most efficient when considering second-order effects.
+
+## Exploration 2: audience engagement
+
+As a consumer of tweets, I want a viewing experience beyond a block of text so the content is even more engaging.
+
+Twitter's beauty lies in its simplicity; a singular block of text. The usability & universality of this form allows a clear thought to shine without any distractions. But let's be honest, some of us are on Twitter to be distracted… so, could a more visual user experience be more engaging?
+
+![Tweets animated with generative AI to grab attention (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/tweets-ai.gif)
+
+For the unfamiliar, Twitter's microblogging experience was [born out of SMS](https://blog.twitter.com/en_us/a/2010/introducing-fast-follow-and-other-sms-tips)(short messaging service). Initially the only way to tweet was via text message. Since the constraints of this protocol shaped the form of a Tweet, it was a logical assumption that the viewing experience should also feel like a text message — if only for skeuomorphic reasons. While that decision made sense decades ago, it's an interesting assumption to challenge now that [support for SMS compatibility is shrinking](https://www.theverge.com/2020/4/27/21238131/twitter-sms-notifications-disabled-jack-dorsey-hack). While other media is allowed on Twitter, the core feature is still a block of text & that shapes product perception. But with all the text-to-speech & text-to-image AI available today, there's no longer a technical requirement for a text input to remain a text output.
+
+![Input text transformed by generative AI into audiovisual outputs (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/input-transformed.png)
+
+If you consider the latest technological advancements in generative AI alongside the abundance of arguments that [video is more engaging than text](https://blog.hubspot.com/marketing/state-of-video-marketing-new-data), do you believe Tweets should still look like text messages? Using text to compete for attention against video is like bringing a knife to a gunfight. Disrupting the core experience may feel sacrilegious to those of us who love the current product, but local maximums must be abandoned in pursuit of a global one — such is [the innovator's dilemma](https://en.wikipedia.org/wiki/The_Innovator%27s_Dilemma).
+
+Sometimes a product's best strategy is to disrupt itself.
+
+## Exploration 3: creative expression
+
+As a creator of tweets, I want the ability to add emphasis & intonation so that my viewers can better understand the subtle nuances of my statements.
+
+I saved the least controversial perspective for last, if only for anchoring. This change seems so simple that there must be a reason why it isn't available. It's likely an artifact from Twitter's SMS origins, so let's consider text messaging for a second. How many times have you texted something sarcastic only for someone to take it literally? Now, imagine the same thing happening with a message you send to millions of people — not great, Bob! Well, we already invented some pretty useful text controls to communicate tone. They're called (*sighs deeply*) bold & italic.
+
+![Tweet composer with simple text styling (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/text-styling.gif)
+
+Text styling is actually absent across all social media & Twitter may have set the precedent. Somewhere in the transition from blogging to microblogging, these controls went missing. It may have been an effort for SMS interoperability, but backwards compatibility is easily solved by using un-styled versions as a fallback. It seems like an asymmetrical change, the ones that are low risk but have potential for high reward. These opportunities are usually no brainers. Especially with validation in the form of [third-party websites](https://yaytext.com/how-to/bold-text-twitter/) popping up to serve your users' needs.
+
+That said, I know what you're thinking… that feature is underwhelming. Let's leave on a higher note, throw some AI at the problem — the tweets write themselves!
+
+![Tweet composer with AI assistance (source: Maximillian Piras)](/blog/redesigning-a-breaking-twitter/ai-composer.gif)
+
+Use a Large Language Model like GPT-3 to [combat writer's block](https://www.youtube.com/watch?v=7Cao0oy1CBg)& analyze Twitter's proprietary data so the copy is optimized for trending topics. Isn't this what we all really want: less work, more reach! What could go wrong by making it even easier to Tweet without thinking…
+
+## Last word on the bird
+
+These explorations are just for fun & probably unrealistic, but I wanted to share them as a reminder to stay open-minded & optimistic. I hope it doesn't take a breaking point for you to challenge the core assumptions in your app's user experience. Even a change that seems strange as first can evolve into the killer feature that keeps you out of Twitter-level turmoil.
+
+I also hope this article underscores the massive potential many of us feel Twitter still has. If you know anyone working there who may find these ideas interesting, feel free to share. I'm happy if they're helpful in any capacity because I'm rooting for the phoenix to rise.
+
+I haven't left for Mastodon yet, so [let's connect on the bird app](https://twitter.com/MaximillianNYC).
