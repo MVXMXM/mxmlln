@@ -51,12 +51,8 @@ export async function generateMetadata({ params }: PageProps) {
 
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
-  const d = new Date(year, month - 1, day);
-  return d.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(month)}.${pad(day)}.${year}`;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
