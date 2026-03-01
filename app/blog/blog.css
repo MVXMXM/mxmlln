@@ -59,27 +59,6 @@
   box-sizing: border-box;
 }
 
-/* Full-width overlay; gradient only in corner so no sharp edges */
-.blog-logo::before {
-  content: '';
-  position: absolute;
-  top: -24px;
-  left: -24px;
-  width: 100vw;
-  min-height: 280px;
-  background: radial-gradient(
-    ellipse 320px 260px at 0 0,
-    rgba(255, 255, 255, 0.99) 0%,
-    rgba(255, 255, 255, 0.82) 28%,
-    rgba(255, 255, 255, 0.5) 52%,
-    rgba(255, 255, 255, 0.22) 75%,
-    transparent 100%
-  );
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  pointer-events: none;
-}
-
 .blog-logo a {
   position: relative;
   z-index: 1;
@@ -378,9 +357,14 @@
     left: 10px;
   }
 
+  /* Blur/gradient behind logo only on mobile */
   .blog-logo::before {
+    content: '';
+    position: absolute;
     top: -10px;
     left: -10px;
+    width: 100vw;
+    min-height: 220px;
     background: radial-gradient(
       ellipse 220px 200px at 0 0,
       rgba(255, 255, 255, 0.99) 0%,
@@ -389,7 +373,9 @@
       rgba(255, 255, 255, 0.22) 75%,
       transparent 100%
     );
-    min-height: 220px;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    pointer-events: none;
   }
 
   .blog-logo img,
