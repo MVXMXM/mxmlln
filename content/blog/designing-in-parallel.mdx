@@ -1,0 +1,38 @@
+---
+title: "Designing in parallel (or a designer discovers worktrees)"
+date: "2026-03-07"
+description: "Augmenting my design process with tirelessness and parallelism by leveraging multiple coding agents in Git worktrees."
+tags: ["design", "artificial intelligence", "workflow", "git"]
+location: "San Fran"
+---
+
+<div className="originally-published">
+Originally presented at <a href="https://luma.com/h31ppnn6" target="_blank" rel="noopener noreferrer">Vercel Demo Night: Designing with AI</a> (thanks to <a href="https://pham.codes/" target="_blank" rel="noopener noreferrer">John Phamous</a> for the invite).
+</div>
+
+As [AI eats software](https://www.reddit.com/r/Anthropic/comments/1pzi9hm/claude_code_creator_confirms_that_100_of_his/), engineers are drastically changing their workflows — this year, some of my coworkers haven't written a line of code themselves (or, at least, not '[by hand](https://x.com/101babich/status/2017258444558946698)'). Coding agents are lowering the barrier to building *anything*, which raises the importance of building *the right thing* since code execution now yields less of a competitive advantage. This puts pressure on [design as a new bottleneck](https://x.com/jsngr/status/2023490949079576879?s=20), so I'm experimenting with leveraging AI to speed up my workflow as well. In the spirit of [learning to love the terminal](https://pabs-writings.vercel.app/posts/how-i-stopped-worrying-and-learned-to-love-the-terminal), my first attempt utilizes multiple coding agents (currently Claude Code) & [Git worktrees](https://git-scm.com/docs/git-worktree) to augment my design process with two agentic attributes: **tirelessness** & **parallelism**.
+
+![My multi-worktree workflow with parallel AI agents.](/blog/designing-in-parallel/workspace.png)
+
+This approach is based on two beliefs…
+
+1. **Closer to the codebase is better:** Code isn't everything, but it's where many necessary steps live. AI agents now remove the skill issue, so get closer to base. This makes it easier to understand your [software's ergonomics](https://x.com/ridd_design/status/1757480193504039294), analyze / prototype with real data, & just. ship. it. That said, there are moments with clear justifications for distance: "I can explore this quicker in Figma", "Our current UX is a local maxima", or "I'm going to the museum to think about art instead of APIs").
+2. **Speed compounds:** In the past, programmatic workflows suffocated spontaneity, which is a necessary ingredient in the epiphanies leading to the best moments of delight — once automated, the process no longer felt creative. But this was a tool issue due to deterministic systems only accepting static schema as input. Now we have "[creative computers](https://youtu.be/EpvhuaD5Kk0?si=_2eaF6ehpvblQ_zm)" that we can [*offload* the cognitive *load* of *offloading* rote work](https://youtu.be/lwUCs6ci3Kg?si=jTox3ndM5dfJF_f5&t=881). I've been trying to leverage this flexibility to delegate basic steps to parallel agents. Time saved by not doing things makes space to strategize on better things to do next, kickstarting a positive feedback loop. An emergent property is I've found more time to [peruse design books](https://x.com/M4XMXM/status/2023598632528904284/photo/1).
+
+## Setup
+
+Here's an overview of my current workflow, much of which I was lucky to piggyback off preexisting setup by the [Yutori](https://yutori.com) engineering team. This gave me a robust infrastructure to learn from, so I'm sharing in hopes that it helps other designers start experimenting. It's still early so there's a good chance I'm currently *holding it wrong*, so any feedback, questions, & advice is warmly welcome.
+
+1. **IDE:** Despite primarily using it like a terminal these days, I still use [Cursor](https://cursor.com/) out of habit & because I have a personal subscription which makes it easy to switch off of Yutori's inference bill when working on personal projects after hours.
+2. **Workspace:** I have a `.code-workspace` JSON file housing three git worktrees which I keep persistent to cycle through various branches in parallel. This is [against general recommendations](https://git-scm.com/docs/git-worktree#_description), but [most of my work](https://mxmlln.com) is relatively simple from a technical perspective so I switch branches quite quickly.
+3. **Multiplexer:** Each session starts with a custom command running a [tmux](https://github.com/tmux/tmux/wiki) script invoking multiple multi-pane terminal windows with parallel instances of Claude Code in `dangerously-skip-permissions` mode (yeehaw), corresponding `pnpm run dev` commands to pop open localhost on all utilized ports, [Agentation MCP](https://agentation.dev/) to give in-context feedback to agents, & corresponding backup terminals in case needed.
+4. **Prompts:** Initial guidance set in [CLAUDE.md](https://docs.anthropic.com/en/docs/claude-code/memory) & complemented by various [skills](https://youtu.be/HcLz3ikw-n0?si=6OgFuk7ZaxEUROja&t=1148).
+5. **QAQC:** Linters on each commit for type errors & Cursor Bugbot on PRs for a final check.
+
+## Takeaways
+
+Initial results of *designing in parallel* are mixed, but lean positive. I foremost enjoy kickstarting feature research by asking agents to compile reports on current component states, dependencies / edge cases to be aware of, & corresponding cohort analysis via our database. This has saved a lot of time manually poking through screens & asking engineers dumb questions (so it also saves me face). I've personally squashed paper cut bugs shortly after users report them by skipping the entire Linear → Figma → spec → handoff process & instead pushing pixels directly in code, all while engineers worry about more complex issues. Lastly, I've had mixed success prototyping with real data, with breakdowns occurring when I hadn't realized how complex the objects I was playing with were.
+
+The main problem, however, is the current interface. It's near impossible to enter a flow state when constantly checking in on your agents. We're moving faster, but at the cost of context switching more often. This puts us on a [manager's schedule](https://x.com/deviparikh/status/2023829215645471158), instead of a [maker's schedule](https://paulgraham.com/makersschedule.html), which isn't ideal for deep work. The next step is designing a way to bubble up relevant data from all parallel threads into a holistic view that might trade some low-level control for high-level clarity.
+
+If you're a designer currently adapting your design process for the AI era, [let's chat](https://x.com/M4XMXM)!

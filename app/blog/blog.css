@@ -192,6 +192,7 @@
   letter-spacing: 0;
   line-height: 1.5;
   color: #1a1a1a;
+  white-space: pre-wrap;
 }
 
 .blog-post-header h1 {
@@ -226,6 +227,15 @@
 
 .originally-published a:hover {
   opacity: 0.6;
+}
+
+.blog-prose .originally-published:first-child {
+  margin-top: -32px;
+  margin-bottom: 24px;
+}
+
+.blog-prose .originally-published p {
+  margin: 0;
 }
 
 /* Prose — MDX content */

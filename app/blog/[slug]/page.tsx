@@ -16,6 +16,15 @@ function BlogImage(props: any) {
 const mdxComponents: MDXComponents = {
   img: BlogImage,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  a: (props: any) => {
+    const href = props.href || '';
+    const isExternal = href.startsWith('http') || href.startsWith('//');
+    if (isExternal) {
+      return <a {...props} target="_blank" rel="noopener noreferrer" />;
+    }
+    return <a {...props} />;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   p: (props: any) => {
     const children = props.children;
     if (
@@ -63,12 +72,9 @@ export default async function BlogPostPage({ params }: PageProps) {
     <article className="blog-post">
       <header className="blog-post-header">
         <div className="blog-post-header-meta">
-          Maximillian Piras • <time dateTime={post.date}>{formatDate(post.date)}</time> • {' '}{post.location ?? 'NYC'}
+          Maximillian Piras{'  •  '}<time dateTime={post.date}>{formatDate(post.date)}</time>{'  •  '}{post.location ?? 'NYC'}
         </div>
         <h1>{post.title}</h1>
-        {post.description && (
-          <p className="description">{post.description}</p>
-        )}
         {post.originalPublication && (
           <p className="originally-published">
             Originally published in{' '}
