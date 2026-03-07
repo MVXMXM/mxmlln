@@ -339,10 +339,16 @@
 
 .blog-figure {
   margin: 32px 0;
+  cursor: pointer;
 }
 
 .blog-figure img {
   margin: 0;
+  transition: opacity 0.2s;
+}
+
+.blog-figure:hover img {
+  opacity: 0.85;
 }
 
 .blog-figure figcaption {

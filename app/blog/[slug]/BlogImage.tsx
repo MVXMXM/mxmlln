@@ -23,7 +23,7 @@ export default function BlogImage(props: any) {
 
   return (
     <>
-      <figure className="blog-figure" onClick={() => setOpen(true)} style={{ cursor: 'zoom-in' }}>
+      <figure className="blog-figure" onClick={() => setOpen(true)}>
         <img {...props} />
         {props.alt && <figcaption>{props.alt}</figcaption>}
       </figure>
