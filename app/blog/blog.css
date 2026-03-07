@@ -129,6 +129,7 @@
   display: block;
   padding-top: 48px;
   padding-bottom: 48px;
+  scroll-margin-top: 32px;
   border-bottom: 1px solid #e0e0e0;
   transition: opacity 0.2s ease;
 }
@@ -250,12 +251,14 @@
   font-weight: 700;
   margin: 48px 0 16px;
   letter-spacing: -0.3px;
+  scroll-margin-top: 32px;
 }
 
 .blog-prose h3 {
   font-size: 20px;
   font-weight: 600;
   margin: 36px 0 12px;
+  scroll-margin-top: 32px;
 }
 
 .blog-prose p {
@@ -402,4 +405,112 @@
   .blog-prose {
     font-size: 15px;
   }
+}
+
+/* Minimap */
+.minimap {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.minimap-notches {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+
+.minimap-notch {
+  width: 16px;
+  height: 2px;
+  background: #ccc;
+  border-radius: 1px;
+  transition: background 0.2s, width 0.2s;
+}
+
+.minimap-notch--sub {
+  width: 10px;
+}
+
+.minimap-notch--active {
+  background: #1a1a1a;
+}
+
+.minimap:hover .minimap-notch {
+  background: #999;
+}
+
+.minimap:hover .minimap-notch--active {
+  background: #1a1a1a;
+}
+
+.minimap-popover {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 8px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+}
+
+.minimap-link {
+  display: block;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: #666;
+  text-decoration: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.minimap-link--sub {
+  padding-left: 28px;
+  font-size: 12px;
+}
+
+.minimap-link:hover {
+  color: #1a1a1a;
+  background: #f5f5f5;
+}
+
+.minimap-link--active {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .minimap {
+    display: none;
+  }
+}
+
+/* Lightbox */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  padding: 32px;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
 }

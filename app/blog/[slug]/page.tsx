@@ -2,19 +2,28 @@ import { notFound } from 'next/navigation';
 import { getAllSlugs, getPostBySlug } from '@/lib/blog';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
+import BlogImage from './BlogImage';
+import Minimap from '../Minimap';
+
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function BlogImage(props: any) {
-  return (
-    <figure className="blog-figure">
-      <img {...props} />
-      {props.alt && <figcaption>{props.alt}</figcaption>}
-    </figure>
-  );
+function HeadingWithId(Tag: 'h2' | 'h3') {
+  return function Heading(props: any) {
+    const text = typeof props.children === 'string'
+      ? props.children
+      : String(props.children);
+    const id = slugify(text);
+    return <Tag id={id} {...props} />;
+  };
 }
 
 const mdxComponents: MDXComponents = {
   img: BlogImage,
+  h2: HeadingWithId('h2'),
+  h3: HeadingWithId('h3'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   a: ({ href, children, ...rest }: any) => {
     const isExternal = (href || '').startsWith('http') || (href || '').startsWith('//');
@@ -74,6 +83,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <article className="blog-post">
+      <Minimap />
       <header className="blog-post-header">
         <div className="blog-post-header-meta">
           Maximillian Piras{'  •  '}<time dateTime={post.date}>{formatDate(post.date)}</time>{'  •  '}{post.location ?? 'NYC'}

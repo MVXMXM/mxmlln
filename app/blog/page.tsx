@@ -1,5 +1,6 @@
 import { getAllPosts } from '@/lib/blog';
 import Link from 'next/link';
+import Minimap from './Minimap';
 
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -12,6 +13,7 @@ export default function BlogIndex() {
 
   return (
     <main className="blog-index">
+      <Minimap selector=".blog-post-preview[id]" />
       <div className="blog-index-title-block">
         <div className="blog-index-title-script">Words by Maximillian Piras</div>
         <h1>Form follows functionality.</h1>
@@ -23,8 +25,10 @@ export default function BlogIndex() {
           {posts.map((post) => (
             <Link
               key={post.slug}
+              id={post.slug}
               href={`/blog/${post.slug}`}
               className="blog-post-preview"
+              data-minimap-label={post.title}
             >
               <time dateTime={post.date}>{formatDate(post.date)}</time>
               <h2>{post.title}</h2>
