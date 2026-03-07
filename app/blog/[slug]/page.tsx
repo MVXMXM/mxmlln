@@ -16,13 +16,17 @@ function BlogImage(props: any) {
 const mdxComponents: MDXComponents = {
   img: BlogImage,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  a: (props: any) => {
-    const href = props.href || '';
-    const isExternal = href.startsWith('http') || href.startsWith('//');
-    if (isExternal) {
-      return <a {...props} target="_blank" rel="noopener noreferrer" />;
-    }
-    return <a {...props} />;
+  a: ({ href, children, ...rest }: any) => {
+    const isExternal = (href || '').startsWith('http') || (href || '').startsWith('//');
+    return (
+      <a
+        href={href}
+        {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        {...rest}
+      >
+        {children}
+      </a>
+    );
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   p: (props: any) => {
