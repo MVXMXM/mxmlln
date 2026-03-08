@@ -23,9 +23,10 @@ export default function BlogVideo(props: any) {
 
   return (
     <>
-      <div className="blog-video" onClick={() => setOpen(true)}>
+      <figure className="blog-figure" onClick={() => setOpen(true)}>
         <video {...props} />
-      </div>
+        {props.caption && <figcaption>{props.caption}</figcaption>}
+      </figure>
       {open && (
         <div
           className="lightbox-overlay"
