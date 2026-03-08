@@ -3,6 +3,7 @@ import { getAllSlugs, getPostBySlug } from '@/lib/blog';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
 import BlogImage from './BlogImage';
+import BlogVideo from './BlogVideo';
 import Minimap from '../Minimap';
 
 function slugify(text: string): string {
@@ -22,6 +23,8 @@ function HeadingWithId(Tag: 'h2' | 'h3') {
 
 const mdxComponents: MDXComponents = {
   img: BlogImage,
+  video: BlogVideo,
+  BlogVideo,
   h2: HeadingWithId('h2'),
   h3: HeadingWithId('h3'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,7 +47,7 @@ const mdxComponents: MDXComponents = {
       children &&
       typeof children === 'object' &&
       'type' in children &&
-      children.type === BlogImage
+      (children.type === BlogImage || children.type === BlogVideo)
     ) {
       return <>{children}</>;
     }

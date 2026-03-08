@@ -337,6 +337,33 @@
   border-radius: 8px;
 }
 
+.blog-prose video {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.blog-video {
+  margin: 32px 0;
+  cursor: pointer;
+}
+
+.blog-video video {
+  max-width: 100%;
+  border-radius: 8px;
+  transition: opacity 0.2s;
+}
+
+.blog-video:hover video {
+  opacity: 0.85;
+}
+
+.lightbox-video {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 4px;
+  outline: none;
+}
+
 .blog-figure {
   margin: 32px 0;
   cursor: pointer;
