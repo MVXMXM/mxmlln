@@ -337,6 +337,14 @@
   border-radius: 8px;
 }
 
+.blog-prose img.full-width {
+  width: 100%;
+}
+
+.blog-inline-media {
+  margin: 32px 0 48px;
+}
+
 .blog-prose video {
   max-width: 100%;
   border-radius: 8px;
