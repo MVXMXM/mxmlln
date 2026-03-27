@@ -479,6 +479,22 @@
       "createdAt": "2026-03-05T12:00:00.005Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1738368000006",
+      "url": "https://willphan.com/components/tabs",
+      "title": "Depth of Field — Tabs Component",
+      "createdAt": "2026-03-08T12:00:00.006Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1738368000007",
+      "url": "https://m1astra-mythos.pages.dev/",
+      "title": "Claude Mythos - Archive",
+      "createdAt": "2026-03-08T12:00:00.007Z",
+      "metadata": {},
+      "read": true
     }
   ]
 }
