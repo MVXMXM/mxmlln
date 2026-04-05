@@ -124,7 +124,7 @@ class ContactModal {
                       </div>
                     </div>
                   </div>
-                  <a href="https://twitter.com/MaximillianNYC" target="_blank" onclick="gtag('event', 'Click Twitter Button', { 'event_category' : 'Contact', 'event_label' : 'TWITTER'});">
+                  <a href="https://x.com/MVXMXM" target="_blank" onclick="gtag('event', 'Click Twitter Button', { 'event_category' : 'Contact', 'event_label' : 'TWITTER'});">
                     <img src="assets/contact/TwitterButton.svg" class="CircleButton" alt="Twitter" />
                   </a>
                 </div>

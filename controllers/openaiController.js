@@ -417,9 +417,9 @@ const generateMeta = async (req, res) => {
 
                     Case Study Option 8: 
                     - cardImage: ./assets/MaximillianPiras.jpg
-                    - cardHeader: @MaximillianNYC
+                    - cardHeader: @MVXMXM
                     - cardDescription: You can find my on X, my DMs are open.
-                    - cardURL: https://x.com/MaximillianNYC
+                    - cardURL: https://x.com/MVXMXM
                     - Content: My X posts / tweets about design. People can contact me here.
 
                     Case Study Option 9: 
@@ -468,7 +468,7 @@ const generateMeta = async (req, res) => {
                     - cardImage: ./assets/MaximillianPiras.jpg
                     - cardHeader: My X profile
                     - cardDescription: These days I mostly post about UIUX design & AI.
-                    - cardURL: https://x.com/MaximillianNYC 
+                    - cardURL: https://x.com/MVXMXM 
                     - Content: This is my X profile, which was formerly known as Twitter, where I post frequently about AI and UI UX design.
 
                     Case Study Option 20: 
@@ -866,9 +866,9 @@ const folioKnowledge = async (req, res) => {
                         New user onboarding case study to increase 8tracks and Headliner's activation metric. This uses the pirate metrics methodology of product design. This features user interviews, user flows, and my design process following the double diamond.
 
                     Case Study Option 8: 
-                    - cardHeader: @MaximillianNYC
+                    - cardHeader: @MVXMXM
                     - cardDescription: You can find my on X, my DMs are open.
-                    - cardURL: https://x.com/MaximillianNYC
+                    - cardURL: https://x.com/MVXMXM
                     - Content: My X posts / tweets about design. People can contact me here.
 
                     Case Study Option 9: 
@@ -937,7 +937,7 @@ const folioKnowledge = async (req, res) => {
                     Case Study Option 19: 
                     - cardHeader: My X profile
                     - cardDescription: These days I mostly post about UIUX design & AI.
-                    - cardURL: https://x.com/MaximillianNYC 
+                    - cardURL: https://x.com/MVXMXM 
                     - Content: This is my X profile, which was formerly known as Twitter, where I post frequently about AI and UI UX design.
 
                     Case Study Option 20: 
