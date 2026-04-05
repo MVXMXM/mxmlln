@@ -700,7 +700,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const container = this.closest('.CardStackLabelContainer');
             if (container && container.classList.contains('expanded')) {
                 const href = this.getAttribute('data-href');
-                if (href) window.open(href, '_blank');
+                if (!href) return;
+                if (href.startsWith('/blog')) {
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                } else if (href.startsWith('/')) {
+                    window.location.href = href;
+                } else {
+                    window.open(href, '_blank', 'noopener,noreferrer');
+                }
             }
         });
     });

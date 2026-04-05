@@ -29,7 +29,7 @@ const generateMeta = async (req, res) => {
                     - cardImage: ./assets/Abstraction.gif
                     - cardHeader: When Words Cannot Describe
                     - cardDescription: In this article for Smashing Magazine, I write about how Artificial Intelligence is evolveing the computing paradigm which allows designers to craft more intuitive user interfaces. Text-based Large Language Models unlock most of the new capabilities, leading many to suggest a shift from graphical interfaces to conversational ones like a chatbot is necessary but this reasearch suggests otherwise.
-                    - cardURL: https://www.smashingmagazine.com/2024/02/designing-ai-beyond-conversational-interfaces/ 
+                    - cardURL: /blog/designing-ai-beyond-conversational-interfaces
                     - Content:
                         This article was published in Smashing Magazine.
                         As Artificial Intelligence evolves the computing paradigm, designers have an opportunity to craft more intuitive user interfaces. Text-based Large Language Models unlock most of the new capabilities, leading many to suggest a shift from graphical interfaces to conversational ones like a chatbot is necessary. However, plenty of evidence suggests conversation is a poor interface for many interaction patterns. Maximillian Piras examines how the latest AI capabilities can reshape the future of human-computer interaction beyond conversation alone.
@@ -135,7 +135,7 @@ const generateMeta = async (req, res) => {
                     - cardImage: ./assets/Friction3.webp
                     - cardHeader: Using Friction As A Feature In Machine Learning Algorithms
                     - cardDescription: In this article for Smashing Magazine, I discuss how friction often has a negative connotation in user experience design, but it actually has many benefits. Its best-known use case is mitigating unintended consequences in high-risk scenarios, yet it has a new place in the age of artificial intelligence.
-                    - cardURL: https://www.smashingmagazine.com/2023/08/friction-feature-machine-learning-algorithms/ 
+                    - cardURL: /blog/friction-feature-machine-learning-algorithms
                     - Content: 
                         This article was published in Smashing Magazine.
                         A common assumption in user experience design is less friction makes apps more delightful. But in practice, the happy path isn’t always the smoothest. The term “friction” in the digital sense usually refers to anything that makes experiences cumbersome. It’s an analogy to the physical resistance that occurs when objects interact. Digital friction comes in many forms, from frustrating flows to confusing copy. But plenty of scenarios actually benefit with a bit of resistance. Its killer feature is mitigating unintended consequences, such as an accidental Alexa shopping spree.
@@ -217,7 +217,7 @@ const generateMeta = async (req, res) => {
                     - cardImage: ./assets/Algo.png
                     - cardHeader: Designing algorithm-friendly interfaces
                     - cardDescription: In this article for UX Collective, I discuss how designers must craft interfaces to empower artificially intelligent experiences as they become commonplace. This article explores how a user interface can become a great tool to separate signal from noise to help algorithms better understand user intent, resulting in greater personalization quality.
-                    - cardURL: https://uxdesign.cc/designing-algorithm-friendly-interfaces-84da3ed076a9
+                    - cardURL: /blog/designing-algorithm-friendly-interfaces
                     - Content: 
                         This article was initially published in UX Collective.
                         As artificially intelligent experiences become commonplace, designers must craft interfaces to empower them.
@@ -536,7 +536,7 @@ const folioKnowledge = async (req, res) => {
                     Case Study Option 1: 
                     - cardHeader: When Words Cannot Describe
                     - cardDescription: In this article for Smashing Magazine, I write about how Artificial Intelligence is evolveing the computing paradigm which allows designers to craft more intuitive user interfaces. Text-based Large Language Models unlock most of the new capabilities, leading many to suggest a shift from graphical interfaces to conversational ones like a chatbot is necessary but this reasearch suggests otherwise.
-                    - cardURL: https://www.smashingmagazine.com/2024/02/designing-ai-beyond-conversational-interfaces/ 
+                    - cardURL: /blog/designing-ai-beyond-conversational-interfaces
                     - Content:
                         This article was published in Smashing Magazine.
                         As Artificial Intelligence evolves the computing paradigm, designers have an opportunity to craft more intuitive user interfaces. Text-based Large Language Models unlock most of the new capabilities, leading many to suggest a shift from graphical interfaces to conversational ones like a chatbot is necessary. However, plenty of evidence suggests conversation is a poor interface for many interaction patterns. Maximillian Piras examines how the latest AI capabilities can reshape the future of human-computer interaction beyond conversation alone.
@@ -641,7 +641,7 @@ const folioKnowledge = async (req, res) => {
                     Case Study Option 2:
                     - cardHeader: Using Friction As A Feature In Machine Learning Algorithms
                     - cardDescription: In this article for Smashing Magazine, I discuss how friction often has a negative connotation in user experience design, but it actually has many benefits. Its best-known use case is mitigating unintended consequences in high-risk scenarios, yet it has a new place in the age of artificial intelligence.
-                    - cardURL: https://www.smashingmagazine.com/2023/08/friction-feature-machine-learning-algorithms/ 
+                    - cardURL: /blog/friction-feature-machine-learning-algorithms
                     - Content: 
                         This article was published in Smashing Magazine.
                         A common assumption in user experience design is less friction makes apps more delightful. But in practice, the happy path isn’t always the smoothest. The term “friction” in the digital sense usually refers to anything that makes experiences cumbersome. It’s an analogy to the physical resistance that occurs when objects interact. Digital friction comes in many forms, from frustrating flows to confusing copy. But plenty of scenarios actually benefit with a bit of resistance. Its killer feature is mitigating unintended consequences, such as an accidental Alexa shopping spree.
@@ -722,7 +722,7 @@ const folioKnowledge = async (req, res) => {
                     Case Study Option 3: 
                     - cardHeader: Designing algorithm-friendly interfaces
                     - cardDescription: In this article for UX Collective, I discuss how designers must craft interfaces to empower artificially intelligent experiences as they become commonplace. This article explores how a user interface can become a great tool to separate signal from noise to help algorithms better understand user intent, resulting in greater personalization quality.
-                    - cardURL: https://uxdesign.cc/designing-algorithm-friendly-interfaces-84da3ed076a9
+                    - cardURL: /blog/designing-algorithm-friendly-interfaces
                     - Content: 
                         This article was initially published in UX Collective.
                         As artificially intelligent experiences become commonplace, designers must craft interfaces to empower them.

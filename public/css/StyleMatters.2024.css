@@ -341,6 +341,10 @@ h3 {
 	cursor: url('../assets/icons/LinkOutFill50.png') 25 25, pointer;
 }
 
+.card-blog-link {
+	cursor: pointer;
+}
+
 .carousel-container {
     overflow: hidden;
 	position: relative;
