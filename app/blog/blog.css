@@ -246,6 +246,11 @@
   color: #333;
 }
 
+/* Even gap before the suggested-posts rule: last block margins vary (p, figures, etc.) */
+.blog-prose > *:last-child {
+  margin-bottom: 0;
+}
+
 .blog-prose h2 {
   font-size: 24px;
   font-weight: 700;
@@ -398,6 +403,27 @@
   border-top: 1px solid #e0e0e0;
   margin: 48px 0;
 }
+
+/*
+ * Suggested posts HR: match the rhythm between index rows — upper 48px (like pb),
+ * 1px rule, lower 48px (like pt). Do not add a second 48px pt on the first preview
+ * (that doubled the gap below the rule).
+ */
+.blog-read-next-hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 48px 0;
+}
+
+.blog-read-next {
+  margin: 0;
+}
+
+.blog-read-next .blog-post-preview:first-child {
+  padding-top: 0;
+}
+
+/* Suggested posts: same row treatment as index (.blog-post-preview inside .blog-post-list) */
 
 /* Empty state */
 .blog-empty {

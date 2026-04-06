@@ -1,5 +1,11 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllSlugs, getPostBySlug } from '@/lib/blog';
+import {
+  formatBlogDate,
+  getAllSlugs,
+  getPostBySlug,
+  getSuggestedNextPosts,
+} from '@/lib/blog';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
 import BlogImage from './BlogImage';
@@ -84,6 +90,8 @@ export default async function BlogPostPage({ params }: PageProps) {
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
+  const readNext = getSuggestedNextPosts(slug, 2);
+
   return (
     <article className="blog-post">
       <Minimap />
@@ -112,6 +120,26 @@ export default async function BlogPostPage({ params }: PageProps) {
       <div className="blog-prose">
         <MDXRemote source={post.content} components={mdxComponents} />
       </div>
+      {readNext.length > 0 && (
+        <>
+          <hr className="blog-read-next-hr" />
+          <aside className="blog-read-next" aria-label="Suggested articles">
+            <div className="blog-post-list">
+              {readNext.map((next) => (
+                <Link
+                  key={next.slug}
+                  href={`/blog/${next.slug}`}
+                  className="blog-post-preview"
+                >
+                  <time dateTime={next.date}>{formatBlogDate(next.date)}</time>
+                  <h2>{next.title}</h2>
+                  {next.description ? <p>{next.description}</p> : null}
+                </Link>
+              ))}
+            </div>
+          </aside>
+        </>
+      )}
     </article>
   );
 }
