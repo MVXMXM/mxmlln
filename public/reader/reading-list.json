@@ -503,6 +503,22 @@
       "createdAt": "2026-04-08T12:00:00.001Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1775649600002",
+      "url": "https://x.com/karpathy/status/2039805659525644595",
+      "title": "Karpathy Post",
+      "createdAt": "2026-04-08T12:00:00.002Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1775649600003",
+      "url": "https://www.ben-evans.com/benedictevans/2026/2/19/how-will-openai-compete-nkg2x",
+      "title": "How Will OpenAI Compete",
+      "createdAt": "2026-04-08T12:00:00.003Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
