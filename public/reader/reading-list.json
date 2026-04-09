@@ -495,6 +495,14 @@
       "createdAt": "2026-03-08T12:00:00.007Z",
       "metadata": {},
       "read": true
+    },
+    {
+      "id": "1775649600001",
+      "url": "https://www.elenaverna.com/p/confessions-of-a-millennial-in-tech",
+      "title": "Confessions of a Millennial in Tech",
+      "createdAt": "2026-04-08T12:00:00.001Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
