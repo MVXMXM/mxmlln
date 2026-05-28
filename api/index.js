@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const crypto = require('crypto')
 const { sql } = require('@vercel/postgres')
 const { generateMeta, folioKnowledge } = require('../controllers/openaiController')
 //const { createProxyMiddleware } = require('http-proxy-middleware')
@@ -12,6 +13,28 @@ app.use(express.static('public'));
 
 app.post('/api/openai/meta', generateMeta)
 app.post('/api/openai/folio', folioKnowledge)
+
+// Read-only reading list endpoint for the spiral view (works on Vercel).
+// Mirrors the shape returned by public/reader/server.js for spiral.html.
+// require() at module load so the Vercel bundler statically includes the JSON.
+let READING_LIST_DATA = { links: [] };
+try {
+  READING_LIST_DATA = require('../public/reader/reading-list.json');
+} catch (err) {
+  console.error('Could not load reading-list.json at startup:', err);
+}
+app.get('/api/reading-list', (req, res) => {
+  try {
+    const links = (READING_LIST_DATA.links || []).map(link => ({
+      ...link,
+      screenshotHash: crypto.createHash('md5').update(link.url).digest('hex'),
+    }));
+    res.json({ ...READING_LIST_DATA, links });
+  } catch (err) {
+    console.error('Error serving reading list:', err);
+    res.status(500).json({ error: 'Failed to load reading list' });
+  }
+});
 
 // Serve HTML file
 app.get('/', (req, res) => {

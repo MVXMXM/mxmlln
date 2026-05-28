@@ -2,6 +2,7 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/openai/(.*)", "destination": "/api/index.js" },
-    { "source": "/api/submit", "destination": "/api/index.js" }
+    { "source": "/api/submit", "destination": "/api/index.js" },
+    { "source": "/api/reading-list", "destination": "/api/index.js" }
   ]
 }
