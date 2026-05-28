@@ -293,7 +293,12 @@
     </div>
 
     <script>
-        const READER_ORIGIN = 'http://localhost:3002';
+        // Local dev runs the reader microservice on :3002.
+        // In production (Vercel) we use the same-origin endpoint exposed by
+        // api/index.js, and screenshots are served as static files from /reader/screenshots/.
+        const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const READER_ORIGIN = IS_LOCAL ? 'http://localhost:3002' : '';
+        const SCREENSHOT_BASE = IS_LOCAL ? `${READER_ORIGIN}/screenshots` : '/reader/screenshots';
 
         let allArticles = [];
         let visibleArticles = [];
@@ -350,7 +355,7 @@
 
             if (article.screenshotHash) {
                 const img = document.createElement('img');
-                img.src = `${READER_ORIGIN}/screenshots/${article.screenshotHash}.jpg`;
+                img.src = `${SCREENSHOT_BASE}/${article.screenshotHash}.jpg`;
                 img.alt = article.title || '';
                 img.loading = 'lazy';
                 img.onerror = showFallback;
