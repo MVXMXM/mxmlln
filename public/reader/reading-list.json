@@ -559,6 +559,62 @@
       "createdAt": "2026-05-27T12:00:00.002Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1780272000001",
+      "url": "https://www.goodfire.ai/research/manifold-steering",
+      "title": "Manifold Steering — Goodfire",
+      "createdAt": "2026-05-28T12:00:00.001Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000002",
+      "url": "https://cofounder.co/how-to/start",
+      "title": "How to Start — Cofounder",
+      "createdAt": "2026-05-28T12:00:00.002Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000003",
+      "url": "https://blog.maximeheckel.com/posts/on-rendering-the-sky-sunsets-and-planets/",
+      "title": "On Rendering the Sky, Sunsets, and Planets",
+      "createdAt": "2026-05-28T12:00:00.003Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000004",
+      "url": "https://jagilley.github.io/interaction-as-supervision",
+      "title": "Interaction as Supervision",
+      "createdAt": "2026-05-28T12:00:00.004Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000005",
+      "url": "https://aleximas.substack.com/p/will-advanced-ai-lead-to-negative",
+      "title": "Will Advanced AI Lead to Negative Outcomes?",
+      "createdAt": "2026-05-28T12:00:00.005Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000006",
+      "url": "https://www.citadelsecurities.com/news-and-insights/2026-global-intelligence-crisis/",
+      "title": "2026 Global Intelligence Crisis — Citadel Securities",
+      "createdAt": "2026-05-28T12:00:00.006Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780272000007",
+      "url": "https://limit-of-rlvr.github.io/",
+      "title": "The Limit of RLVR",
+      "createdAt": "2026-05-28T12:00:00.007Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
