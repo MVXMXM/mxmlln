@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+// Import the JSON statically so the Next.js bundler includes it in the function.
+import readingListData from '../../../public/reader/reading-list.json';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'reading-list.json');
 
@@ -28,8 +31,18 @@ function writeData(data: any) {
 
 export async function GET() {
   try {
-    const data = readData();
-    return NextResponse.json(data);
+    // Prefer the committed reading list under public/reader/. Fall back to the
+    // legacy data/reading-list.json path for local dashboard writes.
+    const fileData = readData();
+    const base = (fileData.links && fileData.links.length > 0)
+      ? fileData
+      : (readingListData as { links: any[] });
+
+    const links = (base.links || []).map((link: any) => ({
+      ...link,
+      screenshotHash: crypto.createHash('md5').update(link.url).digest('hex'),
+    }));
+    return NextResponse.json({ ...base, links });
   } catch (error) {
     console.error('Error fetching reading list:', error);
     return NextResponse.json(
