@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
-  --font-sans: 'Archivo', sans-serif;
+  --font-sans: var(--font-archivo), 'Archivo', sans-serif;
+  --font-handwritten: var(--font-homemade-apple), 'Homemade Apple', cursive;
 }
 
 @theme inline {
@@ -39,7 +39,7 @@ body {
 }
 
 .sketchbook-subhead {
-  font-family: 'Homemade Apple', cursive;
+  font-family: var(--font-handwritten);
   font-weight: 500;
   letter-spacing: 0px;
   font-size: 20px;
@@ -258,6 +258,27 @@ body {
   text-align: center;
 }
 
+/* Sketchbook hero scoped to the folio sidebar: same fonts, sidebar-fit sizing */
+.folio-hero {
+  padding: 0;
+  margin-bottom: 32px;
+}
+.folio-hero .sketchbook-subhead {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--folio-fg);
+}
+.folio-hero .sketchbook-title {
+  font-size: 40px;
+  line-height: 1.05;
+  color: var(--folio-fg);
+}
+@media (max-width: 900px) {
+  .folio-hero { margin-bottom: 20px; }
+  .folio-hero .sketchbook-title { font-size: 32px; }
+  .folio-hero .sketchbook-subhead { font-size: 14px; }
+}
+
 .folio-sidebar-item {
   display: flex;
   align-items: center;
@@ -324,12 +345,10 @@ body {
     0 20px 40px rgba(0, 0, 0, 0.08),
     inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   scroll-margin-top: 80px;
-  text-decoration: none;
   color: inherit;
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  transition: box-shadow 0.5s ease;
 }
-.folio-card:hover {
-  transform: translateY(-4px);
+.folio-card.is-active {
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.12),
     inset 0 0 0 1px rgba(0, 0, 0, 0.06);
@@ -345,6 +364,10 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  transition: opacity 0.3s ease;
+}
+.folio-card.is-active .folio-card-frame {
+  pointer-events: auto;
 }
 
 .folio-card-meta {
