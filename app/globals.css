@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&display=swap');
 @import "tailwindcss";
 
 :root {
   --background: #ffffff;
   --foreground: #1a1a1a;
-  --font-sans: 'Archivo', sans-serif;
+  --font-sans: var(--font-archivo), 'Archivo', sans-serif;
+  --font-handwritten: var(--font-homemade-apple), 'Homemade Apple', cursive;
 }
 
 @theme inline {
@@ -39,7 +39,7 @@ body {
 }
 
 .sketchbook-subhead {
-  font-family: 'Homemade Apple', cursive;
+  font-family: var(--font-handwritten);
   font-weight: 500;
   letter-spacing: 0px;
   font-size: 20px;
