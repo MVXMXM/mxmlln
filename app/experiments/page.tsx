@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <>
       <header className="sketchbook-hero">
-        <p className="sketchbook-subhead">taste is a function of tinkering.</p>
+        <p className="sketchbook-subhead">taste is a function of tinkering</p>
         <h1 className="sketchbook-title">Interaction Sketchbook</h1>
       </header>
       <section className="experiments-section">

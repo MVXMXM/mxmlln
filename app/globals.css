@@ -44,7 +44,7 @@ body {
   letter-spacing: 0px;
   font-size: 20px;
   line-height: 1.5;
-  color: var(--foreground);
+  color: #000000;
   margin: 0 0 12px 0;
 }
 
@@ -55,10 +55,7 @@ body {
   font-size: 64px;
   line-height: 1.1;
   margin: 0;
-  background: linear-gradient(90deg, #19008b, #2D00F7, #6A00F4, #8900F2, #A100F2, #6d008e, #B100E8, #BC00DD, #7f007f);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #000000;
 }
 
 @media (max-width: 768px) {
