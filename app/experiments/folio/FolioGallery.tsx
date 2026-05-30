@@ -102,13 +102,12 @@ export default function FolioGallery({ experiments }: { experiments: Experiment[
 
   return (
     <div className="folio-root" ref={rootRef}>
-      <header className="sketchbook-hero folio-hero">
-        <p className="sketchbook-subhead">taste is a function of tinkering</p>
-        <h1 className="sketchbook-title">Interaction Sketchbook</h1>
-      </header>
       <div className="folio-layout">
         <aside className="folio-sidebar">
-          <div className="folio-eyebrow">Interaction Sketchbook</div>
+          <header className="sketchbook-hero folio-hero">
+            <p className="sketchbook-subhead">taste is a function of tinkering</p>
+            <h1 className="sketchbook-title">Interaction Sketchbook</h1>
+          </header>
           {experiments.map((exp, i) => (
             <a
               key={exp.id}
