@@ -12,7 +12,7 @@
   <meta charset="UTF-8">
   <meta name="description" content="AI UX Experiments - A collection of interactive experiments exploring the intersection of AI and user experience design.">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>Experiments</title>
+  <title>Interaction Sketchbook</title>
   <meta property="og:title" content="AI UX Experiments - Maximillian Piras"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://www.maximillian.nyc/ai-ux"/>
@@ -50,6 +50,40 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+
+  .hero-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 800;
+    letter-spacing: 0px;
+    font-size: 64px;
+    line-height: 1.1;
+    text-align: center;
+    margin: 0;
+    background: linear-gradient(90deg, #19008b, #2D00F7, #6A00F4, #8900F2, #A100F2, #6d008e, #B100E8, #BC00DD, #7f007f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-subhead {
+    font-family: 'Homemade Apple', cursive;
+    font-weight: 500;
+    letter-spacing: 0px;
+    font-size: 20px;
+    line-height: 1.5;
+    color: #1a1a1a;
+    margin: 20px 0 0 0;
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 40px;
+    }
+    .hero-subhead {
+      font-size: 16px;
+    }
   }
   
   .experiments-section {
@@ -180,9 +214,10 @@
 <body>
 
   <div class="hero-section">
-    <div style="height: 80px;display: flex;align-items: center;justify-content: center;">
-      WIP experiment lab (abandon all hope ye who enter here)
-     </div>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px;">
+      <h1 class="hero-title">Interaction Sketchbook</h1>
+      <p class="hero-subhead">Taste is a function of tinkering.</p>
+    </div>
 
     <span style="width: 100%; height: 100%; margin: 0 auto; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center;">
   <canvas id="ascii-canvas-1745730914035" style="display: block; max-width: 100%; max-height: 100%;"></canvas>
