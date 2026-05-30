@@ -11,7 +11,7 @@ const CARD_MARGIN = 16;
 
 export default function FolioGallery({ experiments }: { experiments: Experiment[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const sidebarItemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -123,13 +123,12 @@ export default function FolioGallery({ experiments }: { experiments: Experiment[
 
         <main className="folio-cards">
           {experiments.map((exp, i) => (
-            <a
+            <article
               key={exp.id}
               id={`exp-${exp.id}`}
               ref={(el) => { cardRefs.current[i] = el; }}
               data-index={i}
-              href={exp.path}
-              className="folio-card"
+              className={`folio-card ${i === activeIndex ? 'is-active' : ''}`}
               data-exp={exp.id}
             >
               <iframe
@@ -138,7 +137,7 @@ export default function FolioGallery({ experiments }: { experiments: Experiment[
                 title={`Experiment ${exp.id}`}
                 loading="lazy"
               />
-            </a>
+            </article>
           ))}
         </main>
       </div>

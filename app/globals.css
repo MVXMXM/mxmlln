@@ -324,12 +324,10 @@ body {
     0 20px 40px rgba(0, 0, 0, 0.08),
     inset 0 0 0 1px rgba(0, 0, 0, 0.04);
   scroll-margin-top: 80px;
-  text-decoration: none;
   color: inherit;
-  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  transition: box-shadow 0.5s ease;
 }
-.folio-card:hover {
-  transform: translateY(-4px);
+.folio-card.is-active {
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.12),
     inset 0 0 0 1px rgba(0, 0, 0, 0.06);
@@ -345,6 +343,10 @@ body {
   position: absolute;
   top: 0;
   left: 0;
+  transition: opacity 0.3s ease;
+}
+.folio-card.is-active .folio-card-frame {
+  pointer-events: auto;
 }
 
 .folio-card-meta {
