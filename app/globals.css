@@ -197,3 +197,200 @@ body {
     text-wrap: balance;
   }
 }
+
+/* ─── Folio variant gallery (scoped) ───────────────────────────── */
+.folio-root {
+  --folio-bg: #ffffff;
+  --folio-fg: #1a1a1a;
+  --folio-muted: #8a8a8a;
+  --folio-muted-2: #c4c4c4;
+  --folio-card-bg: #f5f5f5;
+  --folio-radius: 36px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: var(--folio-bg);
+  color: var(--folio-fg);
+  font-family: var(--font-sans);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  z-index: 1;
+}
+
+.folio-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  width: 100%;
+  margin: 0;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.folio-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.folio-sidebar::-webkit-scrollbar { display: none; }
+
+.folio-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--folio-muted-2);
+  margin-bottom: 24px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.folio-sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--folio-muted-2);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.35s ease, font-size 0.35s ease, font-weight 0.35s ease;
+  line-height: 1.3;
+  text-align: center;
+}
+.folio-sidebar-item:hover { color: var(--folio-muted); }
+.folio-sidebar-item.active {
+  color: var(--folio-fg);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.folio-sidebar-item .num {
+  font-size: 10px;
+  color: var(--folio-muted-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  transition: color 0.35s ease;
+}
+.folio-sidebar-item.active .num { color: var(--folio-muted); }
+
+.folio-sidebar-item .tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--folio-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  align-self: center;
+}
+.folio-sidebar-item.active .tag {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.folio-cards {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch;
+}
+.folio-card {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 32px);
+  margin: 16px 0;
+  border-radius: var(--folio-radius);
+  overflow: hidden;
+  background: var(--folio-card-bg);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+  scroll-margin-top: 80px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+.folio-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.folio-card-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background: var(--folio-card-bg);
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.folio-card-meta {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+  mix-blend-mode: difference;
+  color: #fff;
+}
+.folio-card-meta .title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.folio-card-meta .subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+
+.folio-card-number {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: #fff;
+  mix-blend-mode: difference;
+  font-variant-numeric: tabular-nums;
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .folio-layout { grid-template-columns: 1fr; }
+  .folio-sidebar {
+    position: relative;
+    height: auto;
+    padding: 40px 32px 0;
+    justify-content: flex-start;
+  }
+  .folio-cards { padding: 60px 24px; gap: 80px; }
+  .folio-sidebar-item.active { font-size: 18px; }
+}
