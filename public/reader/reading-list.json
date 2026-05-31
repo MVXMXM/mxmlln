@@ -623,6 +623,22 @@
       "createdAt": "2026-05-28T12:00:00.008Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1780531200000",
+      "url": "https://bowenbryanwang.github.io/blog/introducing-cua-gym",
+      "title": "Introducing CUA-Gym",
+      "createdAt": "2026-05-31T12:00:00.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1780531200001",
+      "url": "https://x.com/ido_pesok/status/2060416230641881336",
+      "title": "Verifying Agentic Development at Scale",
+      "createdAt": "2026-05-31T12:00:00.001Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
