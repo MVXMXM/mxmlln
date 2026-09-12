@@ -799,6 +799,14 @@
       "createdAt": "2026-07-30T12:00:00.000Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1781352000017",
+      "url": "https://cameronrwolfe.substack.com/p/llm-rl",
+      "title": "Reinforcement Learning for LLMs: The Complete Guide",
+      "createdAt": "2026-09-12T12:00:00.000Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
