@@ -170,12 +170,14 @@ const initialStyles = {
         textAlign: 'left'
     },
     gradeBG: {
-        position: 'fixed',
+        position: 'absolute',
         zIndex: 1,
+        inset: '0',
         top: '0px',
         left: '0px',
-        width: '100vw',
-        height: '100dvh',
+        width: 'auto',
+        height: '100%',
+        minHeight: '100lvh',
         overflow: 'hidden',
         background: 'linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF)',
         backgroundSize: '400% 400%',
@@ -188,7 +190,7 @@ const initialStyles = {
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '100vw',
-        height: '100dvh',
+        height: '100lvh',
         backgroundColor: 'rgba(255, 255, 255, 0.75)',
         overflow: 'hidden',
         filter: 'blur(150px)',
@@ -680,7 +682,9 @@ function initIntroAnimation() {
 
   setTimeout(function() {
     $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
-      $('.navDynamicContainer').animate({bottom: '24px'}, 250);
+      $('.navDynamicContainer').animate({bottom: '24px'}, 250, function() {
+        this.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+      });
     });
   }, 1250);
 
