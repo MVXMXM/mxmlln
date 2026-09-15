@@ -427,74 +427,6 @@ h3 {
 	padding-bottom: 0px;
 }
 
-.TitleBlock3 .Text {
-	container-type: inline-size;
-	width: 100%;
-	max-width: 100%;
-	min-width: 0;
-	box-sizing: border-box;
-	align-items: stretch;
-	padding: 0 24px;
-}
-
-.TitleBlock3 .Title,
-.TitleBlock3 .Name {
-	width: 100%;
-	max-width: 100%;
-	min-width: 0;
-	padding-left: 0;
-	box-sizing: border-box;
-}
-
-.folioCallout {
-	box-sizing: border-box;
-	display: block;
-	width: fit-content;
-	max-width: 100%;
-	min-width: 0;
-	align-self: center;
-	margin-top: 28px;
-	padding: 16px 20px;
-	background: #f1f5f9;
-	border: 1px solid #e2e8f0;
-	border-radius: 16px;
-	text-align: left;
-}
-
-.folioCalloutIcon {
-	display: inline-block;
-	flex-shrink: 0;
-	width: 18px;
-	height: 18px;
-	margin-right: 8px;
-	vertical-align: -0.2em;
-	color: #314158;
-}
-
-.folioCallout p {
-	margin: 0;
-	min-width: 0;
-	font-family: Archivo, sans-serif;
-	font-size: 15px;
-	font-weight: 400;
-	line-height: 1.6;
-	color: #314158;
-	white-space: normal;
-	overflow-wrap: anywhere;
-	text-wrap: pretty;
-}
-
-.folioCallout a {
-	color: #0f172b;
-	text-decoration: underline;
-	text-underline-offset: 3px;
-	transition: color 0.2s ease;
-}
-
-.folioCallout a:hover {
-	color: #45556c;
-}
-
 .ampersand {
 	display: inline-block;
 	font-family: "Playfair Display SC", serif;
@@ -677,17 +609,6 @@ body {
 	color: transparent;
 	background-size: 400% 400%;
 	animation: gradient 10s ease infinite;
-}
-
-.TitleBlock3 .Title {
-	width: 100%;
-	max-width: 100%;
-	padding-left: 0;
-}
-
-.TitleBlock3 .folioCallout {
-	width: 100%;
-	max-width: 100%;
 }
 	
 .Desc {
@@ -1465,27 +1386,4 @@ input:focus {
 	font-size: 32px;
 	text-shadow: 0px 3px 10px rgba(0, 0, 0, .25);
 	text-align: left;
-}
-
-.TitleBlock3 .Title {
-	width: 100%;
-	max-width: 100%;
-	padding-left: 0;
-}
-
-.TitleBlock3 .folioCallout {
-	width: fit-content;
-	max-width: 100%;
-}
-
-@container (max-width: 640px) {
-	.TitleBlock3 .folioCallout {
-		width: 100%;
-	}
-}
-
-@media (max-width: 700px) {
-	.TitleBlock3 .folioCallout {
-		width: 100%;
-	}
 }
