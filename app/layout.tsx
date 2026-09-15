@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Homemade_Apple } from "next/font/google";
 import "./globals.css";
 
@@ -19,6 +19,12 @@ const homemadeApple = Homemade_Apple({
 export const metadata: Metadata = {
   title: "Interaction Sketchbook - Maximillian Piras",
   description: "Interaction Sketchbook — a collection of interactive experiments exploring the intersection of AI and user experience design.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

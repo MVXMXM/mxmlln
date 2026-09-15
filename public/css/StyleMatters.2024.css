@@ -1,12 +1,19 @@
 @charset "UTF-8";
 	
+/* iOS 26 Safari paints Liquid Glass chrome over the large viewport.
+   100dvh + overflow-x:hidden clips at the bar edge; 100lvh + clip lets
+   the gradient composite behind the overlay bars. */
+html {
+	background-color: #d8d6ee;
+}
 html, body {
 	scroll-behavior: smooth;
+	margin: 0;
 	top: 0px;
 	left: 0px;
-	width: 100vw;
-	height: 100dvh;
-	overflow-x: hidden;
+	width: 100%;
+	min-height: 100lvh;
+	overflow-x: clip;
 }
 
 button:disabled {
@@ -14,12 +21,12 @@ button:disabled {
 }
 
 .gradeBG {
-	position: fixed;
+	position: absolute;
 	z-index: 1;
-	top: 0px;
-	left: 0px;
-	width: 100vw;
-	height: 100dvh;
+	inset: 0;
+	width: auto;
+	min-height: 100lvh;
+	height: 100%;
 	overflow: hidden;
 	background: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
 	/* background: linear-gradient(10deg, #aeebfa, #ccc4fb, #fde1d8, #fdcad9); */
@@ -38,7 +45,7 @@ button:disabled {
 	width: 525px;
 	height: 525px;
 	/* width: calc( 100vw - 8px ); */
-	/* height: calc( 100dvh - 8px ); */
+	/* height: calc( 100lvh - 8px ); */
 	background-color: rgba(255, 255, 255, 0.75);
 	overflow: hidden;
 	filter: blur(150px) contrast(1.1) brightness(1.1) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=);

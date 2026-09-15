@@ -121,7 +121,7 @@ a {
     position: fixed;
     z-index: 900;
     align-items: center;
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     left: calc(50% - 232px);
     width: 458px;
     height: 64px;
