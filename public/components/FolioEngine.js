@@ -170,14 +170,13 @@ const initialStyles = {
         textAlign: 'left'
     },
     gradeBG: {
-        position: 'absolute',
+        position: 'fixed',
         zIndex: 1,
         inset: '0',
         top: '0px',
         left: '0px',
         width: 'auto',
-        height: '100%',
-        minHeight: '100lvh',
+        height: 'auto',
         overflow: 'hidden',
         background: 'linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF)',
         backgroundSize: '400% 400%',
