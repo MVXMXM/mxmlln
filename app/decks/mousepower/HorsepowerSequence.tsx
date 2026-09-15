@@ -3,44 +3,13 @@
 // Two forward-advanced build steps showcasing the horse-gin → steam-engine
 // transition. Step 0: the steam engine alone (focused). Step 1: the horse gin
 // animates in on the left with a cyan arrow pointing across to the engine — the
-// shift from horsepower to steam. A capture-phase key listener advances the build
-// on → / ← before the Deck would change slides; at the boundaries the event falls
-// through so navigation leaves the slide normally.
-import { useEffect, useState } from 'react';
-import { useDeck, useSlideIndex } from '../Deck';
+// shift from horsepower to steam.
+import { useBuildSteps } from '../Deck';
 
 const STEPS = 2;
-const FWD = new Set(['ArrowRight', 'ArrowDown', ' ']);
-const BACK = new Set(['ArrowLeft', 'ArrowUp', 'Backspace']);
 
 export function HorsepowerSequence() {
-  const { activeIndex } = useDeck();
-  const index = useSlideIndex();
-  const active = activeIndex === index;
-  const [step, setStep] = useState(0);
-
-  // Reset to the first build whenever the slide (re)enters.
-  useEffect(() => {
-    if (active) setStep(0);
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (FWD.has(e.key) && step < STEPS - 1) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.min(s + 1, STEPS - 1));
-      } else if (BACK.has(e.key) && step > 0) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.max(s - 1, 0));
-      }
-      // At a boundary: let the event reach the Deck to change slides.
-    };
-    window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
-  }, [active, step]);
+  const { step } = useBuildSteps(STEPS);
 
   return (
     <div className="hp-stage rack-in" data-step={step}>

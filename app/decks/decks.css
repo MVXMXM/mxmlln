@@ -218,6 +218,14 @@
   visibility: visible;
 }
 
+/* Blog embeds aren't competing with sibling slides — keep the stage painted
+   even before IntersectionObserver marks the figure in-view (autoplay still
+   waits on data-active). */
+.deck-slide.deck-slide--embed {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Each slide's own background fills the screen (landscape on any wide display). */
 .slide {
   position: absolute;

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" width="800" height="460">
+  <rect width="800" height="460" fill="#f5f5f5"/>
+  <g fill="none" stroke="#3B3B3B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M90 185 L90 145 A50 50 0 0 1 140 95 L290 95"/>
+    <path d="M510 95 L660 95 A50 50 0 0 1 710 145 L710 185"/>
+    <path d="M710 275 L710 315 A50 50 0 0 1 660 365 L470 365"/>
+    <path d="M330 365 L140 365 A50 50 0 0 1 90 315 L90 275"/>
+    <polyline points="276,86 290,95 276,104"/>
+    <polyline points="701,170 710,185 719,170"/>
+    <polyline points="484,356 470,365 484,374"/>
+    <polyline points="81,290 90,275 99,290"/>
+  </g>
+  <text x="400" y="218" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="26" fill="#3B3B3B">We're in a doom loop of</text>
+  <text x="400" y="252" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="26" fill="#3B3B3B">overspending <tspan font-family="Georgia, serif" font-style="italic">&amp;</tspan> underusing.</text>
+  <text x="400" y="78" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" letter-spacing="0.08em" fill="#3B3B3B">TOKENMAXXING</text>
+  <text x="710" y="236" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" letter-spacing="0.08em" fill="#3B3B3B">GET BILL</text>
+  <text x="400" y="398" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" letter-spacing="0.08em" fill="#3B3B3B">AUSTERITY</text>
+  <text x="90" y="236" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" letter-spacing="0.08em" fill="#3B3B3B">FOMO</text>
+</svg>

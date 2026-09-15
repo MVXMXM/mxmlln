@@ -1,43 +1,13 @@
 'use client';
 
-// The takeaway bands reveal one per forward step (bare chart → script → OOD →
-// verification → NP). Forward/back keys are intercepted in the capture phase so
-// the deck only changes slides at the first/last step (as in the other builds).
-import { useEffect, useState } from 'react';
-import { useDeck, useSlideIndex } from '../Deck';
+// Takeaway bands reveal one per forward step (bare chart → script → OOD →
+// verification → NP).
+import { useBuildSteps } from '../Deck';
 
-const STEPS = 5; // 0 = bare chart; 1..4 reveal each band in turn
-const FWD = new Set(['ArrowRight', 'ArrowDown', ' ']);
-const BACK = new Set(['ArrowLeft', 'ArrowUp', 'Backspace']);
+const STEPS = 5;
 
 export function EntropySliders() {
-  const { activeIndex } = useDeck();
-  const index = useSlideIndex();
-  const active = activeIndex === index;
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    if (active) setStep(0);
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (FWD.has(e.key) && step < STEPS - 1) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.min(s + 1, STEPS - 1));
-      } else if (BACK.has(e.key) && step > 0) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.max(s - 1, 0));
-      }
-      // At a boundary: let the event reach the Deck to change slides.
-    };
-    window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
-  }, [active, step]);
-
+  const { step } = useBuildSteps(STEPS, { interval: 2200 });
   const shown = (n: number) => (step >= n ? ' es-shown' : '');
 
   return (

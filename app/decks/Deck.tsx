@@ -20,10 +20,14 @@ import {
  */
 type Interceptor = (done: () => void) => void;
 
-const DeckContext = createContext<{
+export type DeckContextValue = {
   activeIndex: number;
   setForwardInterceptor: (fn: Interceptor | null) => void;
-} | null>(null);
+  // Blog embeds skip window key listeners and autoplay build steps instead.
+  embed?: boolean;
+};
+
+export const DeckContext = createContext<DeckContextValue | null>(null);
 
 export function useDeck() {
   const ctx = useContext(DeckContext);
@@ -35,9 +39,65 @@ export function useDeck() {
 // component can tell whether it is the active one. Preview miniatures render
 // their clone with index -1 so it can never match activeIndex — keeping every
 // slide's active-gated side effects (interceptors, keydown, animations) inert.
-const SlideIndexContext = createContext(0);
+export const SlideIndexContext = createContext(0);
 export function useSlideIndex() {
   return useContext(SlideIndexContext);
+}
+
+const FWD = new Set(['ArrowRight', 'ArrowDown', ' ']);
+const BACK = new Set(['ArrowLeft', 'ArrowUp', 'Backspace']);
+
+/** Shared build-step machine for slides that advance on → before the deck does. */
+export function useBuildSteps(
+  steps: number,
+  opts?: { interval?: number; onAdvance?: (from: number) => void }
+) {
+  const { activeIndex, embed } = useDeck();
+  const index = useSlideIndex();
+  const active = activeIndex === index;
+  const [step, setStep] = useState(0);
+  const onAdvanceRef = useRef(opts?.onAdvance);
+  onAdvanceRef.current = opts?.onAdvance;
+  const interval = opts?.interval ?? 2800;
+
+  useEffect(() => {
+    if (active) setStep(0);
+  }, [active]);
+
+  useEffect(() => {
+    if (!active || embed) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (FWD.has(e.key) && step < steps - 1) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        onAdvanceRef.current?.(step);
+        setStep((s) => Math.min(s + 1, steps - 1));
+      } else if (BACK.has(e.key) && step > 0) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setStep((s) => Math.max(s - 1, 0));
+      }
+    };
+    window.addEventListener('keydown', onKey, { capture: true });
+    return () => window.removeEventListener('keydown', onKey, { capture: true });
+  }, [active, step, embed, steps]);
+
+  useEffect(() => {
+    if (!active || !embed) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStep(steps - 1);
+      return;
+    }
+    const id = window.setInterval(() => {
+      setStep((s) => {
+        onAdvanceRef.current?.(s);
+        return (s + 1) % steps;
+      });
+    }, interval);
+    return () => window.clearInterval(id);
+  }, [active, embed, steps, interval]);
+
+  return { active, step, setStep };
 }
 
 // Rendered width of a hover-preview miniature (px). Its height is derived from
