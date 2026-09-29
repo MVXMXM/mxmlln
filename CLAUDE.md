@@ -18,7 +18,7 @@ Personal design portfolio of Maximillian Piras — product design (UX/UI) for te
 
 This is a **hybrid** app — a modern Next.js surface layered over the original vanilla portfolio:
 
-- **Next.js `app/`** — newer routes (`blog`, `decks`, `system`, `sebastian`, `experiments`), the design system, and Next API routes (`app/api/chat`, `app/api/reading-list`). For AI work here, use the Vercel AI SDK (`ai` + `@ai-sdk/openai`), as `app/api/chat` does.
+- **Next.js `app/`** — newer routes (`blog`, `decks`, `system`, `sebastian`, `experiments`), the design system, and Next API routes (`app/api/chat`). For AI work here, use the Vercel AI SDK (`ai` + `@ai-sdk/openai`), as `app/api/chat` does.
 - **Design system** — `content/system.mdx` (doc) + `registry/` (primitives) + `app/globals.css` (canonical tokens). See the banner above.
 - **Legacy portfolio** — the interactive card-stack homepage is static and served at `/` via a rewrite in `next.config.ts` (`/` → `public/portfolio.html`). Its logic lives in `public/` (`FolioEngine.js`, `NavBar.js`, `ChatIntelligence.js`, `CardStack.js`) — vanilla JS + jQuery, no bundler. Treat as legacy; prefer the Next.js surface for new work.
 - **Legacy Express** — `api/index.js` + `controllers/openaiController.js` (which calls the OpenAI API directly, not the AI SDK) still serve `/api/openai/*`, `/api/submit`, and `/api/reading-list` on Vercel (wired in `vercel.json`).

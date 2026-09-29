@@ -40,11 +40,15 @@
   --color-accent: var(--accent);
 }
 
+html {
+  background-color: var(--background);
+}
+
 body {
-  width: 100vw;
-  min-height: 100vh;
+  width: 100%;
+  min-height: 100lvh;
   margin: 0 auto;
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

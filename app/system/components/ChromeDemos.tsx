@@ -8,7 +8,7 @@ import { ComponentPreview } from './ComponentPreview';
  * Lightly-interactive replicas of the site chrome, for the /system previews.
  * They convey behavior (hover, active selection, popover) without navigating
  * away. The real components live in app/blog/ — see each ComponentPreview's
- * `source`. The live Minimap is also mounted on this page's right rail.
+ * `source`. The live Minimap is also mounted on this page's left rail.
  */
 
 // The two faces of the mark, both Lottie. "Signature" is the index-page state;
@@ -89,9 +89,9 @@ const MENU_ITEMS = [
   { label: 'Menu', level: 3 },
 ];
 
-// The labeled popover list the Minimap reveals on hover. Documented on its own
-// because the list is the reusable primitive; the rail of notches around it is
-// a construct specific to the Minimap. Clicking an item sets the active state.
+// The labeled popover list. Documented on its own because the list is the
+// reusable primitive; the rail of notches around it is specific to the Minimap.
+// Clicking an item sets the active state.
 export function MenuDemo() {
   const [active, setActive] = useState(2);
   return (

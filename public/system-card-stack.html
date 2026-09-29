@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Card stack — live component</title>
+  <base href="/">
+  <link rel="stylesheet" href="css/StyleMatters.2024.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap">
+  <style>
+    /* Resting specimen: fill the iframe and clip FolioEngine's page margins so
+       there's no phantom scrollbar. Expanded: unlock document height so the
+       grid can scroll inside the iframe. */
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: #f8fafc;
+    }
+
+    html.is-expanded,
+    html.is-expanded body {
+      height: auto;
+      min-height: 100%;
+      overflow: auto;
+    }
+
+    .ContentContainer {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      padding: 0;
+    }
+
+    html.is-expanded .ContentContainer {
+      height: auto;
+      align-items: flex-start;
+    }
+
+    .AllStacks {
+      margin: 0 !important;
+      width: auto !important;
+      max-width: none !important;
+    }
+
+    .TitleBlock3,
+    .appStore {
+      display: none !important;
+    }
+
+    .CardStackLabelContainerValue {
+      user-select: none;
+    }
+
+    @media (max-width: 620px) {
+      .ContentContainer {
+        transform: scale(0.78);
+        transform-origin: center center;
+      }
+
+      html.is-expanded .ContentContainer {
+        transform-origin: top center;
+      }
+    }
+  </style>
+  <script>
+    // FolioEngine's production file includes a jQuery-only intro animation.
+    // The docs specimen skips that page-level intro while retaining the real
+    // card stack initialization and interactions.
+    window.$ = function () {
+      return {
+        animate: function () { return this; },
+        delay: function () { return this; },
+        css: function () { return this; },
+        fadeIn: function () { return this; },
+        ready: function () { return this; }
+      };
+    };
+  </script>
+</head>
+<body>
+  <div class="gradeBG"></div>
+  <div class="gradeFront"></div>
+
+  <main class="ContentContainer">
+    <div class="TitleBlock3"></div>
+    <div class="appStore"></div>
+
+    <div class="AllStacks">
+      <div class="CardStackLabelContainer">
+        <div class="CardStack" id="systemAnimatingStack">
+          <div class="Card" data-src="assets/img/Ramen.gif">
+            <div class="CardInnerContainer">
+              <div class="CardContent">
+                <div class="CardBadge"><div class="BadgeText">TOKYOITER</div></div>
+                <div class="CardTitle">Cover animation</div>
+              </div>
+            </div>
+          </div>
+          <div class="Card" data-src="assets/AndataFill.gif">
+            <div class="CardInnerContainer">
+              <div class="CardContent">
+                <div class="CardBadge"><div class="BadgeText">MILAN RECORDS</div></div>
+                <div class="CardTitle">Ryuichi Sakamoto music video</div>
+              </div>
+            </div>
+          </div>
+          <div class="Card" data-src="assets/img/ConsABN_v4.gif">
+            <div class="CardInnerContainer">
+              <div class="CardContent">
+                <div class="CardBadge"><div class="BadgeText">CONSEQUENCE</div></div>
+                <div class="CardTitle">Album cover animation</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="CardStackLabelContainerValue">label</div>
+      </div>
+    </div>
+  </main>
+
+  <div
+    class="StackBar"
+    id="StackBar"
+    style="position:fixed;top:-124px;left:50%;transform:translateX(-50%);opacity:0;visibility:hidden"
+  >
+    <span id="stackBarSectionName" style="margin-left:10px;margin-top:6px"></span>
+    <img
+      src="assets/CloseSML.png"
+      height="32"
+      width="32"
+      onclick="collapseExpandedStack()"
+      style="cursor:pointer"
+      alt="Close expanded stack"
+    >
+  </div>
+
+  <script src="components/FolioEngine.js"></script>
+  <script>
+    function syncSpecimenScroll() {
+      var expanded = Boolean(document.querySelector('.CardStackLabelContainer.expanded'));
+      document.documentElement.classList.toggle('is-expanded', expanded);
+    }
+
+    var label = document.querySelector('.CardStackLabelContainer');
+    if (label) {
+      new MutationObserver(syncSpecimenScroll).observe(label, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+    document.getElementById('StackBar')?.addEventListener('click', function () {
+      requestAnimationFrame(syncSpecimenScroll);
+    });
+  </script>
+</body>
+</html>

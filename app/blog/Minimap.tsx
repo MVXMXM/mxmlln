@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import './minimap.css';
 
 interface Section {
   id: string;
@@ -10,8 +11,6 @@ interface Section {
 
 interface MinimapProps {
   selector?: string;
-  // Opt-in left-rail variant for /system; the blog keeps its full-TOC popover.
-  reverb?: boolean;
 }
 
 // On hover, notch width tracks proximity to the cursor rather than heading
@@ -22,14 +21,11 @@ const REVERB_AMPLITUDE = 30;
 const REVERB_FALLOFF = 0.5;
 
 export default function Minimap({
-  selector = '.blog-prose h2[id], .blog-prose h3[id]',
-  reverb = false,
+  selector = '.blog-post-header[id], .blog-prose h2[id], .blog-prose h3[id]',
 }: MinimapProps) {
   const [sections, setSections] = useState<Section[]>([]);
-  const [hovering, setHovering] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // One persistent label, not one card per notch, so it keeps its last text
   // and position while fading out — leaving the rail shouldn't snap it away.
@@ -70,15 +66,6 @@ export default function Minimap({
     if (labelTextRef.current) setLabelWidth(labelTextRef.current.scrollWidth);
   }, [labelText]);
 
-  const handleEnter = useCallback(() => {
-    if (leaveTimer.current) clearTimeout(leaveTimer.current);
-    setHovering(true);
-  }, []);
-
-  const handleLeave = useCallback(() => {
-    leaveTimer.current = setTimeout(() => setHovering(false), 150);
-  }, []);
-
   useEffect(() => {
     const headings = document.querySelectorAll(selector);
     const items: Section[] = Array.from(headings).map((el) => ({
@@ -110,105 +97,69 @@ export default function Minimap({
 
   if (sections.length === 0) return null;
 
-  if (reverb) {
-    return (
-      <div className="minimap minimap--reverb" onMouseLeave={() => setHoveredIndex(null)}>
-        <div className="minimap-notches">
-          {sections.map((s, i) => {
-            const restWidth = s.level === 3 ? 10 : 16;
-            const width =
-              hoveredIndex === null
-                ? restWidth
-                : REVERB_BASE + REVERB_AMPLITUDE * Math.pow(REVERB_FALLOFF, Math.abs(i - hoveredIndex));
-            return (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
-                className={`minimap-notch-row ${activeId === s.id ? 'minimap-notch-row--active' : ''} ${hoveredIndex === i ? 'minimap-notch-row--hovered' : ''}`}
-                onMouseEnter={(e) => {
-                  setHoveredIndex(i);
-                  setLabelY(e.currentTarget.offsetTop + e.currentTarget.offsetHeight / 2);
-                }}
-                onFocus={(e) => {
-                  setHoveredIndex(i);
-                  setLabelY(e.currentTarget.offsetTop + e.currentTarget.offsetHeight / 2);
-                }}
-                onBlur={() => setHoveredIndex(null)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <span
-                  className={`minimap-notch ${s.level === 3 ? 'minimap-notch--sub' : ''} ${activeId === s.id ? 'minimap-notch--active' : ''}`}
-                  style={{ width: `${width}px` }}
-                />
-              </a>
-            );
-          })}
-          <div
-            className={`minimap-label ${hoveredIndex !== null ? 'minimap-label--visible' : ''}`}
-            style={{
-              transform: `translateY(${labelY}px) translateY(-50%)`,
-              width: labelWidth ? `${labelWidth}px` : undefined,
-            }}
-            aria-hidden="true"
-          >
-            <span className="minimap-label-reel">
-              {prevLabel !== null && (
-                <span
-                  key={`out-${prevLabel}`}
-                  className={`minimap-label-text minimap-label-text--out ${dir === 1 ? 'is-down' : 'is-up'}`}
-                >
-                  {prevLabel}
-                </span>
-              )}
-              <span
-                key={`in-${labelText}`}
-                ref={labelTextRef}
-                className={`minimap-label-text minimap-label-text--in ${dir === 1 ? 'is-down' : 'is-up'}`}
-              >
-                {labelText}
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="minimap"
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-    >
+    <div className="minimap minimap--reverb" onMouseLeave={() => setHoveredIndex(null)}>
       <div className="minimap-notches">
-        {sections.map((s) => (
-          <div
-            key={s.id}
-            className={`minimap-notch ${s.level === 3 ? 'minimap-notch--sub' : ''} ${activeId === s.id ? 'minimap-notch--active' : ''}`}
-          />
-        ))}
-      </div>
-      {hovering && (
-        <div className="minimap-popover" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-          {sections.map((s) => (
+        {sections.map((s, i) => {
+          const restWidth = s.level === 3 ? 10 : 16;
+          const width =
+            hoveredIndex === null
+              ? restWidth
+              : REVERB_BASE + REVERB_AMPLITUDE * Math.pow(REVERB_FALLOFF, Math.abs(i - hoveredIndex));
+          return (
             <a
               key={s.id}
               href={`#${s.id}`}
-              className={`minimap-link ${s.level === 3 ? 'minimap-link--sub' : ''} ${activeId === s.id ? 'minimap-link--active' : ''}`}
+              aria-label={s.text}
+              className={`minimap-notch-row ${activeId === s.id ? 'minimap-notch-row--active' : ''} ${hoveredIndex === i ? 'minimap-notch-row--hovered' : ''}`}
+              onMouseEnter={(e) => {
+                setHoveredIndex(i);
+                setLabelY(e.currentTarget.offsetTop + e.currentTarget.offsetHeight / 2);
+              }}
+              onFocus={(e) => {
+                setHoveredIndex(i);
+                setLabelY(e.currentTarget.offsetTop + e.currentTarget.offsetHeight / 2);
+              }}
+              onBlur={() => setHoveredIndex(null)}
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' });
-                setHovering(false);
               }}
             >
-              {s.text}
+              <span
+                className={`minimap-notch ${s.level === 3 ? 'minimap-notch--sub' : ''} ${activeId === s.id ? 'minimap-notch--active' : ''}`}
+                style={{ width: `${width}px` }}
+              />
             </a>
-          ))}
+          );
+        })}
+        <div
+          className={`minimap-label ${hoveredIndex !== null ? 'minimap-label--visible' : ''}`}
+          style={{
+            transform: `translateY(${labelY}px) translateY(-50%)`,
+            width: labelWidth ? `${labelWidth}px` : undefined,
+          }}
+          aria-hidden="true"
+        >
+          <span className="minimap-label-reel">
+            {prevLabel !== null && (
+              <span
+                key={`out-${prevLabel}`}
+                className={`minimap-label-text minimap-label-text--out ${dir === 1 ? 'is-down' : 'is-up'}`}
+              >
+                {prevLabel}
+              </span>
+            )}
+            <span
+              key={`in-${labelText}`}
+              ref={labelTextRef}
+              className={`minimap-label-text minimap-label-text--in ${dir === 1 ? 'is-down' : 'is-up'}`}
+            >
+              {labelText}
+            </span>
+          </span>
         </div>
-      )}
+      </div>
     </div>
   );
 }

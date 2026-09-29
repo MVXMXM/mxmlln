@@ -17,6 +17,7 @@ import { AnchorHeading } from './components/AnchorHeading';
 import { LogoDemo, NavDemo, MenuDemo } from './components/ChromeDemos';
 import { ButtonDemo, InputDemo } from './components/FormDemos';
 import { CardDemo } from './components/CardDemos';
+import { CardStackDemo } from './components/CardStackDemos';
 import { ChatDemo } from './components/ChatDemos';
 import './system.css';
 
@@ -58,6 +59,7 @@ const mdxComponents: MDXComponents = {
   ButtonDemo,
   InputDemo,
   CardDemo,
+  CardStackDemo,
   ChatDemo,
 };
 
@@ -68,7 +70,7 @@ export default function SystemPage() {
 
   return (
     <article className="system-page">
-      <Minimap selector=".system-prose h2[id], .system-prose h3[id]" reverb />
+      <Minimap selector=".system-prose h2[id], .system-prose h3[id]" />
       <header className="system-header">
         <div className="system-header-eyebrow">{data.eyebrow ?? 'Design System'}</div>
         <h1>{data.title ?? 'Design System'}</h1>
