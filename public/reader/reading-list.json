@@ -807,6 +807,14 @@
       "createdAt": "2026-09-12T12:00:00.000Z",
       "metadata": {},
       "read": false
+    },
+    {
+      "id": "1781352000018",
+      "url": "https://cursor.com/blog/self-driving-codebases",
+      "title": "Towards self-driving codebases",
+      "createdAt": "2026-09-28T23:00:00.000Z",
+      "metadata": {},
+      "read": false
     }
   ]
 }
