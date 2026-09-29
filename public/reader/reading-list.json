@@ -810,6 +810,46 @@
     },
     {
       "id": "1781352000018",
+      "url": "https://gwern.net/lean-scaling",
+      "title": "Lean Software Scaling Laws",
+      "createdAt": "2026-09-28T12:00:00.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1781352000019",
+      "url": "https://x.com/vipulved/status/2071404852908081211",
+      "title": "The Economy of Tokens",
+      "createdAt": "2026-09-28T12:00:01.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1781352000020",
+      "url": "https://dl.acm.org/doi/10.1145/3803784.3809282",
+      "title": "Synthetic Gestures: An Evolutionary Sketching Machine",
+      "createdAt": "2026-09-28T12:00:02.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1781352000021",
+      "url": "https://cursor.com/blog/agent-swarm-model-economics",
+      "title": "Agent swarms and the new model economics",
+      "createdAt": "2026-09-28T12:00:03.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1781352000022",
+      "url": "https://dl.acm.org/doi/epdf/10.1145/3742413.3789120",
+      "title": "Neural Transparency: Mechanistic Interpretability Interfaces for Anticipating Model Behaviors for Personalized AI",
+      "createdAt": "2026-09-28T12:00:04.000Z",
+      "metadata": {},
+      "read": false
+    },
+    {
+      "id": "1781352000023",
       "url": "https://cursor.com/blog/self-driving-codebases",
       "title": "Towards self-driving codebases",
       "createdAt": "2026-09-28T23:00:00.000Z",
