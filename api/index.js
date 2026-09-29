@@ -3,7 +3,6 @@ const cors = require('cors')
 const crypto = require('crypto')
 const { sql } = require('@vercel/postgres')
 const { generateMeta, folioKnowledge } = require('../controllers/openaiController')
-//const { createProxyMiddleware } = require('http-proxy-middleware')
 
 const app = express()
 app.use(cors());

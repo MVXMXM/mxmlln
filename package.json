@@ -23,10 +23,9 @@
     "express": "^4.18.2",
     "framer-motion": "^12.10.5",
     "gray-matter": "^4.0.3",
-    "http-proxy-middleware": "^2.0.6",
     "lottie-web": "^5.13.0",
     "lucide-react": "^0.562.0",
-    "next": "^15.5.9",
+    "next": "^15.5.26",
     "next-mdx-remote": "^6.0.0",
     "openai": "^4.98.0",
     "react": "^19.0.0",
@@ -46,5 +45,11 @@
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "qs": "6.16.0",
+    "postcss": "8.5.28",
+    "undici": "6.29.0",
+    "@ai-sdk/provider-utils@3.0.21": "3.0.40"
   }
 }
