@@ -1,0 +1,9 @@
+version: 2
+updates:
+  # Update PRs for the app Vercel builds. Other lockfiles under public/exp,
+  # public/static, public/exp2, and public/reader are not this manifest.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
