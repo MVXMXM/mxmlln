@@ -770,49 +770,9 @@
   line-height: 1.2;
 }
 
-/* ─── Minimap (shared visual language with /blog) ────────── */
-.minimap {
-  position: fixed;
-  top: 50%;
-  left: 24px;
-  transform: translateY(-50%);
-  z-index: 100;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.minimap-notches {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 8px 6px;
-  cursor: pointer;
-}
-.minimap-notch {
-  width: 16px;
-  height: 2px;
-  background: #ccc;
-  border-radius: 1px;
-  transition: background 0.2s, width 0.2s;
-}
-.minimap-notch--sub {
-  width: 10px;
-}
-.minimap-notch--active {
-  background: #1a1a1a;
-}
-.minimap:hover .minimap-notch {
-  background: #999;
-}
-.minimap:hover .minimap-notch--active {
-  background: #1a1a1a;
-}
+/* Menu demo: the labeled popover list. The live rail lives in
+   app/blog/minimap.css (imported by Minimap.tsx). */
 .minimap-popover {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 8px;
   background: var(--surface);
   border: 1px solid #e5e5e5;
   border-radius: 8px;
@@ -821,9 +781,6 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   white-space: nowrap;
 }
-/* Menu demo: the same popover, shown in normal flow (the live one is
-   position:fixed and revealed on Minimap hover). Defined after the base rule
-   so the static override wins on source order. */
 .minimap-popover--demo {
   position: static;
   left: auto;
@@ -856,125 +813,6 @@
 .minimap-link--active {
   color: #1a1a1a;
   font-weight: 600;
-}
-
-/* Reverb variant. Notch widths are set inline (see Minimap.tsx); the rules
-   here cover layout, color, and the label card. */
-.minimap--reverb .minimap-notches {
-  position: relative;
-  gap: 2px;
-  padding: 0;
-  align-items: flex-start;
-}
-.minimap-notch-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 34px; /* constant, so the label anchors at a fixed x as bars grow */
-  padding: 3px 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-.minimap--reverb .minimap-notch {
-  display: block;
-}
-/* While hovering the rail, only the hovered notch goes dark — the scroll-active
-   notch drops to grey so there's a single point of emphasis. */
-.minimap--reverb:hover .minimap-notch {
-  background: #ccc;
-}
-.minimap--reverb .minimap-notch-row--hovered .minimap-notch {
-  background: #1a1a1a;
-}
-/* Transitions make moving down the rail read as one label morphing rather
-   than a new card popping in per notch. */
-.minimap-label {
-  --minimap-label-blur: 2px;
-  position: absolute;
-  left: 100%;
-  top: 0;
-  margin-left: 12px;
-  box-sizing: content-box;
-  background: var(--surface);
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  color: #1a1a1a;
-  white-space: nowrap;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-  opacity: 0;
-  transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.2s ease;
-}
-.minimap-label--visible {
-  opacity: 1;
-}
-/* Outgoing copy overlays absolutely so it can roll away without widening the
-   content-fit box. */
-.minimap-label-reel {
-  position: relative;
-  display: inline-block;
-}
-.minimap-label-text {
-  display: inline-block;
-  white-space: nowrap;
-}
-.minimap-label-text--out {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-.minimap-label-text--in.is-down {
-  animation: minimap-label-in-down 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.minimap-label-text--in.is-up {
-  animation: minimap-label-in-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.minimap-label-text--out.is-down {
-  animation: minimap-label-out-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.minimap-label-text--out.is-up {
-  animation: minimap-label-out-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-@keyframes minimap-label-in-down {
-  from { opacity: 0; filter: blur(var(--minimap-label-blur)); transform: translateY(70%); }
-  to { opacity: 1; filter: blur(0); transform: none; }
-}
-@keyframes minimap-label-in-up {
-  from { opacity: 0; filter: blur(var(--minimap-label-blur)); transform: translateY(-70%); }
-  to { opacity: 1; filter: blur(0); transform: none; }
-}
-@keyframes minimap-label-out-down {
-  from { opacity: 1; filter: blur(0); transform: none; }
-  to { opacity: 0; filter: blur(var(--minimap-label-blur)); transform: translateY(-70%); }
-}
-@keyframes minimap-label-out-up {
-  from { opacity: 1; filter: blur(0); transform: none; }
-  to { opacity: 0; filter: blur(var(--minimap-label-blur)); transform: translateY(70%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .minimap-label {
-    transition: opacity 0.2s ease;
-  }
-  .minimap-label-text--in,
-  .minimap-label-text--out {
-    animation: none;
-  }
-  .minimap-label-text--out {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .minimap {
-    display: none;
-  }
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */

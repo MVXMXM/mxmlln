@@ -1,12 +1,22 @@
 @charset "UTF-8";
 	
+/* Same gradient on the document so iOS 26 chrome has live pixels to
+   show through Liquid Glass — a solid html color samples as a gray slab.
+   gradeBG is position:fixed; inset:0 so it covers the visual viewport
+   without 100dvh/100lvh height math (absolute + % height collapsed). */
 html, body {
 	scroll-behavior: smooth;
+	margin: 0;
 	top: 0px;
 	left: 0px;
-	width: 100vw;
-	height: 100dvh;
-	overflow-x: hidden;
+	width: 100%;
+	min-height: 100%;
+	min-height: 100lvh;
+	overflow-x: clip;
+	background-color: #5357EB;
+	background-image: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
+	background-size: 400% 400%;
+	animation: gradient 5s ease infinite;
 }
 
 button:disabled {
@@ -16,10 +26,9 @@ button:disabled {
 .gradeBG {
 	position: fixed;
 	z-index: 1;
-	top: 0px;
-	left: 0px;
-	width: 100vw;
-	height: 100dvh;
+	inset: 0;
+	width: auto;
+	height: auto;
 	overflow: hidden;
 	background: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
 	/* background: linear-gradient(10deg, #aeebfa, #ccc4fb, #fde1d8, #fdcad9); */
@@ -38,7 +47,7 @@ button:disabled {
 	width: 525px;
 	height: 525px;
 	/* width: calc( 100vw - 8px ); */
-	/* height: calc( 100dvh - 8px ); */
+	/* height: calc( 100lvh - 8px ); */
 	background-color: rgba(255, 255, 255, 0.75);
 	overflow: hidden;
 	filter: blur(150px) contrast(1.1) brightness(1.1) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=);

@@ -6,7 +6,7 @@ export interface Experiment {
   path: string;
 }
 
-const NEXTJS_EXPERIMENTS = ['006', '012', '013', '026', '027', '028'];
+const NEXTJS_EXPERIMENTS = ['006', '012', '013', '026', '027', '028', '030'];
 
 export function getExperiments(): Experiment[] {
   const staticDir = join(process.cwd(), 'public', 'static');

@@ -95,7 +95,11 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <article className="blog-post">
       <Minimap />
-      <header className="blog-post-header">
+      <header
+        className="blog-post-header"
+        id="introduction"
+        data-minimap-label="Introduction"
+      >
         <div className="blog-post-header-meta">
           Maximillian Piras{'  •  '}<time dateTime={post.date}>{formatDate(post.date)}</time>{'  •  '}{post.location ?? 'NYC'}
         </div>

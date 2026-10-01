@@ -68,6 +68,10 @@ const NOTES: Record<string, SketchNote> = {
     title: 'SVG Transition',
     body: 'One shape becoming another. The in-between is the whole piece — if the morph is ugly, the idea is wrong.',
   },
+  '030': {
+    title: 'Flower planet',
+    body: 'Same planet, now a meadow. Painted petals on stems that lean in the wind — the blue still showing through.',
+  },
 };
 
 export function noteFor(id: string): SketchNote {

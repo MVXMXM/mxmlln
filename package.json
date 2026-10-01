@@ -38,7 +38,8 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-shimmer-effects": "^1.0.4",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "three-custom-shader-material": "^6.4.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
