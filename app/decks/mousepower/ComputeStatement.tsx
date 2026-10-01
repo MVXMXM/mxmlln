@@ -12,12 +12,10 @@
 // Every step is three lines, so the word above never shifts. An accumulating row
 // of icons sits above the text — one revealed per step.
 import { useEffect, useState } from 'react';
-import { useDeck, useSlideIndex } from '../Deck';
+import { useBuildSteps } from '../Deck';
 import { EmergeSwap } from './emergeText';
 
 const STEPS = 3;
-const FWD = new Set(['ArrowRight', 'ArrowDown', ' ']);
-const BACK = new Set(['ArrowLeft', 'ArrowUp', 'Backspace']);
 
 // Line-style icons (inherit the text ink) that accumulate above the text — one
 // revealed per step, the earlier ones sliding over as each new one fades/blurs in.
@@ -59,39 +57,15 @@ const IconModel = (
 );
 
 export function ComputeStatement() {
-  const { activeIndex } = useDeck();
-  const index = useSlideIndex();
-  const active = activeIndex === index;
-  const [step, setStep] = useState(0);
+  const { active, step } = useBuildSteps(STEPS, { interval: 2600 });
   // Bumped on each entry so the whole line re-emerges when the slide is (re)shown;
   // stepping within the slide leaves it untouched, so only the slot whose text
   // changed re-animates.
   const [entry, setEntry] = useState(0);
 
   useEffect(() => {
-    if (active) {
-      setStep(0);
-      setEntry((e) => e + 1);
-    }
+    if (active) setEntry((e) => e + 1);
   }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (FWD.has(e.key) && step < STEPS - 1) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.min(s + 1, STEPS - 1));
-      } else if (BACK.has(e.key) && step > 0) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.max(s - 1, 0));
-      }
-      // At a boundary: let the event reach the Deck to change slides.
-    };
-    window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
-  }, [active, step]);
 
   const slotA = step === 0 ? 'Execution' : 'Measurement';
   const slotB =

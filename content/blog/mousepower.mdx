@@ -1,0 +1,116 @@
+---
+title: "Mousepower"
+date: "2026-08-16"
+description: "Tokens are an output. We want outcomes. A case for measuring agents through the mental models of the people paying the bill."
+tags: ["artificial intelligence", "agents", "design", "measurement"]
+location: "San Fran"
+---
+
+<div className="originally-published">
+Adapted from a <a href="/decks/mousepower">presentation</a>.
+</div>
+
+I've been running agents in parallel the way some people run errands: one fetching a diagram, another exploring a dead-end, a third building the thing I actually asked for. It looks like progress. Then the invoice arrives.
+
+**Agents have a measurement problem.**
+
+![Me trying to measure them](/blog/mousepower/measurement-photo.jpg)
+
+Not a dashboard problem. Not a missing KPI. A problem more like the one James Watt faced when he had to explain why a steam engine was worth more than the horse it replaced. If we can't measure ROI, we can't communicate value — & if the unit we pick is convenient for the vendor instead of the buyer, we'll optimize the wrong thing until the bill comes due.
+
+> "It is difficult to get a man to understand something, when his salary depends upon his not understanding it."
+>
+> — Upton Sinclair
+
+## Of mice & models
+
+Watt didn't invent horsepower because he loved horses. He needed a unit a mill owner already understood. A horse walking a gin — a rotary mill, twelve feet to the arm — could be timed, weighed, compared. One horsepower became 33,000 foot-pounds per minute: a conversion between a familiar animal & an unfamiliar machine.
+
+<HorsepowerEmbed />
+
+<GinEmbed />
+
+That is the age-old problem of new technology. The engine was faster. The argument that sold it was not speed. It was a number that fit the customer's mental model of work.
+
+We have not done this for agents. We have tokens.
+
+Tokens are what the meter runs on. They are easy to count, easy to bill, easy to put on a dashboard. They are also an *output* — a byproduct of the machine running — not an outcome. Nobody buys tokens. They buy pull requests, invoices processed, tickets closed, a model that ships. When the industry treats token volume as a proxy for value, you get what the last year of headlines already looks like:
+
+<div className="blog-evidence">
+
+![Fortune: Uber burned through its entire 2026 AI budget in four months](/blog/mousepower/evidence-fortune-uber.jpg)
+
+![Fortune: Microsoft reports are exposing AI's real cost problem](/blog/mousepower/evidence-fortune-microsoft.jpg)
+
+![CNET: Amazon is the latest tech giant to face the consequences of AI tokenmaxxing](/blog/mousepower/evidence-cnet-amazon.jpg)
+
+![Bloomberg Law: Meta plans to crack down on employee token use](/blog/mousepower/evidence-bloomberg-meta.jpg)
+
+</div>
+
+[Uber](https://fortune.com/2026/05/26/uber-coo-ai-spending-tokens-claude-code/) burning an annual AI budget in four months. [Microsoft](https://fortune.com/2026/05/22/microsoft-ai-cost-problem-tokens-agents/) discovering the real cost of agents. Amazon's [tokenmaxxing](https://www.cnet.com/tech/services-and-software/amazon-ai-leaderboard-tokenmaxxing/). [Meta](https://news.bloomberglaw.com/artificial-intelligence/meta-plans-to-crack-down-on-employee-token-use-information) cracking down on employee token use. Different companies, same shape: usage & spend racing each other while anyone asked "was it worth it?" is holding a stopwatch with no second hand.
+
+We're in a doom loop of overspending & underusing.
+
+<DoomLoopEmbed />
+
+FOMO licenses the spend. Tokenmaxxing lights the meter. The bill arrives. Austerity slams the brakes — until a competitor ships something & FOMO starts the loop again. [Brian Armstrong's chart of Coinbase](https://x.com/brian_armstrong/status/2070670644577280109) is the same story as a combo chart: stacked AI spend & total tokens, both exploding, neither answering whether the work got better.
+
+<SpendEmbed />
+
+Tokens are an output. We want outcomes instead — acquisition, activation, retention, revenue, referral; the pirate metrics we already use when a human is doing the job. An agent that burns a million tokens to produce a pull request nobody wanted is not a thousand times more productive than a script. It's a very expensive way to move the cursor.
+
+<TokensEmbed />
+
+## Canary in the codebase
+
+Software engineering is where this mismatch shows up first, because we already had a unit (the pull request) & agents just broke it.
+
+[Anthropic reports](https://www.anthropic.com/institute/recursive-self-improvement) that in the second quarter of 2026, the typical engineer was merging 8× as much code per day as in 2024 — & that as they've begun to push more code around the organization, **human code review has become a new bottleneck**. More than 80% of the code they merge is now authored by Claude. Lines of code, they admit, overstate the gain. The interesting number isn't 8×. It's the queue behind it.
+
+[Faros](https://www.faros.ai/blog/ai-software-engineering) puts numbers on the queue. Teams with high AI adoption complete 21% more tasks — & spend 91% more time reviewing code. Average PR size is up 154%. Bugs per developer are up 9%. Throughput at the company level does not move. Individual output soars; organizational output shrugs. As execution gets cheap, the bottleneck shifts to verification. That's Amdahl's law: a system moves only as fast as its slowest link.
+
+<VerificationEmbed />
+
+![Tweet by I Am Devloper: 10 lines of code = 10 issues. 500 lines of code = looks fine. Code reviews.](/blog/mousepower/quote-devloper-tweet.png)
+
+Review does not scale linearly with volume. A ten-line patch gets a trial. A five-hundred-line agent dump gets a glance. Death by one thousand pull requests is not a metaphor for busywork; it's what happens when the cost of making changes falls faster than the cost of trusting them.
+
+> "The pull request is not dying because someone invented a better review surface. It is dying because the assumptions underneath it no longer hold."
+>
+> — [Noah Hein](https://x.com/TheNoahHein/status/2037573208707137639)
+
+The PR assumed a human-sized unit of work, a human-paced review, a human who would still be in the building when it shipped. Agents violate all three.
+
+So the statement has to change. **Execution** at the speed of compute is the easy part. **Measurement** at the speed of compute is the requirement. Measurement that **fits the customer's mental model** of value is the actual product.
+
+<ComputeEmbed />
+
+## Measuring mousepower
+
+I tried to invent a unit anyway. One mousepower: a ridiculous equation of cursor travel, radians, pixels per second. Move the pointer & the number thrashes; sit still & it reads zero. The gag is the point. Agent work is too high-dimensional to crush into a single rate. Correctness, judgment, scope, reversibility, trust — pick any one & you can game it. Combine them & you no longer have a dashboard, you have a stance.
+
+<MousepowerMeasureEmbed />
+
+<EntropyPaperEmbed />
+
+In information theory, entropy measures the uncertainty in a probability distribution. Shannon wasn't trying to score intelligence. He was trying to say how much you don't know. That is a more honest starting point for agents than tokens, because the useful question is not "how much did it do?" It's "how sure are we about the job?"
+
+Two axes:
+
+1. **Uncertainty in acceptance criteria** — do we know what "done" looks like?
+2. **Uncertainty in task steps** — do we know how to get there?
+
+<EntropyMatrixEmbed />
+
+When acceptance criteria are clear, don't rent an agent. **Write a script, save tokens.** Deterministic work with a known output is what computers were already for.
+
+When acceptance criteria are vague, you are off-distribution relative to pretraining, & reinforcement learning has sparse rewards. The model is guessing what you wanted. You will pay for that guess in retries.
+
+When the steps themselves are uncertain, verification is indistinguishable from execution. Checking the work means doing the work. An agent that "finishes" a task you cannot specify is not done; it has produced a candidate.
+
+In the interior — some uncertainty, but a checkable result — you get the classical NP-shaped bargain: verification cheaper than execution. That is the only regime where agents are an obvious win. Even there, adversarial agents will optimize the verifier instead of the job. The wink is load-bearing.
+
+Uncertainty, used this way, is a guide rather than a fog. It tells you when to automate, when to supervise, when to refuse the tool. It is also a mental model a buyer already has: *how sure am I?* Mill owners knew if the horse was tired. Token dashboards do not know if the work was good.
+
+Watt's trick was not a better engine. It was a unit the customer could feel. Mousepower is not a number I expect anyone to put on a pricing page. It is a reminder that the meter we have is measuring the wrong animal — & that until measurement fits the mental model of the person paying the bill, we will keep overspending, underusing, & calling the delta productivity.

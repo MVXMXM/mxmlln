@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 600" width="720" height="600">
+  <rect width="720" height="600" fill="#f5f5f5"/>
+  <text x="430" y="28" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="600" font-size="17" fill="#161616">Uncertainty in Acceptance Criteria</text>
+  <text x="24" y="340" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="600" font-size="17" fill="#161616" transform="rotate(-90 24 340)">Uncertainty in Task Steps</text>
+  <g transform="translate(100, 96)">
+    <defs>
+      <pattern id="hatch-script" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(232,152,18,0.62)" stroke-width="2"/>
+      </pattern>
+      <pattern id="hatch-ood" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(192,57,43,0.55)" stroke-width="2"/>
+      </pattern>
+      <pattern id="hatch-verif" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(-45)">
+        <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(192,57,43,0.55)" stroke-width="2"/>
+      </pattern>
+      <pattern id="hatch-np" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(-45)">
+        <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(0,187,255,0.55)" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <rect x="0" y="0" width="135" height="400" fill="url(#hatch-script)"/>
+    <rect x="405" y="0" width="135" height="400" fill="url(#hatch-ood)"/>
+    <rect x="0" y="300" width="540" height="100" fill="url(#hatch-verif)"/>
+    <rect x="135" y="0" width="270" height="300" fill="url(#hatch-np)"/>
+    <line x1="270" y1="0" x2="270" y2="400" stroke="#161616" stroke-width="2"/>
+    <line x1="0" y1="200" x2="540" y2="200" stroke="#161616" stroke-width="2"/>
+    <circle cx="270" cy="0" r="5" fill="#161616"/>
+    <circle cx="0" cy="200" r="5" fill="#161616"/>
+    <polygon points="540,200 524,191 524,209" fill="#161616"/>
+    <polygon points="270,400 261,384 279,384" fill="#161616"/>
+    <text x="67" y="-14" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="12" fill="#a3690c">Write a script, save tokens</text>
+    <text x="472" y="-28" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="12" fill="#c0392b">Data risk of OOD in pretraining /</text>
+    <text x="472" y="-12" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="12" fill="#c0392b">sparse rewards for RL</text>
+    <text x="270" y="148" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" fill="#0e7490">Verification ~&lt; execution</text>
+    <text x="270" y="168" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="14" fill="#0e7490">NP w/ adversarial agents ;)</text>
+    <text x="270" y="352" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="13" fill="#c0392b">Verification is indistinguishable from execution</text>
+    <text x="270" y="-52" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="10" letter-spacing="0.08em" fill="#6b6b6b">LOW</text>
+    <text x="270" y="428" text-anchor="middle" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="10" letter-spacing="0.08em" fill="#6b6b6b">HIGH</text>
+    <text x="-16" y="204" text-anchor="end" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="10" letter-spacing="0.08em" fill="#6b6b6b">LOW</text>
+    <text x="556" y="204" text-anchor="start" font-family="Archivo, system-ui, sans-serif" font-weight="700" font-size="10" letter-spacing="0.08em" fill="#6b6b6b">HIGH</text>
+  </g>
+</svg>

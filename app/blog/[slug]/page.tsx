@@ -11,6 +11,18 @@ import type { MDXComponents } from 'mdx/types';
 import BlogImage from './BlogImage';
 import BlogVideo from './BlogVideo';
 import Minimap from '../Minimap';
+import {
+  ComputeEmbed,
+  DoomLoopEmbed,
+  EntropyMatrixEmbed,
+  EntropyPaperEmbed,
+  GinEmbed,
+  HorsepowerEmbed,
+  MousepowerMeasureEmbed,
+  SpendEmbed,
+  TokensEmbed,
+  VerificationEmbed,
+} from './MousepowerEmbeds';
 
 function slugify(text: string): string {
   return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
@@ -31,6 +43,16 @@ const mdxComponents: MDXComponents = {
   img: BlogImage,
   video: BlogVideo,
   BlogVideo,
+  HorsepowerEmbed,
+  GinEmbed,
+  DoomLoopEmbed,
+  SpendEmbed,
+  TokensEmbed,
+  VerificationEmbed,
+  ComputeEmbed,
+  MousepowerMeasureEmbed,
+  EntropyPaperEmbed,
+  EntropyMatrixEmbed,
   h2: HeadingWithId('h2'),
   h3: HeadingWithId('h3'),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,17 +69,24 @@ const mdxComponents: MDXComponents = {
     );
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  p: (props: any) => {
-    const children = props.children;
-    if (
-      children &&
-      typeof children === 'object' &&
-      'type' in children &&
-      (children.type === BlogImage || children.type === BlogVideo)
-    ) {
-      return <>{children}</>;
+  p: ({ children, ...rest }: any) => {
+    const EMBEDS = new Set([
+      HorsepowerEmbed,
+      GinEmbed,
+      DoomLoopEmbed,
+      SpendEmbed,
+      TokensEmbed,
+      VerificationEmbed,
+      ComputeEmbed,
+      MousepowerMeasureEmbed,
+      EntropyPaperEmbed,
+      EntropyMatrixEmbed,
+    ]);
+    if (children && typeof children === 'object' && 'type' in children) {
+      const t = children.type;
+      if (t === BlogImage || t === BlogVideo || EMBEDS.has(t)) return <>{children}</>;
     }
-    return <p {...props} />;
+    return <p {...rest}>{children}</p>;
   },
 };
 
