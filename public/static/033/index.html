@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mountain Mosaic — Ripple + Field</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      @property --field-strength {
+        syntax: "<number>";
+        inherits: false;
+        initial-value: 0;
+      }
+
+      @property --ripple-strength {
+        syntax: "<number>";
+        inherits: false;
+        initial-value: 0;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --background: oklch(0.94 0.004 250);
+        --ripple-duration: 800ms;
+        --ripple-ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --ripple-rise-ease: cubic-bezier(0.33, 0, 0.67, 1);
+        --ripple-fall-ease: cubic-bezier(0.16, 1, 0.3, 1);
+        --image-shadow:
+          0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06),
+          0 2px 4px 0 rgba(0, 0, 0, 0.04);
+        --image-shadow-hover:
+          0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08),
+          0 2px 4px 0 rgba(0, 0, 0, 0.06);
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--background);
+        overflow: hidden;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+      }
+
+      .mosaic-shell {
+        position: relative;
+        width: min(82vw, 1040px);
+        aspect-ratio: 16 / 9;
+        isolation: isolate;
+      }
+
+      .mosaic-shell::before {
+        position: absolute;
+        z-index: -1;
+        inset: 4%;
+        content: "";
+        background: oklch(0.68 0.02 245 / 0.5);
+        filter: blur(clamp(28px, 5vw, 72px));
+        opacity: 0.38;
+      }
+
+      .mosaic {
+        display: grid;
+        grid-template-columns: repeat(64, minmax(0, 1fr));
+        grid-template-rows: repeat(36, minmax(0, 1fr));
+        width: 100%;
+        height: 100%;
+        box-shadow: var(--image-shadow);
+        cursor: pointer;
+        touch-action: none;
+        transition: box-shadow 180ms var(--ripple-ease);
+      }
+
+      .mosaic:hover {
+        box-shadow: var(--image-shadow-hover);
+      }
+
+      .tile {
+        --field-strength: 0;
+        --ripple-strength: 0;
+        --ripple-energy: 1;
+        --radius-strength: max(
+          var(--field-strength),
+          calc(var(--ripple-strength) * var(--ripple-energy) * 1.2)
+        );
+        --scale-strength: max(
+          var(--field-strength),
+          calc(var(--ripple-strength) * var(--ripple-energy) * 0.48)
+        );
+        --color-strength: max(
+          var(--field-strength),
+          calc(var(--ripple-strength) * var(--ripple-energy) * 0.55)
+        );
+        min-width: 0;
+        min-height: 0;
+        background-image: url("wallpaper.webp");
+        background-repeat: no-repeat;
+        transform-origin: center;
+        transition:
+          border-radius 1040ms var(--ripple-ease),
+          filter 1040ms var(--ripple-ease),
+          transform 1040ms var(--ripple-ease);
+      }
+
+      .tile.is-affected,
+      .tile.is-rippling {
+        border-radius: calc(var(--radius-strength) * 50%);
+        filter: saturate(calc(1 + var(--color-strength) * 0.12))
+          brightness(calc(1 + var(--color-strength) * 0.08));
+        transform: scale(calc(1 - var(--scale-strength) * 0.2));
+      }
+
+      .tile.is-affected {
+        transition-duration: 280ms;
+      }
+
+      .tile.is-rippling {
+        animation: tile-ripple-strength var(--ripple-duration) linear both;
+        transition-duration: 0ms;
+      }
+
+      .tile.is-releasing {
+        transition-duration: 420ms;
+        transition-timing-function: var(--ripple-rise-ease);
+      }
+
+      .tile.is-resetting {
+        transition-duration: 0ms;
+      }
+
+      @keyframes tile-ripple-strength {
+        0% {
+          --ripple-strength: 0;
+          animation-timing-function: var(--ripple-rise-ease);
+        }
+
+        42% {
+          --ripple-strength: 1;
+          animation-timing-function: var(--ripple-fall-ease);
+        }
+
+        100% {
+          --ripple-strength: 0;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .mosaic-shell {
+          width: 92vw;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        :root {
+          --ripple-duration: 1ms;
+        }
+
+        .tile,
+        .tile.is-affected {
+          transition-duration: 0ms;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main
+      class="mosaic-shell"
+      role="img"
+      aria-label="A mountain landscape with a local hover field and a ripple traveling through its image fragments"
+    >
+      <div class="mosaic" id="mosaic" aria-hidden="true"></div>
+    </main>
+
+    <script>
+      const COLUMNS = 64;
+      const ROWS = 36;
+      const EFFECT_RADIUS = 7;
+      const RIPPLE_RING_DELAY = 40;
+      const RIPPLE_ACCELERATION_EXPONENT = 0.78;
+      const RIPPLE_SETTLE_DELAY = 150;
+      const PULSE_REST_DELAY = 40;
+      const FIELD_RELEASE_DURATION = 420;
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const mosaic = document.getElementById("mosaic");
+      const tiles = [];
+      const affectedTileIndices = new Set();
+
+      let isRippling = false;
+      let completedRippleTiles = 0;
+      let pointerPosition = null;
+      let pointerFrame = null;
+      let rippleSettleTimer = null;
+      let rippleHandoffTimer = null;
+      let pulseTimer = null;
+      let fieldReleaseTimer = null;
+      let resetFrame = null;
+      const resettingTiles = new Set();
+      const releasingTiles = new Set();
+
+      for (let row = 0; row < ROWS; row += 1) {
+        for (let column = 0; column < COLUMNS; column += 1) {
+          const tile = document.createElement("div");
+          const x = (column / (COLUMNS - 1)) * 100;
+          const y = (row / (ROWS - 1)) * 100;
+
+          tile.className = "tile";
+          tile.style.backgroundSize = `${COLUMNS * 100}% ${ROWS * 100}%`;
+          tile.style.backgroundPosition = `${x}% ${y}%`;
+          tile.addEventListener("animationend", () => {
+            tile.classList.add("is-resetting");
+            tile.classList.remove("is-rippling");
+            resettingTiles.add(tile);
+
+            if (resetFrame === null) {
+              resetFrame = window.requestAnimationFrame(() => {
+                mosaic.getBoundingClientRect();
+                for (const resettingTile of resettingTiles) {
+                  resettingTile.classList.remove("is-resetting");
+                }
+                resettingTiles.clear();
+                resetFrame = null;
+              });
+            }
+
+            completedRippleTiles += 1;
+            if (completedRippleTiles === tiles.length) {
+              isRippling = false;
+              scheduleNextPulse();
+            }
+          });
+          mosaic.appendChild(tile);
+          tiles.push(tile);
+        }
+      }
+
+      function getHoveredTile(clientX, clientY) {
+        const bounds = mosaic.getBoundingClientRect();
+        const column = Math.min(
+          COLUMNS - 1,
+          Math.max(
+            0,
+            Math.floor(((clientX - bounds.left) / bounds.width) * COLUMNS),
+          ),
+        );
+        const row = Math.min(
+          ROWS - 1,
+          Math.max(
+            0,
+            Math.floor(((clientY - bounds.top) / bounds.height) * ROWS),
+          ),
+        );
+        return { column, row, index: row * COLUMNS + column };
+      }
+
+      function updateHoverField(originColumn, originRow) {
+        const nextAffectedTileIndices = new Set();
+        const minimumColumn = Math.max(
+          0,
+          Math.floor(originColumn - EFFECT_RADIUS),
+        );
+        const maximumColumn = Math.min(
+          COLUMNS - 1,
+          Math.ceil(originColumn + EFFECT_RADIUS),
+        );
+        const minimumRow = Math.max(0, Math.floor(originRow - EFFECT_RADIUS));
+        const maximumRow = Math.min(
+          ROWS - 1,
+          Math.ceil(originRow + EFFECT_RADIUS),
+        );
+
+        for (let row = minimumRow; row <= maximumRow; row += 1) {
+          for (
+            let column = minimumColumn;
+            column <= maximumColumn;
+            column += 1
+          ) {
+            const distance = Math.hypot(column - originColumn, row - originRow);
+            if (distance >= EFFECT_RADIUS) continue;
+
+            const index = row * COLUMNS + column;
+            const strength = Math.pow(1 - distance / EFFECT_RADIUS, 1.35);
+            const tile = tiles[index];
+
+            tile.classList.remove("is-releasing");
+            releasingTiles.delete(tile);
+            tile.style.setProperty("--field-strength", strength.toFixed(4));
+            tile.classList.add("is-affected");
+            nextAffectedTileIndices.add(index);
+          }
+        }
+
+        for (const index of affectedTileIndices) {
+          if (nextAffectedTileIndices.has(index)) continue;
+          const tile = tiles[index];
+          tile.style.removeProperty("--field-strength");
+          tile.classList.remove("is-affected");
+        }
+
+        affectedTileIndices.clear();
+        for (const index of nextAffectedTileIndices) {
+          affectedTileIndices.add(index);
+        }
+      }
+
+      function clearHoverField() {
+        for (const index of affectedTileIndices) {
+          const tile = tiles[index];
+          tile.style.removeProperty("--field-strength");
+          tile.classList.remove("is-affected");
+        }
+        affectedTileIndices.clear();
+      }
+
+      function finishFieldRelease() {
+        window.clearTimeout(fieldReleaseTimer);
+
+        for (const tile of releasingTiles) {
+          tile.classList.remove("is-releasing");
+        }
+        releasingTiles.clear();
+        fieldReleaseTimer = null;
+      }
+
+      function releaseHoverFieldForRipple() {
+        finishFieldRelease();
+
+        for (const index of affectedTileIndices) {
+          const tile = tiles[index];
+          tile.classList.add("is-releasing");
+          tile.style.removeProperty("--field-strength");
+          tile.classList.remove("is-affected");
+          releasingTiles.add(tile);
+        }
+        affectedTileIndices.clear();
+
+        const releaseDuration = reduceMotion ? 0 : FIELD_RELEASE_DURATION;
+        fieldReleaseTimer = window.setTimeout(
+          finishFieldRelease,
+          releaseDuration,
+        );
+      }
+
+      function triggerRipple(originColumn, originRow) {
+        window.clearTimeout(pulseTimer);
+        pulseTimer = null;
+        isRippling = true;
+        completedRippleTiles = 0;
+
+        const tilesByRing = new Map();
+        const maximumDistance = Math.max(
+          Math.hypot(originColumn, originRow),
+          Math.hypot(COLUMNS - 1 - originColumn, originRow),
+          Math.hypot(originColumn, ROWS - 1 - originRow),
+          Math.hypot(COLUMNS - 1 - originColumn, ROWS - 1 - originRow),
+        );
+        const maximumRing = Math.round(maximumDistance);
+
+        for (let row = 0; row < ROWS; row += 1) {
+          for (let column = 0; column < COLUMNS; column += 1) {
+            const distance = Math.hypot(column - originColumn, row - originRow);
+            const ring = Math.round(distance);
+            const energy = 1 - (distance / maximumDistance) * 0.35;
+            const tile = tiles[row * COLUMNS + column];
+            const ringTiles = tilesByRing.get(ring) ?? [];
+            tile.style.setProperty("--ripple-energy", energy.toFixed(4));
+            ringTiles.push(tile);
+            tilesByRing.set(ring, ringTiles);
+          }
+        }
+
+        const ringDelay = reduceMotion ? 0 : RIPPLE_RING_DELAY;
+
+        for (const [ring, ringTiles] of tilesByRing) {
+          const rippleProgress = maximumRing === 0 ? 0 : ring / maximumRing;
+          const acceleratedDelay =
+            maximumRing *
+            ringDelay *
+            Math.pow(rippleProgress, RIPPLE_ACCELERATION_EXPONENT);
+
+          window.setTimeout(() => {
+            for (const tile of ringTiles) tile.classList.add("is-rippling");
+          }, acceleratedDelay);
+        }
+      }
+
+      function triggerRippleAtPointer() {
+        if (!pointerPosition || isRippling) return;
+
+        const hoveredTile = getHoveredTile(
+          pointerPosition.clientX,
+          pointerPosition.clientY,
+        );
+        triggerRipple(hoveredTile.column, hoveredTile.row);
+      }
+
+      function beginRippleFromHover() {
+        if (!pointerPosition || isRippling) return;
+        if (affectedTileIndices.size === 0) {
+          triggerRippleAtPointer();
+          return;
+        }
+
+        releaseHoverFieldForRipple();
+        const handoffDuration = reduceMotion ? 0 : FIELD_RELEASE_DURATION;
+
+        window.clearTimeout(rippleHandoffTimer);
+        rippleHandoffTimer = window.setTimeout(() => {
+          rippleHandoffTimer = null;
+          finishFieldRelease();
+          triggerRippleAtPointer();
+        }, handoffDuration);
+      }
+
+      function scheduleNextPulse() {
+        window.clearTimeout(pulseTimer);
+        if (reduceMotion || !pointerPosition) return;
+
+        pulseTimer = window.setTimeout(() => {
+          pulseTimer = null;
+          beginRippleFromHover();
+        }, PULSE_REST_DELAY);
+      }
+
+      function updateInteraction() {
+        pointerFrame = null;
+        if (!pointerPosition) return;
+
+        const hoveredTile = getHoveredTile(
+          pointerPosition.clientX,
+          pointerPosition.clientY,
+        );
+        updateHoverField(hoveredTile.column, hoveredTile.row);
+      }
+
+      function scheduleRippleAfterSettle() {
+        window.clearTimeout(rippleSettleTimer);
+        const settleDelay = reduceMotion ? 0 : RIPPLE_SETTLE_DELAY;
+
+        rippleSettleTimer = window.setTimeout(() => {
+          rippleSettleTimer = null;
+          beginRippleFromHover();
+        }, settleDelay);
+      }
+
+      mosaic.addEventListener("pointermove", (event) => {
+        if (event.pointerType === "touch") return;
+        window.clearTimeout(rippleHandoffTimer);
+        rippleHandoffTimer = null;
+        window.clearTimeout(pulseTimer);
+        pulseTimer = null;
+        pointerPosition = { clientX: event.clientX, clientY: event.clientY };
+        if (pointerFrame === null) {
+          pointerFrame = window.requestAnimationFrame(updateInteraction);
+        }
+        scheduleRippleAfterSettle();
+      });
+
+      mosaic.addEventListener("pointerleave", () => {
+        pointerPosition = null;
+        window.clearTimeout(rippleSettleTimer);
+        rippleSettleTimer = null;
+        window.clearTimeout(rippleHandoffTimer);
+        rippleHandoffTimer = null;
+        window.clearTimeout(pulseTimer);
+        pulseTimer = null;
+        if (pointerFrame !== null) {
+          window.cancelAnimationFrame(pointerFrame);
+          pointerFrame = null;
+        }
+        clearHoverField();
+      });
+    </script>
+  </body>
+</html>
