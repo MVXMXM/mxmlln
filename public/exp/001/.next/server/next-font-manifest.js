@@ -1,1 +1,0 @@
-self.__NEXT_FONT_MANIFEST="{\"pages\":{},\"app\":{\"/Users/mxmlln/Desktop/Maximin/mxmlln/public/exp/001/app/page\":[\"static/media/415f6059eaa8a4bb-s.p.woff2\",\"static/media/415f6059eaa8a4bb-s.p.woff2\"]},\"appUsingSizeAdjust\":true,\"pagesUsingSizeAdjust\":false}"
