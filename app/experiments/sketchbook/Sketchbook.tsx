@@ -26,6 +26,7 @@ const FlipOverlay = dynamic(() => import('./FlipOverlay'), { ssr: false });
 
 const OPEN_MS = 1110;
 const CLOSE_MS = 840;
+const PREVIEW_WIDTH = 200;
 
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(false);
@@ -85,6 +86,26 @@ export default function Sketchbook({ experiments }: { experiments: Experiment[] 
   }, [single]);
 
   const [frameScale, setFrameScale] = useState(0.28);
+  const [hover, setHover] = useState<number | null>(null);
+  const [hoverDX, setHoverDX] = useState(0);
+  const [viewport, setViewport] = useState<{ w: number; h: number } | null>(null);
+
+  const showPreview = useCallback((i: number, tick: HTMLElement) => {
+    const row = tick.parentElement;
+    if (row) {
+      const dx = tick.offsetLeft + tick.offsetWidth / 2 - row.offsetWidth / 2;
+      const max = Math.max(0, (window.innerWidth - PREVIEW_WIDTH) / 2 - 12);
+      setHoverDX(Math.min(Math.max(dx, -max), max));
+    }
+    setHover(i);
+  }, []);
+
+  useEffect(() => {
+    const measure = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
 
   useEffect(() => {
     const el = rightRef.current;
@@ -181,6 +202,17 @@ export default function Sketchbook({ experiments }: { experiments: Experiment[] 
     setPhase('opening');
     window.setTimeout(() => setPhase('open'), OPEN_MS);
   }, [phase, reduceMotion]);
+
+  const jumpTo = useCallback(
+    (i: number) => {
+      if (sessionRef.current) return;
+      const clamped = Math.min(Math.max(i, 0), lastSpread);
+      setSpreadIndex(clamped);
+      setPageIndex(clamped * 2 + 1);
+      if (phase === 'closed') openBook();
+    },
+    [lastSpread, phase, openBook],
+  );
 
   const startFlip = useCallback(
     async (dir: FlipDir) => {
@@ -311,7 +343,9 @@ export default function Sketchbook({ experiments }: { experiments: Experiment[] 
     };
     const onClick = (e: MouseEvent) => {
       if (sessionRef.current || e.button !== 0) return;
-      const hit = e.target instanceof Element ? e.target.closest('.sk-frame, iframe') : null;
+      const el = e.target instanceof Element ? e.target : null;
+      if (el?.closest('.sk-legend')) return;
+      const hit = el?.closest('.sk-frame, iframe');
       if (e.clientX < window.innerWidth / 2) goBack();
       else if (!hit) goFwd();
     };
@@ -431,6 +465,56 @@ export default function Sketchbook({ experiments }: { experiments: Experiment[] 
 
         {showCover && (
           <CoverScene phase={phase} pageW={pageSize.w} pageH={pageSize.h} onOpen={openBook} />
+        )}
+
+        {n > 1 && (
+          <div className="sk-legend" onMouseLeave={() => setHover(null)}>
+            {hover !== null && viewport && experiments[hover] && (
+              <div className="sk-legend-preview" style={{ '--dx': `${hoverDX}px` } as React.CSSProperties}>
+                <span
+                  className="sk-legend-preview-stage"
+                  style={{
+                    width: PREVIEW_WIDTH,
+                    height: Math.round((viewport.h * PREVIEW_WIDTH) / viewport.w),
+                  }}
+                >
+                  <span
+                    className="sk-legend-preview-scale"
+                    style={{
+                      width: viewport.w,
+                      height: viewport.h,
+                      transform: `scale(${PREVIEW_WIDTH / viewport.w})`,
+                    }}
+                  >
+                    <iframe
+                      src={experiments[hover].path}
+                      title={noteFor(experiments[hover].id).title}
+                      tabIndex={-1}
+                    />
+                  </span>
+                </span>
+              </div>
+            )}
+            <div className="sk-legend-row">
+              {experiments.map((exp, i) => (
+                <button
+                  key={exp.id}
+                  type="button"
+                  className="sk-legend-hit"
+                  aria-label={`Go to ${noteFor(exp.id).title}`}
+                  aria-current={i === visibleExpIndex ? 'true' : undefined}
+                  onMouseEnter={(e) => showPreview(i, e.currentTarget)}
+                  onFocus={(e) => showPreview(i, e.currentTarget)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    jumpTo(i);
+                  }}
+                >
+                  <span className="sk-legend-tick" data-active={i === visibleExpIndex} />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="sk-capture" aria-hidden>
