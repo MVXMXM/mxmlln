@@ -464,12 +464,8 @@
     </div>
 
     <script>
-        // Local dev runs the reader microservice on :3002.
-        // In production (Vercel) we use the same-origin endpoint exposed by
-        // api/index.js, and screenshots are served as static files from /reader/screenshots/.
-        const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const READER_ORIGIN = IS_LOCAL ? 'http://localhost:3002' : '';
-        const SCREENSHOT_BASE = IS_LOCAL ? `${READER_ORIGIN}/screenshots` : '/reader/screenshots';
+        // Absolute so screenshots resolve from /reader and /reader/index.html.
+        const SCREENSHOT_BASE = '/reader/screenshots';
 
         let allArticles = [];
         let visibleArticles = [];
@@ -675,7 +671,7 @@
 
         async function loadReadingList() {
             try {
-                const res = await fetch(`${READER_ORIGIN}/api/reading-list`);
+                const res = await fetch('/api/reading-list');
                 const data = await res.json();
                 allArticles = (data.links || []).map(normalize);
                 render();
