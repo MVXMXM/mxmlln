@@ -641,7 +641,6 @@
 
 .chatQuery {
   background-color: #f5f5f5;
-  /* Bottom-right stays tight so the bubble points toward the user. */
   border-radius: 24px 24px 4px 24px;
   padding: 16px 24px;
 }
