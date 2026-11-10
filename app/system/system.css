@@ -176,37 +176,7 @@
   margin: 56px 0;
 }
 
-/* ─── Token grid ─────────────────────────────────────────── */
-.token-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
-  margin: 8px 0 32px;
-}
-.token {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.token--wide {
-  grid-column: 1 / -1;
-}
-.token-chip {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-.token-radius {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  background: #1a1a1a;
-}
-.token-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
+/* ─── Token labels (type specimens) ──────────────────────── */
 .token-value {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
