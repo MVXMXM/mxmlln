@@ -57,24 +57,3 @@ eyebrow: MVXMXM
 <ComponentPreview>
   <MenuDemo />
 </ComponentPreview>
-
-## Radius
-
-Soft, generous corners. Pills (`40px`) for floating chrome, large radii for cards.
-
-<Swatches>
-  <RadiusBox name="Chip / input" value="6px" />
-  <RadiusBox name="Code / small" value="8px" />
-  <RadiusBox name="Card" value="16px" />
-  <RadiusBox name="Card (folio)" value="24px" />
-  <RadiusBox name="Hero card" value="36px" />
-  <RadiusBox name="Pill" value="40px" />
-</Swatches>
-
-## Motion
-
-Almost everything eases between `0.2s` and `0.5s`. `FolioEngine` uses `0.35s ease` as its house transition; text effects use `cubic-bezier(0.4, 0, 0.2, 1)`. Motion is built on **framer-motion** via the `registry/` primitives below — prefer those over hand-rolled keyframes.
-
-- **Standard transition:** `all 0.35s ease`
-- **Quick (hover/opacity):** `0.2s ease`
-- **Easing curve:** `cubic-bezier(0.4, 0, 0.2, 1)`

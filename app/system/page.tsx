@@ -5,12 +5,7 @@ import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
 import Minimap from '../blog/Minimap';
-import {
-  Swatches,
-  Swatch,
-  RadiusBox,
-  Type,
-} from './components/TokenSwatch';
+import { Type } from './components/TokenSwatch';
 import { Palette } from './components/ColorScale';
 import { ComponentPreview } from './components/ComponentPreview';
 import { AnchorHeading } from './components/AnchorHeading';
@@ -47,10 +42,7 @@ const mdxComponents: MDXComponents = {
     );
   },
   // Doc helpers
-  Swatches,
-  Swatch,
   Palette,
-  RadiusBox,
   Type,
   ComponentPreview,
   LogoDemo,
