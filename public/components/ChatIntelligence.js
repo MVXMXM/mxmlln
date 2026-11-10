@@ -28,6 +28,35 @@ function handleInput() {
 }
 chatSubmit.addEventListener('input', handleInput);
 
+function hideLoader() {
+    loader.style.visibility = 'hidden'
+    loader.style.opacity = 0
+    loader.style.height = '0px'
+}
+
+function showResponse() {
+    chatResponseLog.style.transform = 'translateY(0)'
+    responseContainer.style.visibility = 'visible'
+    responseContainer.style.opacity = 0
+    responseContainer.style.transition = 'transform 0.5s ease-in-out'
+    responseContainer.style.transform = 'translateY(0)'
+    setTimeout(() => {
+        responseContainer.style.transition = 'opacity 2s'
+        responseContainer.style.opacity = 1
+    }, 100);
+}
+
+// The card stays hidden until a recommendation arrives. A failed call otherwise
+// leaves the spinner up, because AiResponse is missing and JSON.parse throws.
+function showChatFailure() {
+    hideLoader()
+    if (URL) URL.style.display = 'none'
+    if (AiResponseBlurb) AiResponseBlurb.textContent = 'Something went wrong on my side. Try again in a moment.'
+    showResponse()
+    inputField.value = query.textContent
+    handleInput()
+}
+
 chatSubmit.addEventListener('submit', async (e) => {
     e.preventDefault()
     inputField.blur()
@@ -53,6 +82,7 @@ chatSubmit.addEventListener('submit', async (e) => {
     inputField.value = ''
     loader.style.height = '80px'
     loader.style.visibility = 'visible'
+    if (URL) URL.style.display = ''
     setTimeout(() => {
         loader.style.transition = 'opacity 0.5s'
         loader.style.opacity = 1
@@ -64,38 +94,33 @@ chatSubmit.addEventListener('submit', async (e) => {
         body: JSON.stringify({ input: userInput })
     });
 
-    const res = await fetch('/api/openai/meta', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ defineProblem: userInput })
-    })
-    data = await res.json()
+    try {
+        const res = await fetch('/api/openai/meta', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ defineProblem: userInput })
+        })
+        data = await res.json()
+        if (!res.ok || typeof data.AiResponse !== 'string') {
+            showChatFailure()
+            return
+        }
 
-    // Log the API response to the console
-    console.log(data);
-
-    // inject LLM output into UI AiResponse.textContent = userInput
-    const contentObject = JSON.parse(data.AiResponse)
-    const blurb = contentObject.blurb
-    const cardHeader = contentObject.cardHeader
-    const cardDescription = contentObject.cardDescription
-    const cardURL = contentObject.cardURL
-    const cardImage = contentObject.cardImage
-    if (AiResponseBlurb) AiResponseBlurb.textContent = blurb
-    if (AiResponseCardHeader) AiResponseCardHeader.textContent = cardHeader
-    if (AiResponseCardDescription) AiResponseCardDescription.textContent = cardDescription
-    if (AiResponseCardURL) AiResponseCardURL.href = cardURL
-    if (AiResponseCardImage) AiResponseCardImage.src = cardImage
-    loader.style.visibility = 'hidden'
-    loader.style.opacity = 0
-    loader.style.height = '0px'
-    chatResponseLog.style.transform = 'translateY(0)'
-    responseContainer.style.opacity = 0
-    responseContainer.style.visibility = 'visible'
-    responseContainer.style.transition = 'transform 0.5s ease-in-out'
-    responseContainer.style.transform = 'translateY(0)'
-    setTimeout(() => {
-        responseContainer.style.transition = 'opacity 2s'
-        responseContainer.style.opacity = 1
-    }, 100);
+        const contentObject = JSON.parse(data.AiResponse)
+        const blurb = contentObject.blurb
+        const cardHeader = contentObject.cardHeader
+        const cardDescription = contentObject.cardDescription
+        const cardURL = contentObject.cardURL
+        const cardImage = contentObject.cardImage
+        if (AiResponseBlurb) AiResponseBlurb.textContent = blurb
+        if (AiResponseCardHeader) AiResponseCardHeader.textContent = cardHeader
+        if (AiResponseCardDescription) AiResponseCardDescription.textContent = cardDescription
+        if (AiResponseCardURL) AiResponseCardURL.href = cardURL
+        if (AiResponseCardImage) AiResponseCardImage.src = cardImage
+        hideLoader()
+        showResponse()
+    } catch (error) {
+        console.error(error)
+        showChatFailure()
+    }
 })
