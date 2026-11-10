@@ -317,6 +317,15 @@
   border-radius: 16px;
   overflow: hidden;
 }
+.component-preview--square {
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+.component-preview--square .component-preview-canvas {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
 .component-preview-canvas {
   display: flex;
   align-items: center;
@@ -613,7 +622,7 @@
 .chat-demo-thread {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   width: 100%;
   max-width: 600px;
 }
@@ -632,7 +641,7 @@
 
 .chatQuery {
   background-color: #f5f5f5;
-  border-radius: 24px;
+  border-radius: 24px 24px 4px 24px;
   padding: 16px 24px;
 }
 
@@ -654,7 +663,7 @@
   min-width: 40px;
   min-height: 40px;
   margin: 0px;
-  border: 2px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 100%;
   background-color: #f5f5f5;
 }
@@ -662,82 +671,6 @@
 .chatResponseLogo {
   height: 30px;
   width: 30px;
-}
-
-.chatCardURL {
-  width: 100%;
-}
-/* The .system-prose a rule underlines links and fades them on hover; the card
-   uses a border-color hover instead. */
-.chatCardURL a,
-.chatCardURL a:hover {
-  text-decoration: none;
-  opacity: 1;
-}
-
-.chatSuggestionCard {
-  display: flex;
-  flex-direction: row;
-  max-width: 600px;
-  width: 100%;
-  height: 200px;
-  background-color: #f5f5f5;
-  border-radius: 40px;
-  padding: 0px;
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.1);
-  transition: border 0.5s;
-}
-
-.chatSuggestionCard:hover {
-  border: 2px solid #06aeef;
-}
-
-.chatCardImageContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 150px;
-  height: 200px;
-  border-radius: 40px 0px 0px 40px;
-  overflow: hidden;
-}
-
-.chatCardImage {
-  height: 100%;
-}
-
-.chatCardTextBlock {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  align-items: flex-start;
-  justify-content: left;
-  padding: 24px;
-}
-
-.chatCardHeader {
-  margin: 0px 0px 8px 0px;
-}
-
-.chatCardHeaderTitle {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 0px;
-  line-height: 1.2;
-  text-align: left;
-}
-
-.chatCardDescription {
-  margin: 0px;
-}
-
-.chatCardDescriptionText {
-  text-align: left;
-  font-size: 14px;
-  line-height: 1.2;
 }
 
 /* Menu demo: the labeled popover list. The live rail lives in
