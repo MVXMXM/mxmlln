@@ -38,12 +38,13 @@ export function MousepowerMeasure() {
     const el = stageRef.current;
     if (!el) return;
     const measure = () => {
-      const r = el.getBoundingClientRect();
-      const s = { x: r.width, y: r.height };
+      // Layout box (transforms don't affect offset*); needed so a CSS-scaled
+      // blog embed still maps rays in the same space as pointer tracking.
+      const s = { x: el.offsetWidth, y: el.offsetHeight };
       sizeRef.current = s;
       setSize(s);
       if (!lastMove.current) {
-        setCursor({ x: r.width / 2, y: r.height / 2 });
+        setCursor({ x: s.x / 2, y: s.y / 2 });
       }
     };
     measure();
@@ -59,8 +60,18 @@ export function MousepowerMeasure() {
       const el = stageRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
+      if (
+        e.clientX < r.left ||
+        e.clientX > r.right ||
+        e.clientY < r.top ||
+        e.clientY > r.bottom
+      ) {
+        return;
+      }
+      const sx = r.width / (el.offsetWidth || r.width) || 1;
+      const sy = r.height / (el.offsetHeight || r.height) || 1;
+      const x = (e.clientX - r.left) / sx;
+      const y = (e.clientY - r.top) / sy;
       const now = e.timeStamp;
       const prev = lastMove.current;
       let spd = speed.current;

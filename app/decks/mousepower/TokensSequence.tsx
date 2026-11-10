@@ -11,7 +11,7 @@
 //            leaving the small coin parked at the rings' centre
 // Advancement uses the same capture-phase key listener as the other build slides.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDeck, useSlideIndex } from '../Deck';
+import { useBuildSteps } from '../Deck';
 import { ActivityRings } from './ActivityRings';
 import { Coin3D } from './Coin3D';
 import { TokensOrbit } from './TokensOrbit';
@@ -20,39 +20,53 @@ const STEPS = 3;
 // Hold the orbit until the coin has centred (the .tokens-coin slide is ~0.65s).
 const ORBIT_DELAY = 720;
 const RINGS_DELAY = 720; // after the coin shrinks (step 2), before the rings draw
-const FWD = new Set(['ArrowRight', 'ArrowDown', ' ']);
-const BACK = new Set(['ArrowLeft', 'ArrowUp', 'Backspace']);
 
 export function TokensSequence() {
-  const { activeIndex } = useDeck();
-  const index = useSlideIndex();
-  const active = activeIndex === index;
-  const [step, setStep] = useState(0);
   const [orbitOn, setOrbitOn] = useState(false);
   const [ringsOn, setRingsOn] = useState(false);
   const seqRef = useRef<HTMLDivElement>(null);
 
-  // Shift that brings the coin's centre to the viewport centre. Neutralise any
+  // Shift that brings the coin's centre to the stage centre. Neutralise any
   // prior shift first so the coin is always measured at its natural (wordmark)
-  // position — stable regardless of the current step or re-measures.
+  // position — stable regardless of the current step or re-measures. Visual
+  // deltas are converted back to layout px so CSS-scaled blog embeds stay true.
   const applyShift = useCallback(() => {
-    const wm = seqRef.current?.querySelector<HTMLElement>('.tokens-wordmark');
+    const stage = seqRef.current;
+    const wm = stage?.querySelector<HTMLElement>('.tokens-wordmark');
     const coin = wm?.querySelector<HTMLElement>('.tokens-coin');
-    if (!wm || !coin) return;
+    if (!stage || !wm || !coin) return;
     wm.style.setProperty('--coin-shift', '0px');
-    const r = coin.getBoundingClientRect(); // forces layout at the neutral position
-    const naturalCentre = r.left + r.width / 2;
-    wm.style.setProperty('--coin-shift', `${window.innerWidth / 2 - naturalCentre}px`);
+    const cr = coin.getBoundingClientRect();
+    const sr = stage.getBoundingClientRect();
+    const scale = sr.width / stage.offsetWidth || 1;
+    const visualDelta = sr.left + sr.width / 2 - (cr.left + cr.width / 2);
+    wm.style.setProperty('--coin-shift', `${visualDelta / scale}px`);
   }, []);
+
+  const onAdvance = useCallback(
+    (from: number) => {
+      if (from === 0) applyShift();
+    },
+    [applyShift]
+  );
+  const { active, step } = useBuildSteps(STEPS, { interval: 3200, onAdvance });
 
   // Reset the build whenever the slide leaves.
   useEffect(() => {
     if (!active) {
-      setStep(0);
       setOrbitOn(false);
       setRingsOn(false);
     }
   }, [active]);
+
+  // Wrap-around (blog autoplay) must park the coin back on the wordmark.
+  useEffect(() => {
+    if (step === 0) {
+      seqRef.current
+        ?.querySelector<HTMLElement>('.tokens-wordmark')
+        ?.style.setProperty('--coin-shift', '0px');
+    }
+  }, [step]);
 
   // The orbit icons hold off until the coin has slid to centre (step 1), then pop.
   useEffect(() => {
@@ -84,25 +98,6 @@ export function TokensSequence() {
     const t = window.setTimeout(() => setRingsOn(true), RINGS_DELAY);
     return () => window.clearTimeout(t);
   }, [step]);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (FWD.has(e.key) && step < STEPS - 1) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        if (step === 0) applyShift(); // measure before the slide-to-centre
-        setStep((s) => Math.min(s + 1, STEPS - 1));
-      } else if (BACK.has(e.key) && step > 0) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        setStep((s) => Math.max(s - 1, 0));
-      }
-      // At a boundary: let the event reach the Deck to change slides.
-    };
-    window.addEventListener('keydown', onKey, { capture: true });
-    return () => window.removeEventListener('keydown', onKey, { capture: true });
-  }, [active, step, applyShift]);
 
   return (
     <div className="tokens-seq rack-in" data-step={step} data-rings={ringsOn} ref={seqRef}>
