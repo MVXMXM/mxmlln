@@ -169,8 +169,8 @@ function CurlLeaf({
     const pageW = session.pageW;
     const pageH = session.pageH;
     const progress = flipProgress(pageW, motion.fx);
-    let dx = pageW - motion.fx;
-    let dy = 0 - motion.fy;
+    const dx = pageW - motion.fx;
+    const dy = 0 - motion.fy;
     const len = Math.hypot(dx, dy);
     let ax = 1;
     let ay = 0;

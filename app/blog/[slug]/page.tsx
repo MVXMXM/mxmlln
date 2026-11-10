@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -16,9 +17,8 @@ function slugify(text: string): string {
   return text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function HeadingWithId(Tag: 'h2' | 'h3') {
-  return function Heading(props: any) {
+  return function Heading(props: ComponentPropsWithoutRef<'h2'>) {
     const text = typeof props.children === 'string'
       ? props.children
       : String(props.children);

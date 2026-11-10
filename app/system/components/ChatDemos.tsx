@@ -1,9 +1,11 @@
+import Link from "next/link";
+
 /**
  * The portfolio chatbot's message types, using the production markup + class
  * names from public/components/NavBar.html so the specimens render identically
  * to the live chat (styles pulled verbatim into system.css). Content mirrors a
- * real recommendation from controllers/openaiController.js. Static, so no
- * 'use client' is needed.
+ * real recommendation from the homepage chat. Static, so no 'use client' is
+ * needed.
  */
 export function ChatDemo() {
   return (
@@ -26,7 +28,7 @@ export function ChatDemo() {
 
       {/* Assistant recommendation — link card */}
       <div className="chatCardURL">
-        <a href="/blog/designing-ai-beyond-conversational-interfaces">
+        <Link href="/blog/designing-ai-beyond-conversational-interfaces">
           <div className="chatSuggestionCard">
             <div className="chatCardImageContainer">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -45,7 +47,7 @@ export function ChatDemo() {
               </div>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
     </div>
   );

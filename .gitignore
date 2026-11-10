@@ -8,9 +8,9 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# next.js
-/.next/
-/out/
+# next.js — any directory, not only the repo root
+.next/
+out/
 
 # production
 /build
