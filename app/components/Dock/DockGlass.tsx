@@ -42,10 +42,10 @@ export function DockGlass() {
 
   useEffect(() => {
     const backdrop = ref.current;
-    const nav = backdrop?.parentElement;
-    if (!backdrop || !nav || !/Chrome|Chromium|Edg\//.test(navigator.userAgent)) return;
+    const dock = backdrop?.parentElement;
+    if (!backdrop || !dock || !/Chrome|Chromium|Edg\//.test(navigator.userAgent)) return;
     // The backdrop is display:none until this is set, so the map can be measured.
-    nav.dataset.navNative = 'true';
+    dock.dataset.dockNative = 'true';
     let settleTimer = 0;
     let generation = 0;
     let coverStarted = false;
@@ -60,14 +60,14 @@ export function DockGlass() {
       closingAtStart = closing;
       for (const element of displacementRefs.current) element?.setAttribute('scale', '0');
       backdrop.style.removeProperty('opacity');
-      nav.style.setProperty('backdrop-filter', 'none');
-      nav.style.setProperty('-webkit-backdrop-filter', 'none');
-      nav.dataset.navNative = 'false';
-      nav.dataset.navMoving = 'true';
+      dock.style.setProperty('backdrop-filter', 'none');
+      dock.style.setProperty('-webkit-backdrop-filter', 'none');
+      dock.dataset.dockNative = 'false';
+      dock.dataset.dockMoving = 'true';
     };
 
     const beginCover = () => {
-      const closing = nav.closest('.mx-nav')?.getAttribute('data-closing') === 'true';
+      const closing = dock.closest('.mx-dock')?.getAttribute('data-closing') === 'true';
       if (coverStarted && closingAtStart === closing) return;
       holdCover(closing);
     };
@@ -86,11 +86,11 @@ export function DockGlass() {
       if (token !== generation) return;
       coverStarted = false;
       writeScales(radius);
-      nav.style.removeProperty('backdrop-filter');
-      nav.style.removeProperty('-webkit-backdrop-filter');
+      dock.style.removeProperty('backdrop-filter');
+      dock.style.removeProperty('-webkit-backdrop-filter');
       backdrop.style.removeProperty('opacity');
-      nav.dataset.navNative = 'true';
-      delete nav.dataset.navMoving;
+      dock.dataset.dockNative = 'true';
+      delete dock.dataset.dockMoving;
     };
 
     const paintMap = (width: number, height: number, radius: number) => {
@@ -108,8 +108,8 @@ export function DockGlass() {
           const direction = roundedRectangleDisplacement(
             localX,
             localY,
-            nav.offsetWidth,
-            nav.offsetHeight,
+            dock.offsetWidth,
+            dock.offsetHeight,
             radius,
           );
           const index = (y * canvas.width + x) * 4;
@@ -129,14 +129,14 @@ export function DockGlass() {
 
     const update = (token: number) => {
       // The backdrop stays hidden while frost is covering the resize.
-      const width = nav.offsetWidth;
-      const height = nav.offsetHeight;
+      const width = dock.offsetWidth;
+      const height = dock.offsetHeight;
       if (!width || !height || token !== generation) return;
       const size = `${width}x${height}`;
       const radius = Math.min(
-        parseFloat(getComputedStyle(nav).borderRadius) || 0,
-        nav.offsetWidth / 2,
-        nav.offsetHeight / 2,
+        parseFloat(getComputedStyle(dock).borderRadius) || 0,
+        dock.offsetWidth / 2,
+        dock.offsetHeight / 2,
       );
       if (size === builtSize) {
         showLens(radius, token);
@@ -152,7 +152,7 @@ export function DockGlass() {
     };
 
     const scheduleUpdate = () => {
-      const size = `${Math.round(nav.offsetWidth)}x${Math.round(nav.offsetHeight)}`;
+      const size = `${Math.round(dock.offsetWidth)}x${Math.round(dock.offsetHeight)}`;
       if (size === '0x0' || size === pendingSize) return;
       pendingSize = size;
       const handoff = Boolean(builtSize);
@@ -163,23 +163,23 @@ export function DockGlass() {
     };
 
     const observer = new ResizeObserver(scheduleUpdate);
-    observer.observe(nav);
+    observer.observe(dock);
     scheduleUpdate();
     return () => {
       observer.disconnect();
       window.clearTimeout(settleTimer);
       generation += 1;
-      nav.style.removeProperty('backdrop-filter');
-      nav.style.removeProperty('-webkit-backdrop-filter');
+      dock.style.removeProperty('backdrop-filter');
+      dock.style.removeProperty('-webkit-backdrop-filter');
       backdrop.style.removeProperty('opacity');
-      delete nav.dataset.navNative;
-      delete nav.dataset.navMoving;
+      delete dock.dataset.dockNative;
+      delete dock.dataset.dockMoving;
     };
   }, []);
 
   return (
     <>
-      <svg width="0" height="0" className="navGlassDefs" aria-hidden="true">
+      <svg width="0" height="0" className="dockGlassDefs" aria-hidden="true">
         <defs>
           <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
             <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blurred" />
@@ -214,14 +214,14 @@ export function DockGlass() {
       </svg>
       <span
         ref={ref}
-        className="navGlassBackdrop"
+        className="dockGlassBackdrop"
         style={{
           backdropFilter: `url("#${id}") saturate(1.6)`,
           WebkitBackdropFilter: `url("#${id}") saturate(1.6)`,
         }}
         aria-hidden="true"
       />
-      <span className="navGlassTint" aria-hidden="true" />
+      <span className="dockGlassTint" aria-hidden="true" />
     </>
   );
 }

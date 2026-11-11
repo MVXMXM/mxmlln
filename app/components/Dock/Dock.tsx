@@ -6,10 +6,10 @@ import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
 import './dock.css';
 
-export type NavItem = 'about' | 'work' | 'chat';
+export type DockItem = 'about' | 'work' | 'chat';
 type Panel = 'info' | 'contact' | 'chat';
 
-const ITEMS: { id: NavItem; label: string }[] = [
+const ITEMS: { id: DockItem; label: string }[] = [
   { id: 'about', label: 'About' },
   { id: 'work', label: 'Work' },
   { id: 'chat', label: 'Chat' },
@@ -91,10 +91,10 @@ export function Dock({
 }: {
   /** Keep the fixed bar inside a positioned stage instead of the viewport. */
   contained?: boolean;
-  activeItem?: NavItem;
-  onActiveItemChange?: (item: NavItem) => void;
+  activeItem?: DockItem;
+  onActiveItemChange?: (item: DockItem) => void;
 }) {
-  const [uncontrolledItem, setUncontrolledItem] = useState<NavItem>('work');
+  const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
   const [panel, setPanel] = useState<Panel | null>(null);
   const [closing, setClosing] = useState(false);
   const [contactSettled, setContactSettled] = useState(false);
@@ -106,13 +106,13 @@ export function Dock({
 
   useEffect(() => {
     const container = containerRef.current;
-    const content = container?.querySelector<HTMLElement>('.navBarSegController');
+    const content = container?.querySelector<HTMLElement>('.dockBarSegController');
     if (!container || !content) return;
     // The open transition swaps the bar to absolute, so max-content drops to 0
     // and the panel appears to grow from nothing. A measured floor stays put.
     const apply = () => {
       const width = Math.ceil(content.getBoundingClientRect().width);
-      if (width) container.style.setProperty('--nav-collapsed-width', `${width}px`);
+      if (width) container.style.setProperty('--dock-collapsed-width', `${width}px`);
     };
     apply();
     const observer = new ResizeObserver(apply);
@@ -125,15 +125,15 @@ export function Dock({
     const indicator = indicatorRef.current;
     if (!root || !indicator) return;
     const place = () => {
-      const active = root.querySelector<HTMLElement>('.navBarItem_OnState');
-      const labels = indicator.querySelector<HTMLElement>('.navBarIndicatorLabels');
+      const active = root.querySelector<HTMLElement>('.dockBarItem_OnState');
+      const labels = indicator.querySelector<HTMLElement>('.dockBarIndicatorLabels');
       if (!active || !labels) return;
       indicator.style.width = `${active.offsetWidth}px`;
       indicator.style.height = `${active.offsetHeight}px`;
       indicator.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
       labels.style.transform = `translate3d(${-active.offsetLeft}px, ${-active.offsetTop}px, 0)`;
       const buttons = [...root.querySelectorAll<HTMLElement>('button')];
-      const copies = [...labels.querySelectorAll<HTMLElement>('.navBarIndicatorLabel')];
+      const copies = [...labels.querySelectorAll<HTMLElement>('.dockBarIndicatorLabel')];
       buttons.forEach((button, index) => {
         const copy = copies[index];
         if (!copy) return;
@@ -181,7 +181,7 @@ export function Dock({
     };
   }, []);
 
-  function selectItem(item: NavItem) {
+  function selectItem(item: DockItem) {
     setUncontrolledItem(item);
     onActiveItemChange?.(item);
   }
@@ -203,29 +203,29 @@ export function Dock({
 
   const root = (
     <div
-      className={contained ? 'mx-nav mx-nav--contained' : 'mx-nav'}
+      className={contained ? 'mx-dock mx-dock--contained' : 'mx-dock'}
       data-panel={panel ?? undefined}
       data-closing={closing ? 'true' : undefined}
       data-settled={contactSettled ? 'true' : undefined}
     >
       <div className="bottomFade" aria-hidden="true" />
-      <div className="navDynamicContainer" ref={containerRef}>
+      <div className="dockDynamicContainer" ref={containerRef}>
         <DockGlass />
-        <div className="navBar">
-          <div className="navBarSegController">
+        <div className="dockBar">
+          <div className="dockBarSegController">
             <button type="button" onClick={() => openPanel('info')} aria-label="Open info menu">
               <LottieMark
                 path="/assets/LogoSpin2026.json"
                 fallback="/assets/LogoSpin2024.SML.gif"
-                className="lottieMark lottieMark--nav"
+                className="lottieMark lottieMark--dock"
                 label="Open info menu"
               />
             </button>
-            <div className="navBarSegments" ref={segmentsRef}>
-              <span className="navBarIndicator" ref={indicatorRef} aria-hidden="true">
-                <span className="navBarIndicatorLabels">
+            <div className="dockBarSegments" ref={segmentsRef}>
+              <span className="dockBarIndicator" ref={indicatorRef} aria-hidden="true">
+                <span className="dockBarIndicatorLabels">
                   {ITEMS.map((item) => (
-                    <span key={item.id} className="navBarIndicatorLabel">
+                    <span key={item.id} className="dockBarIndicatorLabel">
                       {item.label}
                     </span>
                   ))}
@@ -235,7 +235,7 @@ export function Dock({
                 <button
                   key={item.id}
                   type="button"
-                  className={activeItem === item.id ? 'navBarItem_OnState' : 'navBarItem'}
+                  className={activeItem === item.id ? 'dockBarItem_OnState' : 'dockBarItem'}
                   onClick={() => selectItem(item.id)}
                 >
                   {item.label}
@@ -243,7 +243,7 @@ export function Dock({
               ))}
             </div>
             <button type="button" onClick={() => openPanel('contact')} aria-label="Open contact menu">
-              <img className="openNavContactView" src="/assets/ContactSML.png" alt="" />
+              <img className="openDockContactView" src="/assets/ContactSML.png" alt="" />
             </button>
           </div>
         </div>
@@ -263,11 +263,11 @@ export function Dock({
               label="MXMLLN logo"
             />
           </div>
-          <div className="navInfoActions">
-            <a className="navInfoAction navInfoButton navInfoButton--secondary" href="https://github.com/MVXMXM/mxmlln" target="_blank" rel="noreferrer">
+          <div className="dockInfoActions">
+            <a className="dockInfoAction dockInfoButton dockInfoButton--secondary" href="https://github.com/MVXMXM/mxmlln" target="_blank" rel="noreferrer">
               Source code
             </a>
-            <a className="navInfoAction navInfoButton navInfoButton--secondary" href="/system">
+            <a className="dockInfoAction dockInfoButton dockInfoButton--secondary" href="/system">
               Design system
             </a>
           </div>
@@ -387,6 +387,6 @@ export function Dock({
     </div>
   );
 
-  if (contained) return <div className="mx-nav-frame">{root}</div>;
+  if (contained) return <div className="mx-dock-frame">{root}</div>;
   return root;
 }

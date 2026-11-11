@@ -64,20 +64,20 @@ export function LogoDemo() {
   );
 }
 
-const NAV_SKELETONS = 6;
+const DOCK_SKELETONS = 6;
 
-export function NavDemo() {
+export function DockDemo() {
   return (
-    <div className="navbar-demo">
-      <div className="navbar-demo-stage">
-        <div className="navbar-demo-scroll">
-          {Array.from({ length: NAV_SKELETONS }, (_, index) => (
-            <div className="navbar-skeleton" key={index}>
-              <div className="navbar-skeleton-media" />
-              <div className="navbar-skeleton-copy">
-                <div className="navbar-skeleton-line navbar-skeleton-line--title" />
-                <div className="navbar-skeleton-line" />
-                <div className="navbar-skeleton-line navbar-skeleton-line--short" />
+    <div className="dock-demo">
+      <div className="dock-demo-stage">
+        <div className="dock-demo-scroll">
+          {Array.from({ length: DOCK_SKELETONS }, (_, index) => (
+            <div className="dock-skeleton" key={index}>
+              <div className="dock-skeleton-media" />
+              <div className="dock-skeleton-copy">
+                <div className="dock-skeleton-line dock-skeleton-line--title" />
+                <div className="dock-skeleton-line" />
+                <div className="dock-skeleton-line dock-skeleton-line--short" />
               </div>
             </div>
           ))}

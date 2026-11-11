@@ -371,7 +371,7 @@
 
 /* ─── Chrome demos ───────────────────────────────────────── */
 /* Dock specimen. The component positions fixed against this stage. */
-.navbar-demo-stage {
+.dock-demo-stage {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
@@ -381,19 +381,19 @@
   overflow: hidden;
   background: #fcfcfc;
 }
-.navbar-demo-scroll {
+.dock-demo-scroll {
   height: 100%;
   overflow: auto;
   padding: 8px 32px 148px;
 }
 
 html,
-.navbar-demo-scroll {
+.dock-demo-scroll {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: gray transparent;
 }
-.navbar-skeleton {
+.dock-skeleton {
   display: grid;
   grid-template-columns: 168px 1fr;
   gap: 20px;
@@ -401,40 +401,40 @@ html,
   padding: 22px 0;
   border-bottom: 1px solid #f1f5f9;
 }
-.navbar-skeleton-media {
+.dock-skeleton-media {
   height: 112px;
   border-radius: 16px;
   background: #90a1b9;
 }
-.navbar-skeleton-copy {
+.dock-skeleton-copy {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.navbar-skeleton-line {
+.dock-skeleton-line {
   height: 10px;
   border-radius: 6px;
   background: #90a1b9;
 }
-.navbar-skeleton-line--title {
+.dock-skeleton-line--title {
   width: 46%;
   height: 14px;
 }
-.navbar-skeleton-line--short {
+.dock-skeleton-line--short {
   width: 68%;
 }
-.navbar-skeleton:nth-child(2n) .navbar-skeleton-line--title {
+.dock-skeleton:nth-child(2n) .dock-skeleton-line--title {
   width: 58%;
 }
-.navbar-skeleton:nth-child(3n) .navbar-skeleton-line--title {
+.dock-skeleton:nth-child(3n) .dock-skeleton-line--title {
   width: 34%;
 }
-.navbar-skeleton:nth-child(2n) .navbar-skeleton-line--short {
+.dock-skeleton:nth-child(2n) .dock-skeleton-line--short {
   width: 52%;
 }
 /* The production fade is a dark scrim for the homepage gradient. On this
    light page it should dissolve into the stage color instead. */
-.navbar-demo-stage .bottomFade {
+.dock-demo-stage .bottomFade {
   background-image: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc);
 }
 
