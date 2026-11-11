@@ -3,8 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
-import { NavGlass } from './NavGlass';
-import './nav-bar.css';
+import { DockGlass } from './DockGlass';
+import './dock.css';
 
 export type NavItem = 'about' | 'work' | 'chat';
 type Panel = 'info' | 'contact' | 'chat';
@@ -84,7 +84,7 @@ function LottieMark({
   );
 }
 
-export function NavBar({
+export function Dock({
   contained = false,
   backdrop = false,
   activeItem: activeItemProp,
@@ -220,7 +220,7 @@ export function NavBar({
       <div className="bottomFade" aria-hidden="true" />
       <button type="button" className="navBarOverlay" aria-label="Close menu" onClick={closePanel} />
       <div className="navDynamicContainer" ref={containerRef}>
-        <NavGlass />
+        <DockGlass />
         <div className="navBar">
           <div className="navBarSegController">
             <button type="button" onClick={() => openPanel('info')} aria-label="Open info menu">

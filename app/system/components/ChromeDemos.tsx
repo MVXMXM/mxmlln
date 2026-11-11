@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
-import { NavBar } from '../../components/NavBar/NavBar';
+import { Dock } from '../../components/Dock/Dock';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -64,13 +64,8 @@ export function LogoDemo() {
   );
 }
 
-// Placeholder rows so the glass bar has a page to sit over. Enough height
-// that the stage scrolls while the bar stays pinned to the bottom.
 const NAV_SKELETONS = 6;
 
-// Specimen for the shared React nav. Text items move the on-state pill, the
-// same way public/system-navbar.html does; the logo and contact mark open
-// their panels. The stage is the containing block for the bar's fixed layers.
 export function NavDemo() {
   return (
     <div className="navbar-demo">
@@ -87,7 +82,7 @@ export function NavDemo() {
             </div>
           ))}
         </div>
-        <NavBar contained />
+        <Dock contained />
       </div>
     </div>
   );

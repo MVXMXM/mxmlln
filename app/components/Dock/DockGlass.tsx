@@ -34,7 +34,7 @@ function roundedRectangleDisplacement(
  * Chromium refracts the backdrop through an SVG displacement map. Other
  * engines keep the CSS blur, sheen, and edge light.
  */
-export function NavGlass() {
+export function DockGlass() {
   const id = useId().replace(/:/g, '');
   const ref = useRef<HTMLSpanElement>(null);
   const mapRef = useRef<SVGFEImageElement>(null);
