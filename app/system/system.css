@@ -370,7 +370,6 @@
 }
 
 /* ─── Chrome demos ───────────────────────────────────────── */
-/* Dock specimen. The component positions fixed against this stage. */
 .dock-demo-stage {
   position: relative;
   width: 100%;
@@ -432,8 +431,6 @@ html,
 .dock-skeleton:nth-child(2n) .dock-skeleton-line--short {
   width: 52%;
 }
-/* The production fade is a dark scrim for the homepage gradient. On this
-   light page it should dissolve into the stage color instead. */
 .dock-demo-stage .bottomFade {
   background-image: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc);
 }

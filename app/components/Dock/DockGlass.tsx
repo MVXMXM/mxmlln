@@ -128,7 +128,6 @@ export function DockGlass() {
     };
 
     const update = (token: number) => {
-      // The backdrop stays hidden while frost is covering the resize.
       const width = dock.offsetWidth;
       const height = dock.offsetHeight;
       if (!width || !height || token !== generation) return;

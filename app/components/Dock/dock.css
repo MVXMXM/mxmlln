@@ -133,8 +133,6 @@
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-/* Specular hit held at full while frost covers the resize. The lens cut starts the fade.
-   The exit is twice the resize so the plate lingers after that cut. */
 .mx-dock .dockGlassTint::before {
   content: '';
   position: absolute;
@@ -210,7 +208,6 @@
 
 .mx-dock .dockBarSegController > button:last-child {
   margin-left: 4px;
-  /* The glyph is smaller than the logo. The button stays 40px so the bar's spacing does not follow it. */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -223,8 +220,6 @@
   position: relative;
 }
 
-/* The plate sits outside the 40px artwork so the gray reads the way it does
-   around a ghost label. It does not change the mark's layout size. */
 .mx-dock .dockBarSegController > button:first-child::before,
 .mx-dock .dockBarSegController > button:last-child::before {
   content: '';
@@ -448,7 +443,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Header is out of flow. The extra bottom margin lifts the drawing, which sits optically low. */
   margin-top: 68px;
   margin-bottom: 16px;
 }
@@ -621,8 +615,6 @@
   }
 }
 
-/* Durations match the homepage bar. */
-
 .mx-dock[data-panel] .dockDynamicContainer {
   width: max(458px, var(--dock-collapsed-width, 0px));
   min-width: var(--dock-collapsed-width, max-content);
@@ -703,7 +695,7 @@
   transition: opacity 1.5s;
 }
 
-/* Specimen: absolute to the frame. Fixed layers escape it. */
+/* Fixed layers escape the frame. */
 .mx-dock.mx-dock--contained .dockDynamicContainer,
 .mx-dock.mx-dock--contained .bottomFade {
   position: absolute;

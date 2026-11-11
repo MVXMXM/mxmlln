@@ -89,7 +89,6 @@ export function Dock({
   activeItem: activeItemProp,
   onActiveItemChange,
 }: {
-  /** Keep the fixed bar inside a positioned stage instead of the viewport. */
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
@@ -158,8 +157,6 @@ export function Dock({
 
   useEffect(() => {
     if (!panel) return;
-    // The clear layer no longer catches the pointer, so the page can scroll.
-    // A click that lands outside the panel still dismisses it.
     function onClick(event: MouseEvent) {
       const target = event.target;
       if (!(target instanceof Node) || containerRef.current?.contains(target)) return;
