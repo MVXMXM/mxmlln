@@ -13,7 +13,7 @@ jobs:
     if: "${{ !startsWith(github.event.head_commit.message, 'Folio: bump version') }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
       - run: node scripts/bump-folio-version.mjs
