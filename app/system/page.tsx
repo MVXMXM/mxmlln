@@ -9,7 +9,7 @@ import { Type } from './components/TokenSwatch';
 import { Palette } from './components/ColorScale';
 import { ComponentPreview } from './components/ComponentPreview';
 import { AnchorHeading } from './components/AnchorHeading';
-import { LogoDemo, NavDemo, MenuDemo } from './components/ChromeDemos';
+import { LogoDemo, DockDemo, MenuDemo } from './components/ChromeDemos';
 import { ButtonDemo, InputDemo } from './components/FormDemos';
 import { CardDemo } from './components/CardDemos';
 import { CardStackDemo } from './components/CardStackDemos';
@@ -46,7 +46,7 @@ const mdxComponents: MDXComponents = {
   Type,
   ComponentPreview,
   LogoDemo,
-  NavDemo,
+  DockDemo,
   MenuDemo,
   ButtonDemo,
   InputDemo,

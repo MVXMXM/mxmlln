@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
+import { Dock } from '../../components/Dock/Dock';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -63,18 +64,27 @@ export function LogoDemo() {
   );
 }
 
-// The nav bar is not reimplemented here — it's the real, production component
-// (markup + NavBar.css + NavBar.js) rendered inside an iframe so its glass,
-// morph, and overlay are byte-for-byte the live site. Source: public/system-
-// navbar.html, which loads /components/NavBar.{css,js} and /css/StyleMatters.
-export function NavDemo() {
+const DOCK_SKELETONS = 6;
+
+export function DockDemo() {
   return (
-    <iframe
-      className="navbar-demo-frame"
-      src="/system-navbar.html"
-      title="Live nav bar component"
-      loading="lazy"
-    />
+    <div className="dock-demo">
+      <div className="dock-demo-stage">
+        <div className="dock-demo-scroll">
+          {Array.from({ length: DOCK_SKELETONS }, (_, index) => (
+            <div className="dock-skeleton" key={index}>
+              <div className="dock-skeleton-media" />
+              <div className="dock-skeleton-copy">
+                <div className="dock-skeleton-line dock-skeleton-line--title" />
+                <div className="dock-skeleton-line" />
+                <div className="dock-skeleton-line dock-skeleton-line--short" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <Dock contained />
+      </div>
+    </div>
   );
 }
 
@@ -85,7 +95,7 @@ const MENU_ITEMS = [
   { label: 'Typography', level: 2 },
   { label: 'Components', level: 2 },
   { label: 'Logo', level: 3 },
-  { label: 'Nav bar', level: 3 },
+  { label: 'Dock', level: 3 },
   { label: 'Menu', level: 3 },
 ];
 

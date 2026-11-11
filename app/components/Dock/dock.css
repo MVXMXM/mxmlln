@@ -1,0 +1,702 @@
+.mx-dock,
+.mx-dock * {
+  box-sizing: content-box;
+}
+
+.mx-dock {
+  line-height: normal;
+  color: #000;
+}
+
+.mx-dock-frame {
+  position: absolute;
+  inset: 0;
+  /* The frame covers the specimen so the bar can pin to it. Clicks and
+     scrolling belong to the page underneath, except the bar itself. */
+  pointer-events: none;
+}
+
+.mx-dock-frame .dockDynamicContainer {
+  pointer-events: auto;
+}
+
+.mx-dock button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.mx-dock img {
+  max-width: none;
+  height: auto;
+}
+
+.system-prose .mx-dock a,
+.system-prose .mx-dock a:hover {
+  text-decoration: none;
+  opacity: 1;
+}
+
+.mx-dock .dockDynamicContainer {
+  position: fixed;
+  z-index: 900;
+  align-items: center;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  width: var(--dock-collapsed-width, max-content);
+  min-width: var(--dock-collapsed-width, max-content);
+  margin-inline: auto;
+  height: 64px;
+  interpolate-size: allow-keywords;
+  border-radius: 40px;
+  border: 0;
+  isolation: isolate;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  background: transparent;
+  backdrop-filter: blur(8px) saturate(1.6);
+  -webkit-backdrop-filter: blur(8px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.32),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mx-dock .dockDynamicContainer::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  content: '';
+  pointer-events: none;
+  box-sizing: border-box;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 76deg,
+    rgb(255 255 255 / 0.28) 86deg,
+    rgb(255 255 255 / 0.55) 94deg,
+    rgb(255 255 255 / 0.28) 102deg,
+    transparent 120deg,
+    transparent 248deg,
+    rgb(255 255 255 / 0.28) 266deg,
+    rgb(255 255 255 / 0.55) 274deg,
+    rgb(255 255 255 / 0.28) 282deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.mx-dock .dockGlassDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.mx-dock .dockGlassBackdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.mx-dock .dockGlassTint {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  transition: background-color 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock[data-panel] .dockGlassTint {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.mx-dock .dockGlassTint::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.28) 26%,
+    rgba(255, 255, 255, 0) 54%
+  );
+  opacity: 0;
+  transition: opacity 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock[data-closing='true'] .dockGlassTint,
+.mx-dock[data-closing='true'] .dockGlassTint::before {
+  transition-duration: 0.32s;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-moving='true'] .dockGlassTint {
+  background-color: rgba(255, 255, 255, 0.95);
+  transition-duration: 0.05s;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-moving='true'] .dockGlassTint::before {
+  opacity: 1;
+  transition-duration: 0.05s;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-moving='true'] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 28px rgba(255, 255, 255, 0.45),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mx-dock .dockDynamicContainer[data-dock-native='true'] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-native='true'] .dockGlassBackdrop {
+  display: block;
+}
+
+.mx-dock .dockBar {
+  position: relative;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+}
+
+.mx-dock .dockBarSegController {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* Clears the capsule ends. A flush 40px mark gets clipped by the 32px radius. */
+  padding-inline: 12px;
+}
+
+.mx-dock .dockBarSegController > button:first-child {
+  margin-right: 4px;
+}
+
+.mx-dock .dockBarSegController > button:last-child {
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.mx-dock .dockBarSegController > button:first-child,
+.mx-dock .dockBarSegController > button:last-child {
+  position: relative;
+}
+
+.mx-dock .dockBarSegController > button:first-child::before,
+.mx-dock .dockBarSegController > button:last-child::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 40px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition: background 0.2s ease;
+  pointer-events: none;
+}
+
+.mx-dock .dockBarSegController > button:first-child:hover::before,
+.mx-dock .dockBarSegController > button:last-child:hover::before {
+  background: #f5f5f5;
+}
+
+.mx-dock .lottieMark {
+  position: relative;
+  filter: brightness(0);
+}
+
+.mx-dock .lottieMark--dock {
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+}
+
+.mx-dock .lottieMark--sig {
+  width: 200px;
+  height: 200px;
+}
+
+.mx-dock .lottieMarkCanvas,
+.mx-dock .lottieMark img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mx-dock .dockBarSegments {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* One pill for every item. Width and position share an ease so the
+   highlight stretches as it travels. The white copy inside is clipped to
+   the pill, so each letter flips as the pill crosses it. */
+.mx-dock .dockBarIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 40px;
+  background: #1a1a1a;
+  pointer-events: none;
+}
+
+.mx-dock .dockBarIndicator[data-ready='true'],
+.mx-dock .dockBarIndicator[data-ready='true'] .dockBarIndicatorLabels {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease;
+}
+
+.mx-dock .dockBarIndicatorLabels {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.mx-dock .dockBarIndicatorLabel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.mx-dock .dockBarSegments:has(.dockBarItem_OnState:hover) .dockBarIndicator {
+  background: #333;
+}
+
+.mx-dock .dockBarItem,
+.mx-dock .dockBarItem_OnState {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border-radius: 40px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1a1a1a;
+  transition: background 0.2s ease;
+}
+
+.mx-dock .dockBarItem:hover {
+  background: #f5f5f5;
+}
+
+.mx-dock .openDockContactView {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+.mx-dock .viewHeader {
+  z-index: 1000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: calc(100% - 44px);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mx-dock .viewHeaderText {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  padding: 8px 8px 8px 4px;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #000;
+}
+
+.mx-dock .closeButton {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 40px;
+  border: 1px solid #e5e7eb;
+  background: var(--surface);
+  color: #1a1a1a;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.mx-dock .closeButtonIcon {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.mx-dock .closeButton:hover {
+  background: #f5f5f5;
+}
+
+.mx-dock .closeButton:active {
+  transform: translateY(1px);
+}
+
+.mx-dock .bottomFade {
+  position: fixed;
+  z-index: 898;
+  bottom: 0;
+  left: 0;
+  height: 100px;
+  width: 100%;
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
+  pointer-events: none;
+}
+
+.mx-dock .infoViewContent,
+.mx-dock .contactViewContent {
+  position: absolute;
+  z-index: 999;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.mx-dock .infoViewContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  width: 100%;
+}
+
+.mx-dock .infoLogo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 68px;
+  margin-bottom: 16px;
+}
+
+.mx-dock .dockInfoActions {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin: 0 20px 20px;
+}
+
+.mx-dock .dockInfoAction {
+  flex: 1 1 0;
+  display: flex;
+}
+
+.mx-dock .dockInfoButton {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border-radius: 40px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.1s ease;
+}
+
+.mx-dock .dockInfoButton:active {
+  transform: translateY(1px);
+}
+
+.mx-dock .dockInfoButton--secondary {
+  background: var(--surface);
+  border-color: #e5e7eb;
+  color: #1a1a1a;
+}
+
+.mx-dock .dockInfoButton--secondary:hover {
+  background: #f5f5f5;
+}
+
+.mx-dock .contactViewContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  height: calc(100% + 20px);
+  width: 100%;
+}
+
+.mx-dock .contactRow {
+  display: flex;
+  flex-direction: row;
+  height: 100px;
+}
+
+.mx-dock .contactViewIconContainer {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  width: 136px;
+}
+
+.mx-dock .ToolTip {
+  position: absolute;
+  z-index: 900;
+  opacity: 0;
+  margin-top: 10px;
+  transition: opacity 0.5s, margin 0.5s;
+  pointer-events: none;
+}
+
+.mx-dock .ToolTipBadge {
+  align-self: flex-start;
+  display: flex;
+  height: 15px;
+  padding: 10px 10px 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.mx-dock .BadgeText {
+  padding-left: 2px;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+.mx-dock .contactViewIconContainer:hover > .ToolTip {
+  opacity: 1;
+  margin-top: -15px;
+  transition: opacity 0.25s, margin 0.25s;
+  transition-delay: 0.3s;
+}
+
+.mx-dock .CircleButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 100%;
+  border: 2px solid rgba(0, 0, 0, 0.025);
+  box-shadow: 0px 3px 10px 0px rgba(0, 0, 0, 0);
+}
+
+.mx-dock[data-panel='contact'] .CircleButton {
+  animation: mx-dock-contact-pop 1s ease-out forwards;
+}
+
+.mx-dock[data-settled='true'] .CircleButton {
+  animation: none;
+  width: 100px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s, transform 0.5s, box-shadow 1s ease;
+}
+
+.mx-dock[data-settled='true'] .CircleButton:hover {
+  width: 110px;
+  height: 110px;
+  box-shadow: 0px 3px 20px 0px rgba(0, 0, 0, 0.15);
+}
+
+.mx-dock[data-closing='true'] .CircleButton {
+  animation: none;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, transform 0.15s;
+}
+
+@keyframes mx-dock-contact-pop {
+  0% {
+    width: 0;
+    height: 0;
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    width: 115px;
+    height: 115px;
+    transform: translate(-50%, calc(-50% - 10px));
+  }
+  100% {
+    width: 100px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.mx-dock[data-panel] .dockDynamicContainer {
+  width: max(458px, var(--dock-collapsed-width, 0px));
+  min-width: var(--dock-collapsed-width, max-content);
+  transition:
+    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock[data-panel] .dockBarSegController {
+  transition: opacity 0.25s;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mx-dock[data-panel] .dockBar {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mx-dock[data-panel='info'] .dockDynamicContainer {
+  height: 450px;
+}
+
+.mx-dock[data-panel='info'] .infoViewContent {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+  transition-delay: 0.05s;
+}
+
+.mx-dock[data-panel='contact'] .dockDynamicContainer {
+  height: 360px;
+}
+
+.mx-dock[data-panel='contact'] .contactViewContent {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+  transition-delay: 0.05s;
+}
+
+.mx-dock[data-closing='true'] .dockDynamicContainer {
+  transition:
+    bottom 0.16s,
+    width 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: var(--dock-collapsed-width, max-content);
+  min-width: var(--dock-collapsed-width, max-content);
+  height: 64px;
+  border-radius: 40px;
+  animation: none;
+}
+
+.mx-dock[data-closing='true'] .infoViewContent,
+.mx-dock[data-closing='true'] .contactViewContent {
+  transition: visibility 0.15s, opacity 0.15s;
+  visibility: hidden;
+  opacity: 0;
+  z-index: -1;
+}
+
+.mx-dock[data-closing='true'] .dockBar {
+  position: relative;
+  bottom: auto;
+  width: max-content;
+  height: 64px;
+}
+
+.mx-dock[data-closing='true'] .dockBarSegController {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+}
+
+/* Fixed layers escape the frame. */
+.mx-dock.mx-dock--contained .dockDynamicContainer,
+.mx-dock.mx-dock--contained .bottomFade {
+  position: absolute;
+}
