@@ -86,14 +86,11 @@ function LottieMark({
 
 export function Dock({
   contained = false,
-  backdrop = false,
   activeItem: activeItemProp,
   onActiveItemChange,
 }: {
   /** Keep the fixed bar inside a positioned stage instead of the viewport. */
   contained?: boolean;
-  /** Paint the homepage gradient behind the bar so the blur has something to sample. */
-  backdrop?: boolean;
   activeItem?: NavItem;
   onActiveItemChange?: (item: NavItem) => void;
 }) {
@@ -211,14 +208,7 @@ export function Dock({
       data-closing={closing ? 'true' : undefined}
       data-settled={contactSettled ? 'true' : undefined}
     >
-      {backdrop && (
-        <>
-          <div className="gradeBG" aria-hidden="true" />
-          <div className="gradeFront" aria-hidden="true" />
-        </>
-      )}
       <div className="bottomFade" aria-hidden="true" />
-      <button type="button" className="navBarOverlay" aria-label="Close menu" onClick={closePanel} />
       <div className="navDynamicContainer" ref={containerRef}>
         <DockGlass />
         <div className="navBar">

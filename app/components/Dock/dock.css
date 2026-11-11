@@ -16,8 +16,7 @@
   pointer-events: none;
 }
 
-.mx-nav-frame .navDynamicContainer,
-.mx-nav-frame .navBarOverlay {
+.mx-nav-frame .navDynamicContainer {
   pointer-events: auto;
 }
 
@@ -40,32 +39,6 @@
 .system-prose .mx-nav a:hover {
   text-decoration: none;
   opacity: 1;
-}
-
-.mx-nav .gradeBG {
-  position: fixed;
-  z-index: 1;
-  inset: 0;
-  width: auto;
-  height: auto;
-  overflow: hidden;
-  background: linear-gradient(10deg, #30d6ff, #5357eb, #dd8aba, #d8d8ff);
-  background-size: 400% 400%;
-  animation: mx-nav-gradient 5s ease infinite;
-  filter: contrast(1.1) brightness(1.1) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMzMiLz48L3N2Zz4=");
-}
-
-.mx-nav .gradeFront {
-  position: fixed;
-  z-index: 2;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 525px;
-  height: 525px;
-  background-color: rgba(255, 255, 255, 0.75);
-  overflow: hidden;
-  filter: blur(150px) contrast(1.1) brightness(1.1) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=");
 }
 
 @keyframes mx-nav-gradient {
@@ -472,20 +445,6 @@
   height: 100px;
   width: 100%;
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
-  pointer-events: none;
-}
-
-.mx-nav .navBarOverlay {
-  position: fixed;
-  visibility: hidden;
-  z-index: 899;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: transparent;
-  opacity: 0;
-  transition: opacity 1s;
   pointer-events: none;
 }
 
@@ -1021,14 +980,6 @@
   height: 100%;
 }
 
-.mx-nav[data-panel] .navBarOverlay {
-  transition: opacity 0.5s;
-  visibility: visible;
-  opacity: 1;
-  /* The plate is clear, so the page behind the open bar keeps scrolling. */
-  pointer-events: none;
-}
-
 .mx-nav[data-panel='info'] .navDynamicContainer {
   height: 450px;
 }
@@ -1090,13 +1041,6 @@
   z-index: -1;
 }
 
-.mx-nav[data-closing='true'] .navBarOverlay {
-  transition: opacity 1s;
-  opacity: 0;
-  visibility: visible;
-  pointer-events: none;
-}
-
 .mx-nav[data-closing='true'] .navBar {
   position: relative;
   bottom: auto;
@@ -1112,9 +1056,6 @@
 
 /* Specimen: absolute to the frame. Fixed layers escape it. */
 .mx-nav.mx-nav--contained .navDynamicContainer,
-.mx-nav.mx-nav--contained .navBarOverlay,
-.mx-nav.mx-nav--contained .bottomFade,
-.mx-nav.mx-nav--contained .gradeBG,
-.mx-nav.mx-nav--contained .gradeFront {
+.mx-nav.mx-nav--contained .bottomFade {
   position: absolute;
 }
