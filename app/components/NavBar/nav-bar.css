@@ -1,0 +1,1128 @@
+/* Scoped port of public/components/NavBar.css plus the few StyleMatters
+   rules the bar needs (gradient field, circle buttons, badges). Selectors
+   stay under .mx-nav so they don't leak into /system prose. Box model
+   matches the static specimen, which is content-box. */
+
+.mx-nav,
+.mx-nav * {
+  box-sizing: content-box;
+}
+
+.mx-nav {
+  line-height: normal;
+  color: #000;
+}
+
+.mx-nav-frame {
+  position: absolute;
+  inset: 0;
+  /* The frame covers the specimen so the bar can pin to it. Clicks and
+     scrolling belong to the page underneath, except the bar itself. */
+  pointer-events: none;
+}
+
+.mx-nav-frame .navDynamicContainer,
+.mx-nav-frame .navBarOverlay {
+  pointer-events: auto;
+}
+
+.mx-nav button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.mx-nav img {
+  max-width: none;
+  height: auto;
+}
+
+.system-prose .mx-nav a,
+.system-prose .mx-nav a:hover {
+  text-decoration: none;
+  opacity: 1;
+}
+
+.mx-nav .gradeBG {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  background: linear-gradient(10deg, #30d6ff, #5357eb, #dd8aba, #d8d8ff);
+  background-size: 400% 400%;
+  animation: mx-nav-gradient 5s ease infinite;
+  filter: contrast(1.1) brightness(1.1) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMzMiLz48L3N2Zz4=");
+}
+
+.mx-nav .gradeFront {
+  position: fixed;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 525px;
+  height: 525px;
+  background-color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  filter: blur(150px) contrast(1.1) brightness(1.1) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=");
+}
+
+@keyframes mx-nav-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.mx-nav .navDynamicContainer {
+  position: fixed;
+  z-index: 900;
+  align-items: center;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  width: var(--nav-collapsed-width, max-content);
+  min-width: var(--nav-collapsed-width, max-content);
+  margin-inline: auto;
+  height: 64px;
+  interpolate-size: allow-keywords;
+  border-radius: 40px;
+  border: 0;
+  isolation: isolate;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  background: transparent;
+  backdrop-filter: blur(8px) saturate(1.6);
+  -webkit-backdrop-filter: blur(8px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.32),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mx-nav .navDynamicContainer::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  content: '';
+  pointer-events: none;
+  box-sizing: border-box;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 76deg,
+    rgb(255 255 255 / 0.28) 86deg,
+    rgb(255 255 255 / 0.55) 94deg,
+    rgb(255 255 255 / 0.28) 102deg,
+    transparent 120deg,
+    transparent 248deg,
+    rgb(255 255 255 / 0.28) 266deg,
+    rgb(255 255 255 / 0.55) 274deg,
+    rgb(255 255 255 / 0.28) 282deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.mx-nav .navGlassDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.mx-nav .navGlassBackdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* White plate over the blur. Collapsed is lighter; the open panel holds a deeper frost. */
+.mx-nav .navGlassTint {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  transition: background-color 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-nav[data-panel] .navGlassTint {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Specular hit held at full while frost covers the resize. The lens cut starts the fade.
+   The exit is twice the resize so the plate lingers after that cut. */
+.mx-nav .navGlassTint::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.28) 26%,
+    rgba(255, 255, 255, 0) 54%
+  );
+  opacity: 0;
+  transition: opacity 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-nav[data-closing='true'] .navGlassTint,
+.mx-nav[data-closing='true'] .navGlassTint::before {
+  transition-duration: 0.32s;
+}
+
+.mx-nav .navDynamicContainer[data-nav-moving='true'] .navGlassTint {
+  background-color: rgba(255, 255, 255, 0.95);
+  transition-duration: 0.05s;
+}
+
+.mx-nav .navDynamicContainer[data-nav-moving='true'] .navGlassTint::before {
+  opacity: 1;
+  transition-duration: 0.05s;
+}
+
+.mx-nav .navDynamicContainer[data-nav-moving='true'] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 28px rgba(255, 255, 255, 0.45),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.mx-nav .navDynamicContainer[data-nav-native='true'] {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.mx-nav .navDynamicContainer[data-nav-native='true'] .navGlassBackdrop {
+  display: block;
+}
+
+.mx-nav .navBar {
+  position: relative;
+  z-index: 950;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+}
+
+.mx-nav .navBarSegController {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* Clears the capsule ends. A flush 40px mark gets clipped by the 32px radius. */
+  padding-inline: 12px;
+}
+
+/* The marks have no padding of their own, so they sit tighter than the words. */
+.mx-nav .navBarSegController > button:first-child {
+  margin-right: 4px;
+}
+
+.mx-nav .navBarSegController > button:last-child {
+  margin-left: 4px;
+  /* The glyph is smaller than the logo. The button stays 40px so the bar's spacing does not follow it. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.mx-nav .navBarSegController > button:first-child,
+.mx-nav .navBarSegController > button:last-child {
+  position: relative;
+}
+
+/* The plate sits outside the 40px artwork so the gray reads the way it does
+   around a ghost label. It does not change the mark's layout size. */
+.mx-nav .navBarSegController > button:first-child::before,
+.mx-nav .navBarSegController > button:last-child::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  border-radius: 40px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition: background 0.2s ease;
+  pointer-events: none;
+}
+
+.mx-nav .navBarSegController > button:first-child:hover::before,
+.mx-nav .navBarSegController > button:last-child:hover::before {
+  background: #f5f5f5;
+}
+
+.mx-nav .lottieMark {
+  position: relative;
+  filter: brightness(0);
+}
+
+.mx-nav .lottieMark--nav {
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+}
+
+.mx-nav .lottieMark--sig {
+  width: 200px;
+  height: 200px;
+}
+
+.mx-nav .lottieMark--chat {
+  width: 150px;
+  height: 150px;
+}
+
+.mx-nav .lottieMark--response {
+  width: 30px;
+  height: 30px;
+}
+
+.mx-nav .lottieMarkCanvas,
+.mx-nav .lottieMark img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mx-nav .navBarSegments {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* One pill for every item. Width and position share an ease so the
+   highlight stretches as it travels. The white copy inside is clipped to
+   the pill, so each letter flips as the pill crosses it. */
+.mx-nav .navBarIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 40px;
+  background: #1a1a1a;
+  pointer-events: none;
+}
+
+.mx-nav .navBarIndicator[data-ready='true'],
+.mx-nav .navBarIndicator[data-ready='true'] .navBarIndicatorLabels {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease;
+}
+
+.mx-nav .navBarIndicatorLabels {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.mx-nav .navBarIndicatorLabel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+.mx-nav .navBarSegments:has(.navBarItem_OnState:hover) .navBarIndicator {
+  background: #333;
+}
+
+.mx-nav .navBarItem,
+.mx-nav .navBarItem_OnState {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border-radius: 40px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1a1a1a;
+  transition: background 0.2s ease;
+}
+
+/* Off-state matches .ui-button--ghost. The selected pill covers its own label. */
+.mx-nav .navBarItem:hover {
+  background: #f5f5f5;
+}
+
+.mx-nav .openNavContactView {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+.mx-nav .viewHeader {
+  z-index: 1000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: calc(100% - 44px);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.mx-nav .viewHeaderText {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  padding: 8px 8px 8px 4px;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #000;
+}
+
+.mx-nav .closeButton {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 40px;
+  border: 1px solid #e5e7eb;
+  background: var(--surface);
+  color: #1a1a1a;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.mx-nav .closeButtonIcon {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.mx-nav .closeButton:hover {
+  background: #f5f5f5;
+}
+
+.mx-nav .closeButton:active {
+  transform: translateY(1px);
+}
+
+.mx-nav .bottomFade {
+  position: fixed;
+  z-index: 898;
+  bottom: 0;
+  left: 0;
+  height: 100px;
+  width: 100%;
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
+  pointer-events: none;
+}
+
+.mx-nav .navBarOverlay {
+  position: fixed;
+  visibility: hidden;
+  z-index: 899;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  opacity: 0;
+  transition: opacity 1s;
+  pointer-events: none;
+}
+
+.mx-nav .infoViewContent,
+.mx-nav .contactViewContent,
+.mx-nav .chatViewContent {
+  position: absolute;
+  z-index: 999;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.mx-nav .infoViewContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  width: 100%;
+}
+
+.mx-nav .infoLogo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Header is out of flow. The extra bottom margin lifts the drawing, which sits optically low. */
+  margin-top: 68px;
+  margin-bottom: 16px;
+}
+
+.mx-nav .navInfoActions {
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin: 0 20px 20px;
+}
+
+.mx-nav .navInfoAction {
+  flex: 1 1 0;
+  display: flex;
+}
+
+.mx-nav .navInfoButton {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  border-radius: 40px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.1s ease;
+}
+
+.mx-nav .navInfoButton:active {
+  transform: translateY(1px);
+}
+
+.mx-nav .navInfoButton--secondary {
+  background: var(--surface);
+  border-color: #e5e7eb;
+  color: #1a1a1a;
+}
+
+.mx-nav .navInfoButton--secondary:hover {
+  background: #f5f5f5;
+}
+
+.mx-nav .contactViewContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  height: calc(100% + 20px);
+  width: 100%;
+}
+
+.mx-nav .contactRow {
+  display: flex;
+  flex-direction: row;
+  height: 100px;
+}
+
+.mx-nav .contactViewIconContainer {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  width: 136px;
+}
+
+.mx-nav .ToolTip {
+  position: absolute;
+  z-index: 900;
+  opacity: 0;
+  margin-top: 10px;
+  transition: opacity 0.5s, margin 0.5s;
+  pointer-events: none;
+}
+
+.mx-nav .ToolTipBadge {
+  align-self: flex-start;
+  display: flex;
+  height: 15px;
+  padding: 10px 10px 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.mx-nav .BadgeText {
+  padding-left: 2px;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 14px;
+}
+
+.mx-nav .contactViewIconContainer:hover > .ToolTip {
+  opacity: 1;
+  margin-top: -15px;
+  transition: opacity 0.25s, margin 0.25s;
+  transition-delay: 0.3s;
+}
+
+.mx-nav .CircleButton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 100%;
+  border: 2px solid rgba(0, 0, 0, 0.025);
+  box-shadow: 0px 3px 10px 0px rgba(0, 0, 0, 0);
+}
+
+.mx-nav[data-panel='contact'] .CircleButton {
+  animation: mx-nav-contact-pop 1s ease-out forwards;
+}
+
+.mx-nav[data-settled='true'] .CircleButton {
+  animation: none;
+  width: 100px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s, transform 0.5s, box-shadow 1s ease;
+}
+
+.mx-nav[data-settled='true'] .CircleButton:hover {
+  width: 110px;
+  height: 110px;
+  box-shadow: 0px 3px 20px 0px rgba(0, 0, 0, 0.15);
+}
+
+.mx-nav[data-closing='true'] .CircleButton {
+  animation: none;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s, height 0.15s, transform 0.15s;
+}
+
+@keyframes mx-nav-contact-pop {
+  0% {
+    width: 0;
+    height: 0;
+    transform: translate(-50%, -50%);
+  }
+  50% {
+    width: 115px;
+    height: 115px;
+    transform: translate(-50%, calc(-50% - 10px));
+  }
+  100% {
+    width: 100px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.mx-nav .chatViewContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.mx-nav .chatInputContainer {
+  position: absolute;
+  bottom: 28px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 48px);
+  max-width: 1000px;
+  height: 60px;
+}
+
+.mx-nav .chatInputField {
+  width: 100%;
+  height: 60px;
+  border-radius: 16px;
+  padding: 0 24px;
+  margin: 0;
+  font-size: 16px;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  z-index: 999;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.mx-nav .chatInputField:focus {
+  outline: none;
+}
+
+.mx-nav .chatSubmit {
+  position: absolute;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 30px;
+  z-index: 1000;
+  border: none;
+  background-color: transparent;
+}
+
+.mx-nav .chatSubmit:disabled {
+  cursor: not-allowed;
+}
+
+.mx-nav .chatSubmitIMG {
+  height: 32px;
+  width: 32px;
+  opacity: 0.25;
+}
+
+.mx-nav .chatEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 80px;
+}
+
+.mx-nav .chatEmptyStateLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  border-radius: 100%;
+  overflow: hidden;
+}
+
+.mx-nav .chatEmptyStateText {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.mx-nav .chatEmptyStateText h1 {
+  margin: 0;
+  line-height: 0;
+  font-weight: 900;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+}
+
+.mx-nav .chatEmptyStateText p {
+  margin: 0;
+}
+
+.mx-nav .ampersand {
+  display: inline-block;
+  font-family: 'Playfair Display SC', serif;
+  font-weight: 700;
+  font-style: italic;
+  padding-right: 2px;
+  font-size: 18px;
+}
+
+.mx-nav .BetaBadge {
+  align-self: center;
+  display: flex;
+  height: 15px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background-color: rgba(6, 174, 239, 0.55);
+}
+
+.mx-nav .chatResponseLog {
+  visibility: hidden;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-width: 600px;
+  width: 90%;
+  gap: 16px;
+  padding-bottom: 80px;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+.mx-nav .chatQueryContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.mx-nav .chatQuery {
+  background-color: #f5f5f5;
+  border-radius: 24px;
+  padding: 16px 24px;
+}
+
+.mx-nav .chatQuery p,
+.mx-nav .chatBlurb p {
+  margin: 0;
+  padding: 0;
+}
+
+.mx-nav .chatBlurb p {
+  text-align: left;
+}
+
+.mx-nav .loadingIndicator {
+  display: flex;
+  visibility: hidden;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  width: 100%;
+  opacity: 0;
+}
+
+.mx-nav .lds-ellipsis {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.mx-nav .lds-ellipsis div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #000;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.mx-nav .lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: mx-nav-ellipsis1 0.6s infinite;
+}
+
+.mx-nav .lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: mx-nav-ellipsis2 0.6s infinite;
+}
+
+.mx-nav .lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: mx-nav-ellipsis2 0.6s infinite;
+}
+
+.mx-nav .lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: mx-nav-ellipsis3 0.6s infinite;
+}
+
+@keyframes mx-nav-ellipsis1 {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes mx-nav-ellipsis3 {
+  0% { transform: scale(1); }
+  100% { transform: scale(0); }
+}
+
+@keyframes mx-nav-ellipsis2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(24px, 0); }
+}
+
+.mx-nav .chatResponseContainer {
+  visibility: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 0;
+  width: 100%;
+  transform: translateY(100%);
+}
+
+.mx-nav .chatBlurb {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.mx-nav .chatResponseLogoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-radius: 100%;
+  background-color: #f5f5f5;
+}
+
+.mx-nav .chatCardURL {
+  width: 100%;
+}
+
+.mx-nav .chatSuggestionCard {
+  display: flex;
+  flex-direction: row;
+  max-width: 600px;
+  width: 100%;
+  height: 200px;
+  background-color: #f5f5f5;
+  border-radius: 40px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.mx-nav .chatCardImageContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 200px;
+  border-radius: 40px 0 0 40px;
+  overflow: hidden;
+}
+
+.mx-nav .chatCardImage {
+  height: 100%;
+}
+
+.mx-nav .chatCardTextBlock {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  align-items: flex-start;
+  padding: 24px;
+}
+
+.mx-nav .chatCardHeaderTitle {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: left;
+  margin: 0 0 8px;
+}
+
+.mx-nav .chatCardDescriptionText {
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Open / close. Timings follow NavBar.js. */
+
+.mx-nav[data-panel] .navDynamicContainer {
+  width: max(458px, var(--nav-collapsed-width, 0px));
+  min-width: var(--nav-collapsed-width, max-content);
+  transition:
+    width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-nav[data-panel] .navBarSegController {
+  transition: opacity 0.25s;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.mx-nav[data-panel] .navBar {
+  position: absolute;
+  bottom: -40px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mx-nav[data-panel] .navBarOverlay {
+  transition: opacity 0.5s;
+  visibility: visible;
+  opacity: 1;
+  /* The plate is clear, so the page behind the open bar keeps scrolling. */
+  pointer-events: none;
+}
+
+.mx-nav[data-panel='info'] .navDynamicContainer {
+  height: 450px;
+}
+
+.mx-nav[data-panel='info'] .infoViewContent {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+  transition-delay: 0.05s;
+}
+
+.mx-nav[data-panel='contact'] .navDynamicContainer {
+  height: 360px;
+}
+
+.mx-nav[data-panel='contact'] .contactViewContent {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+  transition-delay: 0.05s;
+}
+
+.mx-nav[data-panel='chat'] .navDynamicContainer {
+  width: max(var(--nav-collapsed-width, 0px), min(800px, calc(100% - 80px)));
+  height: calc(100% - 80px);
+  max-height: 800px;
+  background-image: linear-gradient(45deg, rgba(221, 249, 255, 0.85), rgba(229, 221, 255, 0.85), rgba(254, 231, 224, 0.85));
+  background-size: 400% 400%;
+  animation: mx-nav-gradient 5s ease infinite;
+}
+
+.mx-nav[data-panel='chat'] .chatViewContent,
+.mx-nav[data-panel='chat'] .chatResponseLog {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1s;
+}
+
+.mx-nav[data-closing='true'] .navDynamicContainer {
+  transition:
+    bottom 0.16s,
+    width 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: var(--nav-collapsed-width, max-content);
+  min-width: var(--nav-collapsed-width, max-content);
+  height: 64px;
+  border-radius: 40px;
+  animation: none;
+}
+
+.mx-nav[data-closing='true'] .infoViewContent,
+.mx-nav[data-closing='true'] .contactViewContent,
+.mx-nav[data-closing='true'] .chatViewContent {
+  transition: visibility 0.15s, opacity 0.15s;
+  visibility: hidden;
+  opacity: 0;
+  z-index: -1;
+}
+
+.mx-nav[data-closing='true'] .navBarOverlay {
+  transition: opacity 1s;
+  opacity: 0;
+  visibility: visible;
+  pointer-events: none;
+}
+
+.mx-nav[data-closing='true'] .navBar {
+  position: relative;
+  bottom: auto;
+  width: max-content;
+  height: 64px;
+}
+
+.mx-nav[data-closing='true'] .navBarSegController {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 1.5s;
+}
+
+/* Specimen: absolute to the frame. Fixed layers escape it. */
+.mx-nav.mx-nav--contained .navDynamicContainer,
+.mx-nav.mx-nav--contained .navBarOverlay,
+.mx-nav.mx-nav--contained .bottomFade,
+.mx-nav.mx-nav--contained .gradeBG,
+.mx-nav.mx-nav--contained .gradeFront {
+  position: absolute;
+}

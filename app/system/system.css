@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 .system-layout {
+  /* Body centers its children, so an auto width shrink-wraps to the longest line. */
+  width: 100%;
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
@@ -368,17 +370,72 @@
 }
 
 /* ─── Chrome demos ───────────────────────────────────────── */
-/* Nav bar — the real production component, rendered in an iframe so its glass,
-   morph, and overlay are byte-for-byte the live site (see public/system-
-   navbar.html). The iframe is its own viewport; the nav positions fixed in it. */
-.navbar-demo-frame {
-  display: block;
+/* Dock specimen. The component positions fixed against this stage. */
+.navbar-demo-stage {
+  position: relative;
   width: 100%;
-  height: 520px;
+  aspect-ratio: 1;
   margin: 24px 0 40px;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  background: var(--surface);
+  overflow: hidden;
+  background: #fcfcfc;
+}
+.navbar-demo-scroll {
+  height: 100%;
+  overflow: auto;
+  padding: 8px 32px 148px;
+}
+
+html,
+.navbar-demo-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: gray transparent;
+}
+.navbar-skeleton {
+  display: grid;
+  grid-template-columns: 168px 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 22px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.navbar-skeleton-media {
+  height: 112px;
+  border-radius: 16px;
+  background: #90a1b9;
+}
+.navbar-skeleton-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.navbar-skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: #90a1b9;
+}
+.navbar-skeleton-line--title {
+  width: 46%;
+  height: 14px;
+}
+.navbar-skeleton-line--short {
+  width: 68%;
+}
+.navbar-skeleton:nth-child(2n) .navbar-skeleton-line--title {
+  width: 58%;
+}
+.navbar-skeleton:nth-child(3n) .navbar-skeleton-line--title {
+  width: 34%;
+}
+.navbar-skeleton:nth-child(2n) .navbar-skeleton-line--short {
+  width: 52%;
+}
+/* The production fade is a dark scrim for the homepage gradient. On this
+   light page it should dissolve into the stage color instead. */
+.navbar-demo-stage .bottomFade {
+  background-image: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc);
 }
 
 /* Card stack — the production FolioEngine rendered in an isolated viewport so

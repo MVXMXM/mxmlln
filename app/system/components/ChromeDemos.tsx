@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
+import { NavBar } from '../../components/NavBar/NavBar';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -63,18 +64,32 @@ export function LogoDemo() {
   );
 }
 
-// The nav bar is not reimplemented here — it's the real, production component
-// (markup + NavBar.css + NavBar.js) rendered inside an iframe so its glass,
-// morph, and overlay are byte-for-byte the live site. Source: public/system-
-// navbar.html, which loads /components/NavBar.{css,js} and /css/StyleMatters.
+// Placeholder rows so the glass bar has a page to sit over. Enough height
+// that the stage scrolls while the bar stays pinned to the bottom.
+const NAV_SKELETONS = 6;
+
+// Specimen for the shared React nav. Text items move the on-state pill, the
+// same way public/system-navbar.html does; the logo and contact mark open
+// their panels. The stage is the containing block for the bar's fixed layers.
 export function NavDemo() {
   return (
-    <iframe
-      className="navbar-demo-frame"
-      src="/system-navbar.html"
-      title="Live nav bar component"
-      loading="lazy"
-    />
+    <div className="navbar-demo">
+      <div className="navbar-demo-stage">
+        <div className="navbar-demo-scroll">
+          {Array.from({ length: NAV_SKELETONS }, (_, index) => (
+            <div className="navbar-skeleton" key={index}>
+              <div className="navbar-skeleton-media" />
+              <div className="navbar-skeleton-copy">
+                <div className="navbar-skeleton-line navbar-skeleton-line--title" />
+                <div className="navbar-skeleton-line" />
+                <div className="navbar-skeleton-line navbar-skeleton-line--short" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <NavBar contained />
+      </div>
+    </div>
   );
 }
 
@@ -85,7 +100,7 @@ const MENU_ITEMS = [
   { label: 'Typography', level: 2 },
   { label: 'Components', level: 2 },
   { label: 'Logo', level: 3 },
-  { label: 'Nav bar', level: 3 },
+  { label: 'Dock', level: 3 },
   { label: 'Menu', level: 3 },
 ];
 
