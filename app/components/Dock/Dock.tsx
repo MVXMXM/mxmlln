@@ -7,7 +7,7 @@ import { DockGlass } from './DockGlass';
 import './dock.css';
 
 export type DockItem = 'about' | 'work' | 'chat';
-type Panel = 'info' | 'contact' | 'chat';
+type Panel = 'info' | 'contact';
 
 const ITEMS: { id: DockItem; label: string }[] = [
   { id: 'about', label: 'About' },
@@ -270,87 +270,6 @@ export function Dock({
             <a className="dockInfoAction dockInfoButton dockInfoButton--secondary" href="/system">
               Design system
             </a>
-          </div>
-        </div>
-
-        <div className="chatViewContent">
-          <div className="viewHeader" style={{ justifyContent: 'flex-end' }}>
-            <button type="button" className="closeButton" onClick={closePanel} aria-label="Close panel">
-              <CloseMark />
-            </button>
-          </div>
-          <form className="chatInputContainer" onSubmit={(event) => event.preventDefault()}>
-            <button type="submit" className="chatSubmit" disabled>
-              <img src="/assets/up.svg" className="chatSubmitIMG" alt="Submit message" />
-            </button>
-            <input
-              type="text"
-              className="chatInputField"
-              name="defineProblem"
-              placeholder="Tell me what you're looking for..."
-              autoComplete="off"
-            />
-          </form>
-          <div className="chatEmptyState">
-            <div className="chatEmptyStateLogo">
-              <LottieMark
-                path="/assets/LogoSpin2026.json"
-                fallback="/assets/LogoSpin2024.MED.MEZZO.gif"
-                className="lottieMark lottieMark--chat"
-                label="MXMLLN logo"
-              />
-            </div>
-            <div className="chatEmptyStateText">
-              <h1>Maximillian AI</h1>
-              <p>
-                Tell me what you&apos;re looking for <span className="ampersand">&</span> I&apos;ll find the
-                <br /> most relevant content from my design portfolio.
-              </p>
-            </div>
-            <div className="BetaBadge">
-              <div className="BadgeText">BETA v1.0</div>
-            </div>
-          </div>
-          <div className="chatResponseLog">
-            <div className="chatQueryContainer">
-              <div className="chatQuery">
-                <p />
-              </div>
-            </div>
-            <div className="loadingIndicator">
-              <div className="lds-ellipsis">
-                <div />
-                <div />
-                <div />
-                <div />
-              </div>
-            </div>
-            <div className="chatResponseContainer">
-              <div className="chatBlurb">
-                <div className="chatResponseLogoContainer">
-                  <LottieMark
-                    path="/assets/LogoSpin2026.json"
-                    fallback="/assets/LogoSpin2024.SML.gif"
-                    className="lottieMark lottieMark--response"
-                    label="MXMLLN logo"
-                  />
-                </div>
-                <p />
-              </div>
-              <div className="chatCardURL">
-                <a href="https://www.maximillian.nyc" target="_blank" rel="noreferrer">
-                  <div className="chatSuggestionCard">
-                    <div className="chatCardImageContainer">
-                      <img src="/assets/chatLoad.png" className="chatCardImage" alt="Preview image for chat suggestion" />
-                    </div>
-                    <div className="chatCardTextBlock">
-                      <p className="chatCardHeaderTitle" />
-                      <p className="chatCardDescriptionText" />
-                    </div>
-                  </div>
-                </a>
-              </div>
-            </div>
           </div>
         </div>
 
