@@ -2,14 +2,6 @@
 
 import { useState } from 'react';
 
-/**
- * Live form-control replicas for the /system previews: buttons and inputs.
- * Grounded in the real site chrome — the chat composer in
- * public/components/NavBar.css (.chatInputField / .chatSubmit) and the
- * near-monochrome token ladder in app/globals.css. These are reference
- * specimens, not a shared component library; the values live in system.css.
- */
-
 export function ButtonDemo() {
   return (
     <div className="ui-button-row">
@@ -78,6 +70,51 @@ export function InputDemo() {
           </button>
         </div>
       </label>
+    </div>
+  );
+}
+
+function Switch({
+  id,
+  checked,
+  disabled = false,
+  onCheckedChange,
+}: {
+  id: string;
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      className="ui-switch"
+      onClick={() => onCheckedChange(!checked)}
+    >
+      <span className="ui-switch-knob" aria-hidden="true" />
+    </button>
+  );
+}
+
+export function SwitchDemo() {
+  const [checked, setChecked] = useState(true);
+
+  return (
+    <div className="ui-switch-list">
+      <div className="ui-switch-row">
+        <label htmlFor="ui-switch">Label</label>
+        <Switch id="ui-switch" checked={checked} onCheckedChange={setChecked} />
+      </div>
+      <div className="ui-switch-row">
+        <label htmlFor="ui-switch-disabled" className="is-disabled">
+          Disabled
+        </label>
+        <Switch id="ui-switch-disabled" checked={false} disabled onCheckedChange={() => {}} />
+      </div>
     </div>
   );
 }
