@@ -4,7 +4,7 @@ import React from 'react';
  * Frames a live, interactive component example in a bordered card.
  * Authored in content/system.mdx as:
  *
- *   <ComponentPreview background="glass"><NavDemo /></ComponentPreview>
+ *   <ComponentPreview background="glass"><DockDemo /></ComponentPreview>
  *
  * The example itself (children) carries any interactivity; this wrapper is
  * presentational. Where each component lives is noted in the section prose.
