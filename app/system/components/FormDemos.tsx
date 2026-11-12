@@ -2,16 +2,6 @@
 
 import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 
-/**
- * Live form-control replicas for the /system previews: buttons, inputs, and
- * switches. Grounded in the real site chrome — the chat composer in
- * public/components/NavBar.css (.chatInputField / .chatSubmit) and the
- * near-monochrome token ladder in app/globals.css. The switch borrows the
- * iOS thumb (inset white knob, stretch while pressed, spring across) and
- * tints the on-state with the system accent. These are reference specimens,
- * not a shared component library; the values live in system.css.
- */
-
 export function ButtonDemo() {
   return (
     <div className="ui-button-row">
