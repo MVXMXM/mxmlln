@@ -384,13 +384,20 @@
   height: 100%;
   overflow: auto;
   padding: 8px 32px 148px;
+  transition: opacity 0.22s ease;
+}
+.dock-demo-scroll[data-fading] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dock-demo-scroll { transition: none; }
 }
 
-html,
-.dock-demo-scroll {
+html {
   scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: gray transparent;
+}
+.dock-demo-scroll {
+  scrollbar-width: none;
 }
 .dock-skeleton {
   display: grid;
@@ -431,9 +438,83 @@ html,
 .dock-skeleton:nth-child(2n) .dock-skeleton-line--short {
   width: 52%;
 }
-.dock-demo-stage .bottomFade {
-  background-image: linear-gradient(to bottom, rgba(252, 252, 252, 0), #fcfcfc);
+.dock-skel-about {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding-top: 32px;
 }
+.dock-skel-note-title,
+.dock-skel-note-line {
+  display: block;
+  height: 10px;
+  border-radius: 6px;
+  background: var(--slate-400);
+}
+.dock-skel-note-title {
+  width: 42%;
+  height: 14px;
+  margin-bottom: 16px;
+}
+.dock-skel-note-line { width: 78%; }
+.dock-skel-note:nth-child(2n) .dock-skel-note-title { width: 58%; }
+.dock-skel-note:nth-child(3n) .dock-skel-note-title { width: 32%; }
+.dock-skel-media {
+  height: 220px;
+  border-radius: 16px;
+  background: var(--slate-400);
+}
+.dock-skel-carousel-row {
+  display: flex;
+  gap: 12px;
+  height: 200px;
+  width: calc(100% + 32px);
+  margin-right: -32px;
+  overflow: hidden;
+}
+.dock-skel-slide {
+  flex: 0 0 78%;
+  border-radius: 16px;
+  background: var(--slate-400);
+}
+.dock-skel-slide + .dock-skel-slide {
+  background: var(--slate-300);
+}
+.dock-skel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+.dock-skel-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--slate-300);
+}
+.dock-skel-dots span:first-child {
+  background: var(--slate-500);
+}
+.dock-skel-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-top: 32px;
+}
+.dock-skel-bubble {
+  display: block;
+  height: 52px;
+  width: 62%;
+  border-radius: 24px 24px 24px 4px;
+  background: var(--slate-200);
+}
+.dock-skel-bubble--end {
+  align-self: flex-end;
+  border-radius: 24px 24px 4px 24px;
+  background: var(--slate-400);
+}
+.dock-skel-bubble:nth-child(3n) { width: 44%; }
+.dock-skel-bubble:nth-child(4n) { width: 76%; }
 
 /* Card stack — the production FolioEngine rendered in an isolated viewport so
    its fixed gradient layers and full-stack expansion stay inside the specimen. */

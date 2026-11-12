@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
-import { Dock } from '../../components/Dock/Dock';
+import { Dock, type DockItem } from '../../components/Dock/Dock';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -64,25 +64,115 @@ export function LogoDemo() {
   );
 }
 
-const DOCK_SKELETONS = 6;
+function WorkSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 6 }, (_, index) => (
+        <div className="dock-skeleton" key={index}>
+          <div className="dock-skeleton-media" />
+          <div className="dock-skeleton-copy">
+            <div className="dock-skeleton-line dock-skeleton-line--title" />
+            <div className="dock-skeleton-line" />
+            <div className="dock-skeleton-line dock-skeleton-line--short" />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+const ABOUT_BLOCKS = ['text', 'image', 'text', 'carousel', 'text'] as const;
+
+function AboutMedia({ kind }: { kind: 'image' | 'carousel' }) {
+  if (kind === 'carousel') {
+    return (
+      <div className="dock-skel-carousel">
+        <div className="dock-skel-carousel-row">
+          <span className="dock-skel-slide" />
+          <span className="dock-skel-slide" />
+        </div>
+        <span className="dock-skel-dots">
+          <span />
+          <span />
+          <span />
+        </span>
+      </div>
+    );
+  }
+  return <div className="dock-skel-media" />;
+}
+
+function AboutSkeleton() {
+  return (
+    <div className="dock-skel-about" aria-hidden="true">
+      {ABOUT_BLOCKS.map((block, index) =>
+        block === 'text' ? (
+          <div className="dock-skel-note" key={index}>
+            <span className="dock-skel-note-title" />
+            <span className="dock-skel-note-line" />
+          </div>
+        ) : (
+          <AboutMedia kind={block} key={index} />
+        ),
+      )}
+    </div>
+  );
+}
+
+function ChatSkeleton() {
+  return (
+    <div className="dock-skel-chat" aria-hidden="true">
+      {Array.from({ length: 12 }, (_, index) => (
+        <span className={index % 2 ? 'dock-skel-bubble dock-skel-bubble--end' : 'dock-skel-bubble'} key={index} />
+      ))}
+    </div>
+  );
+}
 
 export function DockDemo() {
+  const [item, setItem] = useState<DockItem>('work');
+  const [selected, setSelected] = useState<DockItem>('work');
+  const [fading, setFading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const pending = useRef<DockItem | null>(null);
+  const fadeTimer = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [item]);
+
+  useEffect(() => {
+    return () => {
+      if (fadeTimer.current) window.clearTimeout(fadeTimer.current);
+    };
+  }, []);
+
+  function select(next: DockItem) {
+    if (next === pending.current || (next === selected && !fadeTimer.current)) return;
+    pending.current = next;
+    setSelected(next);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      pending.current = null;
+      setItem(next);
+      return;
+    }
+    setFading(true);
+    if (fadeTimer.current) return;
+    fadeTimer.current = window.setTimeout(() => {
+      fadeTimer.current = null;
+      setItem(pending.current ?? next);
+      pending.current = null;
+      setFading(false);
+    }, 220);
+  }
+
   return (
     <div className="dock-demo">
       <div className="dock-demo-stage">
-        <div className="dock-demo-scroll">
-          {Array.from({ length: DOCK_SKELETONS }, (_, index) => (
-            <div className="dock-skeleton" key={index}>
-              <div className="dock-skeleton-media" />
-              <div className="dock-skeleton-copy">
-                <div className="dock-skeleton-line dock-skeleton-line--title" />
-                <div className="dock-skeleton-line" />
-                <div className="dock-skeleton-line dock-skeleton-line--short" />
-              </div>
-            </div>
-          ))}
+        <div className="dock-demo-scroll" ref={scrollRef} data-fading={fading || undefined}>
+          {item === 'about' ? <AboutSkeleton /> : item === 'chat' ? <ChatSkeleton /> : <WorkSkeleton />}
         </div>
-        <Dock contained />
+        <Dock contained activeItem={selected} onActiveItemChange={select} />
       </div>
     </div>
   );

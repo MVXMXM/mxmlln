@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-> **Design system:** Before designing or generating any new UI, read `content/system.mdx` — the reference for color & type tokens, chrome components (logo, nav, minimap), and the `registry/` primitives. It renders at the unlisted `/system` route (`app/system/`). `app/globals.css` is the canonical source for token values: when the code and the doc disagree, the code wins — update `content/system.mdx` to match.
+> **Design system:** Before designing or generating any new UI, read `content/system.mdx` — the reference for color & type tokens, chrome components (logo, nav, minimap), and the `registry/` primitives. It renders at the unlisted `/system` route (`app/system/`). `app/globals.css` is the canonical source for token values: when the code and the doc disagree, the code wins — update `content/system.mdx` to match. Color rules are under Conventions.
 >
 > **Decks:** Before authoring or editing presentation slides, read `app/decks/README.md` — the deck visual system (type specs, the lowercase-handwritten rule, slide archetypes, logo-border bookends) and how to add a deck/slide.
 
@@ -40,6 +40,12 @@ npm run lint    # lint
 ## Conventions
 
 Less, but better. For code and for design, choose the smaller solution that does the work. Add nothing the work does not need.
+
+### Color
+
+Neutrals come from the slate scale in `app/globals.css`. Prefer a semantic alias (`--background`, `--surface`, `--foreground`, `--muted`, `--subtle`, `--border`, `--hairline`). Use a `--slate-*` variable when the role is a specific step.
+
+`#000`, `#1a1a1a`, `#333`, and `#f5f5f5` are the old folio ink. They still live in `public/` and in components ported out of the vanilla nav. They are not tokens. Use the scale even when the file you are editing still has those hexes.
 
 ### Copy
 
