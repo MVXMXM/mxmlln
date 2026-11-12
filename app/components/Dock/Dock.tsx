@@ -205,7 +205,6 @@ export function Dock({
       data-closing={closing ? 'true' : undefined}
       data-settled={contactSettled ? 'true' : undefined}
     >
-      <div className="bottomFade" aria-hidden="true" />
       <div className="dockDynamicContainer" ref={containerRef}>
         <DockGlass />
         <div className="dockBar">
