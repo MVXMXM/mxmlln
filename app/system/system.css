@@ -641,10 +641,6 @@ html,
 }
 
 /* ─── Switch ─────────────────────────────────────────────── */
-/* iOS switch geometry: 51×31 track, 27px knob, 2px inset. The thumb widens
-   toward the empty side while pressed, then springs across. Drag math in
-   FormDemos.tsx reads --track, --knob, and --inset — keep them in sync.
-   On-color is the system accent; the off track is Apple's neutral gray. */
 @property --knob-x {
   syntax: '<length>';
   inherits: true;
