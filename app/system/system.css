@@ -640,6 +640,141 @@ html,
   cursor: not-allowed;
 }
 
+/* ─── Switch ─────────────────────────────────────────────── */
+/* iOS switch geometry: 51×31 track, 27px knob, 2px inset. The thumb widens
+   toward the empty side while pressed, then springs across. Drag math in
+   FormDemos.tsx reads --track, --knob, and --inset — keep them in sync.
+   On-color is the system accent; the off track is Apple's neutral gray. */
+@property --knob-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --progress {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+.ui-switch-list {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 280px);
+}
+.ui-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 12px 0;
+}
+.ui-switch-row + .ui-switch-row {
+  border-top: 1px solid #ececec;
+}
+.ui-switch-row label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a1a;
+  cursor: pointer;
+  user-select: none;
+}
+.ui-switch-row label.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ui-switch {
+  --track: 51px;
+  --height: 31px;
+  --knob: 27px;
+  --inset: 2px;
+  --stretch: 8px;
+  --travel: calc(var(--track) - var(--knob) - var(--inset) * 2);
+  --progress: 0;
+  --knob-x: 0px;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--track);
+  height: var(--height);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) calc(var(--progress) * 100%), #e9e9eb);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    --progress 0.25s cubic-bezier(0.3, 1.15, 0.4, 1),
+    --knob-x 0.25s cubic-bezier(0.3, 1.15, 0.4, 1);
+}
+.ui-switch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+.ui-switch:hover:not(:disabled)::before {
+  background: rgba(0, 0, 0, 0.04);
+}
+.ui-switch[aria-checked='true'] {
+  --progress: 1;
+  --knob-x: var(--travel);
+}
+.ui-switch:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 3px;
+}
+.ui-switch:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ui-switch.is-dragging {
+  transition: none;
+}
+.ui-switch-knob {
+  position: absolute;
+  top: var(--inset);
+  left: var(--inset);
+  width: var(--knob);
+  height: var(--knob);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.15),
+    0 3px 1px rgba(0, 0, 0, 0.06);
+  transform: translateX(var(--knob-x));
+  pointer-events: none;
+  transition:
+    width 0.2s cubic-bezier(0.3, 1.15, 0.4, 1),
+    margin-left 0.2s cubic-bezier(0.3, 1.15, 0.4, 1);
+}
+/* Thumb stays inside the track: off grows right, on grows left. */
+.ui-switch.is-pressed:not(:disabled) .ui-switch-knob,
+.ui-switch:active:not(:disabled) .ui-switch-knob {
+  width: calc(var(--knob) + var(--stretch));
+}
+.ui-switch.is-pressed:not(:disabled)[aria-checked='true'] .ui-switch-knob,
+.ui-switch:active:not(:disabled)[aria-checked='true'] .ui-switch-knob {
+  margin-left: calc(var(--stretch) * -1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-switch,
+  .ui-switch-knob,
+  .ui-switch::before {
+    transition: none;
+  }
+  .ui-switch.is-pressed .ui-switch-knob,
+  .ui-switch:active .ui-switch-knob {
+    width: var(--knob);
+    margin-left: 0;
+  }
+}
+
 /* ─── Card ───────────────────────────────────────────────── */
 /* Resting elevation combines the two card shadows from the Elevation section:
    the wide "Folio card" lift + inset hairline, layered over the tighter
