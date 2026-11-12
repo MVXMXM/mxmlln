@@ -74,9 +74,6 @@ export function InputDemo() {
   );
 }
 
-// Travel distance is derived from the CSS variables on .ui-switch so the
-// drag can't drift from the drawn knob. A drag commits on pointerup; the
-// click that follows would flip the value back, so that click is swallowed.
 function Switch({
   id,
   checked,
