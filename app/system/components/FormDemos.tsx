@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useState } from 'react';
 
 export function ButtonDemo() {
   return (
@@ -85,70 +85,6 @@ function Switch({
   disabled?: boolean;
   onCheckedChange: (next: boolean) => void;
 }) {
-  const travelRef = useRef(0);
-  const drag = useRef<{
-    pointerId: number;
-    startX: number;
-    origin: number;
-    moved: boolean;
-  } | null>(null);
-  const suppressClick = useRef(false);
-  const [pressed, setPressed] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [knobX, setKnobX] = useState<number | null>(null);
-
-  function onPointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
-    if (disabled || e.button !== 0) return;
-    const style = getComputedStyle(e.currentTarget);
-    const track = parseFloat(style.getPropertyValue('--track'));
-    const knob = parseFloat(style.getPropertyValue('--knob'));
-    const inset = parseFloat(style.getPropertyValue('--inset'));
-    const travel = track - knob - inset * 2;
-    travelRef.current = travel;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = {
-      pointerId: e.pointerId,
-      startX: e.clientX,
-      origin: checked ? travel : 0,
-      moved: false,
-    };
-    setPressed(true);
-  }
-
-  function onPointerMove(e: ReactPointerEvent<HTMLButtonElement>) {
-    const d = drag.current;
-    if (!d || e.pointerId !== d.pointerId) return;
-    const dx = e.clientX - d.startX;
-    if (Math.abs(dx) > 4) d.moved = true;
-    if (!d.moved) return;
-    const x = Math.min(travelRef.current, Math.max(0, d.origin + dx));
-    setDragging(true);
-    setKnobX(x);
-  }
-
-  function onPointerUp(e: ReactPointerEvent<HTMLButtonElement>) {
-    const d = drag.current;
-    if (!d || e.pointerId !== d.pointerId) return;
-    if (d.moved) {
-      const x = Math.min(travelRef.current, Math.max(0, d.origin + (e.clientX - d.startX)));
-      suppressClick.current = true;
-      onCheckedChange(x >= travelRef.current / 2);
-    }
-    drag.current = null;
-    setPressed(false);
-    setDragging(false);
-    setKnobX(null);
-  }
-
-  function onClick() {
-    if (disabled) return;
-    if (suppressClick.current) {
-      suppressClick.current = false;
-      return;
-    }
-    onCheckedChange(!checked);
-  }
-
   return (
     <button
       id={id}
@@ -156,22 +92,8 @@ function Switch({
       role="switch"
       aria-checked={checked}
       disabled={disabled}
-      className={['ui-switch', pressed ? 'is-pressed' : '', dragging ? 'is-dragging' : '']
-        .filter(Boolean)
-        .join(' ')}
-      style={
-        knobX == null
-          ? undefined
-          : ({
-              '--knob-x': `${knobX}px`,
-              '--progress': travelRef.current ? knobX / travelRef.current : 0,
-            } as CSSProperties)
-      }
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      onClick={onClick}
+      className="ui-switch"
+      onClick={() => onCheckedChange(!checked)}
     >
       <span className="ui-switch-knob" aria-hidden="true" />
     </button>
