@@ -383,6 +383,7 @@
 .dock-demo-scroll {
   height: 100%;
   overflow: auto;
+  overflow-anchor: none;
   padding: 8px 32px 148px;
   transition: opacity 0.22s ease;
 }

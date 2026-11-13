@@ -119,11 +119,14 @@ function AboutSkeleton() {
   );
 }
 
-function ChatSkeleton() {
+function ChatSkeleton({ sent }: { sent: number }) {
   return (
     <div className="dock-skel-chat" aria-hidden="true">
       {Array.from({ length: 12 }, (_, index) => (
         <span className={index % 2 ? 'dock-skel-bubble dock-skel-bubble--end' : 'dock-skel-bubble'} key={index} />
+      ))}
+      {Array.from({ length: sent }, (_, index) => (
+        <span className="dock-skel-bubble dock-skel-bubble--end" key={`sent-${index}`} />
       ))}
     </div>
   );
@@ -133,13 +136,60 @@ export function DockDemo() {
   const [item, setItem] = useState<DockItem>('work');
   const [selected, setSelected] = useState<DockItem>('work');
   const [fading, setFading] = useState(false);
+  const [sent, setSent] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sentSeen = useRef(0);
   const pending = useRef<DockItem | null>(null);
   const fadeTimer = useRef<number | null>(null);
 
   useLayoutEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (item !== 'chat') {
+      scroller.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+    if (reduce) {
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'auto' });
+      return;
+    }
+    // Pin the top through the fade-in. The glide has to start there, or the
+    // part of the trip that happens while the thread is still transparent is lost.
+    scroller.scrollTo({ top: 0, behavior: 'auto' });
+    let started = false;
+    const pin = () => {
+      if (!started) scroller.scrollTop = 0;
+    };
+    const start = () => {
+      if (started) return;
+      started = true;
+      scroller.removeEventListener('scroll', pin);
+      scroller.removeEventListener('transitionend', onEnd);
+      scroller.scrollTop = 0;
+      scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
+    };
+    const onEnd = (event: TransitionEvent) => {
+      if (event.propertyName === 'opacity' && event.target === scroller) start();
+    };
+    scroller.addEventListener('scroll', pin);
+    scroller.addEventListener('transitionend', onEnd);
+    const id = window.setTimeout(start, 400);
+    return () => {
+      started = true;
+      window.clearTimeout(id);
+      scroller.removeEventListener('scroll', pin);
+      scroller.removeEventListener('transitionend', onEnd);
+    };
   }, [item]);
+
+  useLayoutEffect(() => {
+    if (sent === sentSeen.current) return;
+    sentSeen.current = sent;
+    const scroller = scrollRef.current;
+    if (!sent || item !== 'chat' || !scroller) return;
+    scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'smooth' });
+  }, [sent, item]);
 
   useEffect(() => {
     return () => {
@@ -170,9 +220,9 @@ export function DockDemo() {
     <div className="dock-demo">
       <div className="dock-demo-stage">
         <div className="dock-demo-scroll" ref={scrollRef} data-fading={fading || undefined}>
-          {item === 'about' ? <AboutSkeleton /> : item === 'chat' ? <ChatSkeleton /> : <WorkSkeleton />}
+          {item === 'about' ? <AboutSkeleton /> : item === 'chat' ? <ChatSkeleton sent={sent} /> : <WorkSkeleton />}
         </div>
-        <Dock contained activeItem={selected} onActiveItemChange={select} />
+        <Dock contained activeItem={selected} onActiveItemChange={select} onSend={() => setSent((count) => count + 1)} />
       </div>
     </div>
   );

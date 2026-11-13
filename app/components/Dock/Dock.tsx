@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
@@ -88,24 +88,48 @@ export function Dock({
   contained = false,
   activeItem: activeItemProp,
   onActiveItemChange,
+  onSend,
 }: {
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
+  onSend?: () => void;
 }) {
   const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
   const [panel, setPanel] = useState<Panel | null>(null);
   const [closing, setClosing] = useState(false);
   const [contactSettled, setContactSettled] = useState(false);
+  const [composer, setComposer] = useState(false);
+  const [composerClosing, setComposerClosing] = useState(false);
+  const [draft, setDraft] = useState('');
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const composerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clusterRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const segmentsRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const activeItem = activeItemProp ?? uncontrolledItem;
 
+  const closeComposer = useCallback(() => {
+    setComposer(false);
+    setComposerClosing(true);
+    setUncontrolledItem('work');
+    onActiveItemChange?.('work');
+    if (composerTimer.current) clearTimeout(composerTimer.current);
+    // Holds the indicator snap until the circle has finished shrinking.
+    composerTimer.current = setTimeout(() => setComposerClosing(false), 480);
+  }, [onActiveItemChange]);
+
+  const openComposer = useCallback(() => {
+    if (composerTimer.current) clearTimeout(composerTimer.current);
+    setComposerClosing(false);
+    setComposer(true);
+  }, []);
+
   useEffect(() => {
-    const container = containerRef.current;
-    const content = container?.querySelector<HTMLElement>('.dockBarSegController');
+    const cluster = clusterRef.current;
+    const container = cluster?.querySelector<HTMLElement>('.dockDynamicContainer');
+    const content = cluster?.querySelector<HTMLElement>('.dockBarSegController');
     if (!container || !content) return;
     // The open transition swaps the bar to absolute, so max-content drops to 0
     // and the panel appears to grow from nothing. A measured floor stays put.
@@ -159,12 +183,27 @@ export function Dock({
     if (!panel) return;
     function onClick(event: MouseEvent) {
       const target = event.target;
-      if (!(target instanceof Node) || containerRef.current?.contains(target)) return;
+      if (!(target instanceof Node) || clusterRef.current?.contains(target)) return;
       closePanel();
     }
     document.addEventListener('click', onClick);
     return () => document.removeEventListener('click', onClick);
   }, [panel]);
+
+  useEffect(() => {
+    if (!composer) return;
+    const frame = window.setTimeout(() => {
+      inputRef.current?.focus({ preventScroll: true });
+    }, 80);
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') closeComposer();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => {
+      window.clearTimeout(frame);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [composer, closeComposer]);
 
   useEffect(() => {
     if (panel !== 'contact') return;
@@ -175,10 +214,12 @@ export function Dock({
   useEffect(() => {
     return () => {
       if (closeTimer.current) clearTimeout(closeTimer.current);
+      if (composerTimer.current) clearTimeout(composerTimer.current);
     };
   }, []);
 
   function selectItem(item: DockItem) {
+    if (item === 'chat') openComposer();
     setUncontrolledItem(item);
     onActiveItemChange?.(item);
   }
@@ -204,11 +245,14 @@ export function Dock({
       data-panel={panel ?? undefined}
       data-closing={closing ? 'true' : undefined}
       data-settled={contactSettled ? 'true' : undefined}
+      data-composer={composer ? 'true' : undefined}
+      data-composer-closing={composerClosing ? 'true' : undefined}
     >
-      <div className="dockDynamicContainer" ref={containerRef}>
+      <div className="dockCluster" ref={clusterRef}>
+      <div className="dockDynamicContainer">
         <DockGlass />
         <div className="dockBar">
-          <div className="dockBarSegController">
+          <div className="dockBarSegController" inert={composer || undefined}>
             <button type="button" onClick={() => openPanel('info')} aria-label="Open info menu">
               <LottieMark
                 path="/assets/LogoSpin2026.json"
@@ -232,6 +276,7 @@ export function Dock({
                   key={item.id}
                   type="button"
                   className={activeItem === item.id ? 'dockBarItem_OnState' : 'dockBarItem'}
+                  aria-expanded={item.id === 'chat' ? composer : undefined}
                   onClick={() => selectItem(item.id)}
                 >
                   {item.label}
@@ -242,11 +287,42 @@ export function Dock({
               <img className="openDockContactView" src="/assets/ContactSML.png" alt="" />
             </button>
           </div>
+          <form
+            className="dockComposer"
+            inert={!composer || undefined}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!draft.trim()) return;
+              setDraft('');
+              onSend?.();
+            }}
+          >
+            <span className="dockComposerCaret" aria-hidden="true" />
+            <input
+              ref={inputRef}
+              className="dockComposerField"
+              value={draft}
+              placeholder="Ask me anything..."
+              aria-label="Message"
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="send"
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }}
+            />
+            <button type="button" className="closeButton" onClick={closeComposer} aria-label="Close chat">
+              <CloseMark />
+            </button>
+          </form>
         </div>
 
         <div className="infoViewContent">
           <div className="viewHeader">
-            <span className="viewHeaderText">MVXMXM folio v{folioVersion.version}</span>
+            <span className="viewHeaderText">MaxOS v{folioVersion.version}</span>
             <button type="button" className="closeButton" onClick={closePanel} aria-label="Close panel">
               <CloseMark />
             </button>
@@ -298,6 +374,7 @@ export function Dock({
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
