@@ -7,3 +7,67 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+> **Design system:** Before designing or generating any new UI, read `content/system.mdx` — the reference for color & type tokens, chrome components (logo, nav, minimap), and the `registry/` primitives. It renders at the unlisted `/system` route (`app/system/`). `app/globals.css` is the canonical source for token values: when the code and the doc disagree, the code wins — update `content/system.mdx` to match. Color rules are under Conventions.
+>
+> **Decks:** Before authoring or editing presentation slides, read `app/decks/README.md` — the deck visual system (type specs, the lowercase-handwritten rule, slide archetypes, logo-border bookends) and how to add a deck/slide.
+
+## Project Overview
+
+Personal design portfolio of Maximillian Piras — product design (UX/UI) for tech startups, focused on AI, with roots in branding, animation, & illustration.
+
+- **Live site**: https://www.maximin.design
+- **Stack**: Next.js (App Router) + React + TypeScript + Tailwind v4. Storage via Vercel Postgres. AI via the Vercel AI SDK (`ai` + `@ai-sdk/openai`) and `OPENAI_API_KEY`.
+- **Deployment**: Vercel (auto-deploys on push to `main`).
+
+## Architecture
+
+One Next.js app. New work goes in `app/` and `app/api/`.
+
+- **Next.js `app/`** — routes (`blog`, `decks`, `system`, `experiments`) and API routes. Homepage chat is `app/api/openai/meta` (returns `{ AiResponse }` as a JSON string for the legacy homepage). `app/api/submit` stores input in Postgres. `app/api/reading-list` serves the reader. `app/api/chat` is the separate streaming chat.
+- **Design system** — `content/system.mdx` (doc) + `registry/` (primitives) + `app/globals.css` (canonical tokens). See the banner above.
+- **Legacy homepage** — the interactive card-stack at `/` is static on purpose, rewritten in `next.config.ts` to `public/portfolio.html`. Its logic lives in `public/` (`FolioEngine.js`, `NavBar.js`, `ChatIntelligence.js`) — vanilla JS + jQuery, no bundler. Leave it until a real redesign.
+- **Experiments** — the Interaction Sketchbook at `/experiments` iframes published snapshots in `public/static/NNN` and Next pages under `app/experiments/`. New interactive work lives in `app/experiments/<name>`. A frozen piece is one HTML snapshot under `public/static/`. Do not add a `package.json` under `public/`. Older prototype source is archived in `archive/exp/` and is not deployed.
+
+## Development
+
+```bash
+npm run dev     # Next.js dev server (Turbopack) on http://localhost:3000
+npm run build   # production build
+npm run lint    # lint
+```
+
+## Conventions
+
+Less, but better. For code and for design, choose the smaller solution that does the work. Add nothing the work does not need.
+
+### Color
+
+Neutrals come from the slate scale in `app/globals.css`. Prefer a semantic alias (`--background`, `--surface`, `--foreground`, `--muted`, `--subtle`, `--border`, `--hairline`). Use a `--slate-*` variable when the role is a specific step.
+
+`#000`, `#1a1a1a`, `#333`, and `#f5f5f5` are the old folio ink. They still live in `public/` and in components ported out of the vanilla nav. They are not tokens. Use the scale even when the file you are editing still has those hexes.
+
+### Copy
+
+In user-facing copy, prefer ampersands over "and" (e.g. "animation & illustration").
+
+### Code comments
+
+A comment is probably unnecessary. Leave it out unless the code would be misread without it.
+
+Don't narrate the code. Don't restate it. Don't record the design decision. No commented-out code. Names carry the meaning.
+
+The comment that belongs is one a careful reader needs to avoid breaking the mechanism: a hidden constraint, a gotcha, or a sync the code cannot show.
+
+### Pull requests
+
+- **Title**: imperative mood, ≤72 chars, no trailing period (e.g. `Reader: add Muon optimizer link`).
+- **Description**: one sentence if possible, focused on *why* the change was made — not the low-level details, which the code & diff already explain. Expand only when the change genuinely needs it. Link related issues.
+
+## Environment & deployment
+
+- Env (set in Vercel / local `.env`): `OPENAI_API_KEY` for chat, Vercel Postgres credentials for stored input.
+
+## Testing
+
+No automated test suite — verify manually in the browser. Check card-stack interactions (hover/expand/collapse), video playback across Safari and Chrome, homepage chat (`/api/openai/meta` still renders a card), the reader, and the design-system routes.

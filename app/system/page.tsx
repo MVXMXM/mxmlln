@@ -10,7 +10,7 @@ import { Palette } from './components/ColorScale';
 import { ComponentPreview } from './components/ComponentPreview';
 import { AnchorHeading } from './components/AnchorHeading';
 import { LogoDemo, DockDemo, MenuDemo } from './components/ChromeDemos';
-import { ButtonDemo, InputDemo } from './components/FormDemos';
+import { ButtonDemo, InputDemo, SwitchDemo } from './components/FormDemos';
 import { CardDemo } from './components/CardDemos';
 import { CardStackDemo } from './components/CardStackDemos';
 import { ChatDemo } from './components/ChatDemos';
@@ -50,6 +50,7 @@ const mdxComponents: MDXComponents = {
   MenuDemo,
   ButtonDemo,
   InputDemo,
+  SwitchDemo,
   CardDemo,
   CardStackDemo,
   ChatDemo,

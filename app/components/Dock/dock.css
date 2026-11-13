@@ -226,18 +226,19 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 40px;
-  background: transparent;
+  background: var(--slate-100);
+  opacity: 0;
   transform: translate(-50%, -50%);
-  transition: background 0.2s ease;
+  transition: opacity 0.35s ease;
   pointer-events: none;
 }
 
 .mx-dock .dockBarSegController > button:first-child:hover::before,
 .mx-dock .dockBarSegController > button:last-child:hover::before {
-  background: #f5f5f5;
+  opacity: 0.5;
 }
 
 .mx-dock .lottieMark {
@@ -282,7 +283,7 @@
   z-index: 1;
   overflow: hidden;
   border-radius: 40px;
-  background: #1a1a1a;
+  background: var(--slate-950);
   pointer-events: none;
 }
 
@@ -291,8 +292,7 @@
   transition:
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 0.2s ease;
+    height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mx-dock .dockBarIndicatorLabels {
@@ -313,12 +313,7 @@
   line-height: 1;
   letter-spacing: 0.2px;
   padding: 13px 22px;
-  border: 1px solid transparent;
   color: #fff;
-}
-
-.mx-dock .dockBarSegments:has(.dockBarItem_OnState:hover) .dockBarIndicator {
-  background: #333;
 }
 
 .mx-dock .dockBarItem,
@@ -336,14 +331,34 @@
   letter-spacing: 0.2px;
   padding: 13px 22px;
   border-radius: 40px;
-  border: 1px solid transparent;
   background: transparent;
-  color: #1a1a1a;
-  transition: background 0.2s ease;
+  color: var(--slate-950);
 }
 
-.mx-dock .dockBarItem:hover {
-  background: #f5f5f5;
+.mx-dock .dockBarItem::before,
+.mx-dock .dockBarItem_OnState::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--slate-100);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.mx-dock .dockBarItem:hover::before {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mx-dock .dockBarItem::before,
+  .mx-dock .dockBarItem_OnState::before,
+  .mx-dock .dockBarSegController > button:first-child::before,
+  .mx-dock .dockBarSegController > button:last-child::before {
+    transition: none;
+  }
 }
 
 .mx-dock .openDockContactView {
@@ -408,17 +423,6 @@
 
 .mx-dock .closeButton:active {
   transform: translateY(1px);
-}
-
-.mx-dock .bottomFade {
-  position: fixed;
-  z-index: 898;
-  bottom: 0;
-  left: 0;
-  height: 100px;
-  width: 100%;
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
-  pointer-events: none;
 }
 
 .mx-dock .infoViewContent,
@@ -695,8 +699,7 @@
   transition: opacity 1.5s;
 }
 
-/* Fixed layers escape the frame. */
-.mx-dock.mx-dock--contained .dockDynamicContainer,
-.mx-dock.mx-dock--contained .bottomFade {
+/* The bar is fixed on the page. Inside a specimen it stays in the frame. */
+.mx-dock.mx-dock--contained .dockDynamicContainer {
   position: absolute;
 }
