@@ -154,7 +154,6 @@ export function DockDemo() {
       scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'auto' });
       return;
     }
-    // Scrolling during the fade happens at opacity 0, so the visible trip would start partway down.
     scroller.scrollTo({ top: 0, behavior: 'auto' });
     let started = false;
     const pin = () => {
