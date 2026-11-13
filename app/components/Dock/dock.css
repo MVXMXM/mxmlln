@@ -11,8 +11,7 @@
 .mx-dock-frame {
   position: absolute;
   inset: 0;
-  /* The frame covers the specimen so the bar can pin to it. Clicks and
-     scrolling belong to the page underneath, except the bar itself. */
+  container-type: inline-size;
   pointer-events: none;
 }
 
@@ -41,24 +40,36 @@
   opacity: 1;
 }
 
-.mx-dock .dockDynamicContainer {
+.mx-dock .dockCluster {
   position: fixed;
   z-index: 900;
-  align-items: center;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  left: 0;
-  right: 0;
+  left: 50%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  width: max-content;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.mx-dock .dockDynamicContainer {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  align-items: center;
   width: var(--dock-collapsed-width, max-content);
   min-width: var(--dock-collapsed-width, max-content);
-  margin-inline: auto;
   height: 64px;
   interpolate-size: allow-keywords;
   border-radius: 40px;
+  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
   border: 0;
   isolation: isolate;
   overflow: hidden;
   box-sizing: border-box;
   color: #1a1a1a;
+  pointer-events: auto;
   background: transparent;
   backdrop-filter: blur(8px) saturate(1.6);
   -webkit-backdrop-filter: blur(8px) saturate(1.6);
@@ -187,7 +198,7 @@
   align-items: center;
   justify-content: center;
   height: 64px;
-  width: max-content;
+  width: 100%;
   margin: 0;
   padding: 0;
 }
@@ -200,6 +211,108 @@
   gap: 6px;
   /* Clears the capsule ends. A flush 40px mark gets clipped by the 32px radius. */
   padding-inline: 12px;
+  transition: opacity 0.28s ease 0.06s, visibility 0s linear 0s;
+}
+
+.mx-dock[data-composer] .dockBarSegController {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.mx-dock[data-composer] .dockDynamicContainer {
+  width: min(100dvw, 500px);
+  min-width: 0;
+}
+
+.mx-dock.mx-dock--contained[data-composer] .dockDynamicContainer {
+  width: min(100cqw, 500px);
+}
+
+.mx-dock .dockComposer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 16px 0 28px;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease 0.1s;
+}
+
+.mx-dock[data-composer] .dockComposer {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mx-dock[data-composer-closing] .dockComposer {
+  transition-delay: 0s;
+  transition-duration: 0.14s;
+}
+
+.mx-dock .dockComposer .closeButton {
+  flex: none;
+}
+
+.mx-dock .dockComposerField {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 28px;
+  letter-spacing: 0.1px;
+  color: #1a1a1a;
+  caret-color: #00bbff;
+  cursor: text;
+}
+
+.mx-dock .dockComposerField::placeholder {
+  color: rgba(60, 60, 67, 0.48);
+  opacity: 1;
+}
+
+.mx-dock .dockComposer:has(.dockComposerField:placeholder-shown) .dockComposerField {
+  caret-color: transparent;
+}
+
+.mx-dock .dockComposerCaret {
+  position: absolute;
+  left: 26px;
+  top: 50%;
+  width: 2px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 1px;
+  background: #00bbff;
+  pointer-events: none;
+  animation: dock-caret 1.06s step-end infinite;
+}
+
+.mx-dock .dockComposer:has(.dockComposerField:not(:placeholder-shown)) .dockComposerCaret {
+  visibility: hidden;
+}
+
+@keyframes dock-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .mx-dock .dockBarSegController > button:first-child {
@@ -293,6 +406,11 @@
     transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock[data-composer-closing] .dockBarIndicator,
+.mx-dock[data-composer-closing] .dockBarIndicator .dockBarIndicatorLabels {
+  transition: none;
 }
 
 .mx-dock .dockBarIndicatorLabels {
@@ -666,11 +784,9 @@
 
 .mx-dock[data-closing='true'] .dockDynamicContainer {
   transition:
-    bottom 0.16s,
     width 0.16s cubic-bezier(0.22, 1, 0.36, 1),
     height 0.16s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.16s cubic-bezier(0.22, 1, 0.36, 1);
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   width: var(--dock-collapsed-width, max-content);
   min-width: var(--dock-collapsed-width, max-content);
   height: 64px;
@@ -699,7 +815,16 @@
   transition: opacity 1.5s;
 }
 
-/* The bar is fixed on the page. Inside a specimen it stays in the frame. */
-.mx-dock.mx-dock--contained .dockDynamicContainer {
+@media (prefers-reduced-motion: reduce) {
+  .mx-dock .dockComposer,
+  .mx-dock .dockBarSegController,
+  .mx-dock .dockComposerCaret,
+  .mx-dock .dockDynamicContainer {
+    animation: none;
+    transition: none;
+  }
+}
+
+.mx-dock.mx-dock--contained .dockCluster {
   position: absolute;
 }
