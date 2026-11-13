@@ -52,7 +52,6 @@
   align-items: flex-end;
   width: max-content;
   transform: translateX(-50%);
-  /* The split button sits outside the bar. Clicks in the gap fall through. */
   pointer-events: none;
 }
 
@@ -233,7 +232,6 @@
   width: min(100cqw, 500px);
 }
 
-/* The field is the glass itself: no chrome of its own, just type and a caret. */
 .mx-dock .dockComposer {
   position: absolute;
   inset: 0;
@@ -297,7 +295,6 @@
   caret-color: transparent;
 }
 
-/* Stands in for the native caret while the field is empty, so the glass reads as an input. */
 .mx-dock .dockComposerCaret {
   position: absolute;
   left: 26px;
@@ -413,7 +410,6 @@
     height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* The bar is still hidden here. Snap onto Work so Chat is not the state that fades back in. */
 .mx-dock[data-composer-closing] .dockBarIndicator,
 .mx-dock[data-composer-closing] .dockBarIndicator .dockBarIndicatorLabels {
   transition: none;
@@ -821,260 +817,9 @@
   transition: opacity 1.5s;
 }
 
-/* The dismiss control pinches off the bar's end: one capsule becomes a field plus a circle. */
-.mx-dock {
-  --dock-split-slot: 76px;
-}
-
-.mx-dock .dockPinch {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  z-index: 0;
-  width: 36px;
-  height: 64px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(8px) saturate(1.6);
-  -webkit-backdrop-filter: blur(8px) saturate(1.6);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-60%, -50%) scale(0.35, 0.85);
-  transform-origin: right center;
-}
-
-.mx-dock .dockDismissIcon {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 24px;
-  height: 24px;
-  opacity: 0;
-  transform: scale(0.72);
-  transition:
-    opacity 0.2s ease,
-    transform 0.36s cubic-bezier(0.22, 1.2, 0.36, 1);
-}
-
-.mx-dock[data-composer] .dockDismissSlot {
-  width: var(--dock-split-slot);
-  animation: dock-slot-out 720ms linear both;
-}
-
-.mx-dock[data-composer] .dockDismiss {
-  --dock-bud: 0;
-  opacity: 1;
-  pointer-events: auto;
-  /* A mask or transform here becomes the backdrop root, so the lens samples
-     nothing and the circle reads as flat white. The field has neither. */
-  transform: none;
-  -webkit-mask-image: none;
-  mask-image: none;
-  animation: dock-split-out 720ms linear backwards;
-}
-
-.mx-dock[data-composer] .dockDismiss::after {
-  animation: dock-rim-out 720ms linear both;
-}
-
-.mx-dock[data-composer] .dockDismissIcon {
-  opacity: 1;
-  transform: none;
-  transition-delay: 0.34s;
-}
-
-.mx-dock[data-composer] .dockPinch {
-  animation: dock-pinch-out 720ms linear both;
-}
-
-.mx-dock[data-composer-closing] .dockDismissSlot {
-  animation: dock-slot-in 560ms linear both;
-}
-
-.mx-dock[data-composer-closing] .dockDismiss {
-  animation: dock-split-in 560ms linear both;
-}
-
-.mx-dock[data-composer-closing] .dockDismiss::after {
-  animation: dock-rim-in 560ms linear both;
-}
-
-.mx-dock[data-composer-closing] .dockDismissIcon {
-  opacity: 0;
-  transform: scale(0.72);
-  transition-delay: 0s;
-  transition-duration: 0.12s;
-}
-
-.mx-dock[data-composer-closing] .dockPinch {
-  animation: dock-pinch-in 560ms linear both;
-}
-
-.mx-dock[data-composer] .dockDismiss:hover .dockGlassTint {
-  background-color: rgba(255, 255, 255, 0.74);
-}
-
-.mx-dock[data-composer] .dockDismiss:active .dockDismissIcon {
-  transform: scale(0.9);
-}
-
-@keyframes dock-slot-out {
-  0% { width: 0; }
-  12% { width: 18px; }
-  28% { width: 48px; }
-  46% { width: 70px; }
-  64% { width: calc(var(--dock-split-slot) + 4px); }
-  82% { width: calc(var(--dock-split-slot) - 2px); }
-  100% { width: var(--dock-split-slot); }
-}
-
-@keyframes dock-slot-in {
-  0% { width: var(--dock-split-slot); }
-  28% { width: 70px; }
-  58% { width: 34px; }
-  100% { width: 0; }
-}
-
-@keyframes dock-split-out {
-  0% {
-    opacity: 0;
-    --dock-bud: 0.9;
-    transform: scale(0.5, 0.72);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  }
-  12% {
-    opacity: 1;
-    --dock-bud: 0.72;
-    transform: scale(0.86, 0.8);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  }
-  28% {
-    opacity: 1;
-    --dock-bud: 0.48;
-    transform: scale(1.2, 0.66);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-  }
-  46% {
-    opacity: 1;
-    --dock-bud: 0.12;
-    transform: scale(1.06, 0.9);
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    mask-image: linear-gradient(to right, transparent, #000 calc(var(--dock-bud) * 100%));
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-      0 8px 20px rgba(0, 0, 0, 0.08);
-  }
-  64% {
-    opacity: 1;
-    --dock-bud: 0;
-    transform: scale(0.97, 1.04);
-    -webkit-mask-image: none;
-    mask-image: none;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-      0 10px 28px rgba(0, 0, 0, 0.12);
-  }
-  100% {
-    opacity: 1;
-    --dock-bud: 0;
-    transform: none;
-    -webkit-mask-image: none;
-    mask-image: none;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-      0 10px 28px rgba(0, 0, 0, 0.12);
-  }
-}
-
-@keyframes dock-split-in {
-  0% {
-    opacity: 1;
-    --dock-bud: 0;
-    transform: scale(1);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-      0 10px 28px rgba(0, 0, 0, 0.12);
-  }
-  32% {
-    opacity: 1;
-    --dock-bud: 0.2;
-    transform: scale(1.14, 0.7);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-      0 6px 16px rgba(0, 0, 0, 0.06);
-  }
-  62% {
-    opacity: 1;
-    --dock-bud: 0.62;
-    transform: scale(0.88, 0.78);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  }
-  100% {
-    opacity: 0;
-    --dock-bud: 0.9;
-    transform: scale(0.5, 0.72);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.72),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.16);
-  }
-}
-
-@keyframes dock-rim-out {
-  0%, 32% { opacity: 0; }
-  58%, 100% { opacity: 1; }
-}
-
-@keyframes dock-rim-in {
-  0%, 36% { opacity: 1; }
-  68%, 100% { opacity: 0; }
-}
-
-@keyframes dock-pinch-out {
-  0% { opacity: 0; transform: translate(-70%, -50%) scale(0.4, 0.9); }
-  18% { opacity: 0.55; transform: translate(-24%, -50%) scale(1.05, 0.7); }
-  40% { opacity: 0.35; transform: translate(8%, -50%) scale(1.35, 0.32); }
-  100% { opacity: 0; transform: translate(36%, -50%) scale(0.3, 0.12); }
-}
-
-@keyframes dock-pinch-in {
-  0% { opacity: 0; transform: translate(36%, -50%) scale(0.3, 0.12); }
-  40% { opacity: 0.85; transform: translate(0%, -50%) scale(1.3, 0.4); }
-  70% { opacity: 0.7; transform: translate(-30%, -50%) scale(0.9, 0.72); }
-  100% { opacity: 0; transform: translate(-70%, -50%) scale(0.35, 0.85); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .mx-dock[data-composer] .dockDismissSlot,
-  .mx-dock[data-composer] .dockDismiss,
-  .mx-dock[data-composer] .dockDismiss::after,
-  .mx-dock[data-composer] .dockPinch,
-  .mx-dock[data-composer-closing] .dockDismissSlot,
-  .mx-dock[data-composer-closing] .dockDismiss,
-  .mx-dock[data-composer-closing] .dockDismiss::after,
-  .mx-dock[data-composer-closing] .dockPinch,
   .mx-dock .dockComposer,
   .mx-dock .dockBarSegController,
-  .mx-dock .dockDismissIcon,
   .mx-dock .dockComposerCaret,
   .mx-dock .dockDynamicContainer {
     animation: none;
@@ -1082,7 +827,6 @@
   }
 }
 
-/* The cluster is fixed on the page. Inside a specimen it stays in the frame. */
 .mx-dock.mx-dock--contained .dockCluster {
   position: absolute;
 }

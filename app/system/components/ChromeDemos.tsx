@@ -154,8 +154,7 @@ export function DockDemo() {
       scroller.scrollTo({ top: scroller.scrollHeight, behavior: 'auto' });
       return;
     }
-    // Pin the top through the fade-in. The glide has to start there, or the
-    // part of the trip that happens while the thread is still transparent is lost.
+    // Scrolling during the fade happens at opacity 0, so the visible trip would start partway down.
     scroller.scrollTo({ top: 0, behavior: 'auto' });
     let started = false;
     const pin = () => {

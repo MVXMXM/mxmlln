@@ -116,7 +116,7 @@ export function Dock({
     setUncontrolledItem('work');
     onActiveItemChange?.('work');
     if (composerTimer.current) clearTimeout(composerTimer.current);
-    // Holds the indicator snap until the circle has finished shrinking.
+    // Outlasts the bar fade. Clearing sooner lets the indicator travel while the labels are still invisible.
     composerTimer.current = setTimeout(() => setComposerClosing(false), 480);
   }, [onActiveItemChange]);
 
