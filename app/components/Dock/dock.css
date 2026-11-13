@@ -12,8 +12,6 @@
   position: absolute;
   inset: 0;
   container-type: inline-size;
-  /* The frame covers the specimen so the bar can pin to it. Clicks and
-     scrolling belong to the page underneath, except the bar itself. */
   pointer-events: none;
 }
 
