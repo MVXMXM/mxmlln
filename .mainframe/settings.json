@@ -1,0 +1,8 @@
+{
+  "setup": "npm ci",
+  "run": {
+    "web": {
+      "command": "npm exec -- next dev --port $MAINFRAME_PORT"
+    }
+  }
+}
