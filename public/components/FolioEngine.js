@@ -696,6 +696,134 @@ function initIntroAnimation() {
 // Initialize intro animation
 $(document).ready(initIntroAnimation);
 
+function youtubeVideoId(href) {
+    const match = String(href || '').match(
+        /(?:youtube\.com\/(?:watch\?(?:[^#]*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/|youtube-nocookie\.com\/embed\/)([A-Za-z0-9_-]{11})/
+    );
+    return match ? match[1] : null;
+}
+
+function youtubeLightboxTitle(source) {
+    const title = source.querySelector?.('.CardTitle, .chatCardHeaderTitle');
+    const text = title?.textContent?.replace(/\s+/g, ' ').trim();
+    return text || 'YouTube video';
+}
+
+let youtubeLightbox = null;
+
+function closeYouTubeLightbox() {
+    const lightbox = youtubeLightbox;
+    if (!lightbox) return;
+    youtubeLightbox = null;
+    document.removeEventListener('keydown', lightbox.onKey, true);
+    window.clearTimeout(lightbox.hintState.timer);
+    document.body.style.overflow = lightbox.previousOverflow;
+    lightbox.root.querySelector('iframe')?.remove();
+    lightbox.root.classList.remove('is-open');
+    const remove = (event) => {
+        if (event && event.target !== lightbox.root) return;
+        lightbox.root.remove();
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        remove();
+        return;
+    }
+    lightbox.root.addEventListener('transitionend', remove);
+    window.setTimeout(remove, 250);
+}
+
+function openYouTubeLightbox(href, source) {
+    const id = youtubeVideoId(href);
+    if (!id || !source) return false;
+    closeYouTubeLightbox();
+
+    const rect = source.getBoundingClientRect();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dx = rect.left + rect.width / 2 - window.innerWidth / 2;
+    const dy = rect.top + rect.height / 2 - window.innerHeight / 2;
+
+    const root = document.createElement('div');
+    root.className = 'yt-lightbox';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-label', youtubeLightboxTitle(source));
+    root.tabIndex = -1;
+
+    const stage = document.createElement('div');
+    stage.className = 'yt-lightbox-stage';
+    if (!reducedMotion) {
+        stage.style.transform = `translate(${dx}px, ${dy}px) scale(0.4)`;
+    }
+
+    const hint = document.createElement('div');
+    hint.className = 'yt-lightbox-hint';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.textContent = 'ESC to close ↓';
+
+    const player = document.createElement('div');
+    player.className = 'yt-lightbox-player';
+
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+    iframe.title = root.getAttribute('aria-label');
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.allowFullscreen = true;
+
+    player.appendChild(iframe);
+    stage.appendChild(hint);
+    stage.appendChild(player);
+    root.appendChild(stage);
+
+    const hintState = { timer: 0 };
+    const showHint = () => {
+        root.classList.add('is-hint');
+        window.clearTimeout(hintState.timer);
+        hintState.timer = window.setTimeout(() => root.classList.remove('is-hint'), 1000);
+    };
+    const hideHint = () => {
+        window.clearTimeout(hintState.timer);
+        root.classList.remove('is-hint');
+    };
+    root.addEventListener('mouseenter', showHint);
+    root.addEventListener('mouseleave', hideHint);
+    player.addEventListener('mouseenter', hideHint);
+    player.addEventListener('mouseleave', showHint);
+    root.addEventListener('click', (event) => {
+        if (event.target.closest('.yt-lightbox-player')) return;
+        closeYouTubeLightbox();
+    });
+
+    const onKey = (event) => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeYouTubeLightbox();
+    };
+    document.addEventListener('keydown', onKey, true);
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(root);
+    root.focus({ preventScroll: true });
+
+    youtubeLightbox = { root, onKey, previousOverflow, hintState };
+
+    if (reducedMotion) {
+        root.classList.add('is-open');
+        stage.style.opacity = '1';
+        return true;
+    }
+
+    void stage.offsetWidth;
+    root.classList.add('is-open');
+    stage.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+    stage.style.transform = 'translate(0, 0) scale(1)';
+    stage.style.opacity = '1';
+
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Handle card links
     document.querySelectorAll('.Card[data-href]').forEach(card => {
@@ -704,6 +832,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (container && container.classList.contains('expanded')) {
                 const href = this.getAttribute('data-href');
                 if (!href) return;
+                if (openYouTubeLightbox(href, this)) return;
                 if (href.startsWith('/blog')) {
                     window.open(href, '_blank', 'noopener,noreferrer');
                 } else if (href.startsWith('/')) {
@@ -713,6 +842,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+    });
+
+    document.addEventListener('click', function(event) {
+        const link = event.target.closest?.('.chatCardURL a');
+        if (!link) return;
+        if (openYouTubeLightbox(link.getAttribute('href'), link)) {
+            event.preventDefault();
+        }
     });
 
     // Handle card zooms
