@@ -109,8 +109,7 @@ function blurAxis(
   }
 }
 
-// The shader frost kernel bands, and a backdrop blur paints behind the sharp
-// lens, so the photograph is frosted before it is bent.
+// Shader frost bands, and backdrop-filter paints behind this canvas.
 function blurPhoto(source: HTMLCanvasElement, sigma: number) {
   const context = source.getContext('2d');
   if (!context || sigma <= 0) return;
@@ -153,8 +152,6 @@ function mountCapturedGlass(dock: HTMLElement) {
   dock.closest('.mx-dock')?.setAttribute('data-liquid-ignore', '');
   dock.dataset.dockCapture = 'true';
 
-  // One photograph of the whole list. Scroll just slides that photo under
-  // the lens. Rephotographing on scroll is what made the refraction lag.
   const refreshSnapshot = async () => {
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
     if (!renderer?._uploadTexture || !scroller || cancelled || dock.dataset.dockGlass !== 'live') return;
@@ -172,14 +169,15 @@ function mountCapturedGlass(dock: HTMLElement) {
     document.body.appendChild(host);
     try {
       const { snapdom } = await import('@zumer/snapdom');
+      const snapshotScale = 2;
       const next = await snapdom.toCanvas(clone, {
-        scale: 2,
+        scale: snapshotScale,
         dpr: 1,
         backgroundColor: getComputedStyle(stage ?? scroller).backgroundColor,
       });
       const contentHeight = scroller.scrollHeight;
       if (!cancelled && contentHeight > 0) {
-        blurPhoto(next, 8);
+        blurPhoto(next, 4 * snapshotScale);
         renderer.snapshotTarget = scroller;
         renderer.scaleFactor = next.height / contentHeight;
         renderer._uploadTexture(next);
@@ -203,10 +201,6 @@ function mountCapturedGlass(dock: HTMLElement) {
     }, 280);
   };
 
-  // The photograph has no live backdrop, so a view change frosts over it the
-  // same way the Chromium lens does while its map is rebuilding. Resizes use
-  // the heavy cover. A fading list uses the resting blur until the new photo
-  // is in.
   const applyCover = () => {
     const canvas = (window.__liquidGLRenderer__ as CapturedRenderer | undefined)?.canvas;
     // Glassworks leaves transition:none on the pill, which cancels the grow.
@@ -214,8 +208,6 @@ function mountCapturedGlass(dock: HTMLElement) {
     if (resizing) {
       dock.dataset.dockMoving = 'true';
       delete dock.dataset.dockVeil;
-      // Same cover as the Chromium lens: the tint carries the grow, with no
-      // live blur underneath it.
       dock.style.setProperty('backdrop-filter', 'none');
       dock.style.setProperty('-webkit-backdrop-filter', 'none');
     } else if (fadeHold) {
@@ -234,8 +226,7 @@ function mountCapturedGlass(dock: HTMLElement) {
     canvas.style.opacity = resizing || fadeHold ? '0' : '1';
   };
 
-  // The shader falloff is 2 × band. Chromium's bend dies one corner-radius
-  // in, so the band is half the used radius and the center of the pill stays flat.
+  // Shader falloff width is 2 × band.
   const fitRim = () => {
     const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === dock);
     if (!lens) return;
@@ -348,10 +339,7 @@ function mountCapturedGlass(dock: HTMLElement) {
         on: {
           init() {
             if (cancelled) return;
-            // The shared canvas is appended to body at z-index 0. The stage's
-            // overflow traps the dock, so that canvas paints behind the stage
-            // or over the controls. Seating it here puts the lens above the
-            // scroll content and under the cluster (z-index 900).
+            // Glassworks appends the canvas to body at z-index 0, and the stage overflow traps the dock.
             const canvas = window.__liquidGLRenderer__?.canvas;
             if (canvas && stage) {
               stage.appendChild(canvas);
@@ -403,10 +391,149 @@ function mountCapturedGlass(dock: HTMLElement) {
   };
 }
 
-/**
- * Chromium refracts the backdrop through an SVG displacement map. Safari and
- * Firefox photograph the page and refract that still in WebGL (Glassworks).
- */
+// CriOS is WebKit, so iOS Chrome falls through with Safari and Firefox.
+function usesSvgBackdropLens(userAgent: string) {
+  return /Chrome|Chromium|Edg\//.test(userAgent);
+}
+
+function mountSvgLens(
+  dock: HTMLElement,
+  backdrop: HTMLElement,
+  mapRef: { current: SVGFEImageElement | null },
+  displacementRefs: { current: (SVGFEDisplacementMapElement | null)[] },
+) {
+  // The backdrop is display:none until this is set, so the map can be measured.
+  dock.dataset.dockNative = 'true';
+  let settleTimer = 0;
+  let generation = 0;
+  let coverStarted = false;
+  let closingAtStart = false;
+  let builtSize = '';
+  let pendingSize = '';
+
+  // The lens map only matches one size. Frost covers that gap. A backdrop
+  // filter on the panel would hide the lens, so the panel stays unfiltered.
+  const holdCover = (closing: boolean) => {
+    coverStarted = true;
+    closingAtStart = closing;
+    for (const element of displacementRefs.current) element?.setAttribute('scale', '0');
+    backdrop.style.removeProperty('opacity');
+    dock.style.setProperty('backdrop-filter', 'none');
+    dock.style.setProperty('-webkit-backdrop-filter', 'none');
+    dock.dataset.dockNative = 'false';
+    dock.dataset.dockMoving = 'true';
+  };
+
+  const beginCover = () => {
+    const closing = dock.closest('.mx-dock')?.getAttribute('data-closing') === 'true';
+    if (coverStarted && closingAtStart === closing) return;
+    holdCover(closing);
+  };
+
+  const writeScales = (radius: number) => {
+    const lens = 2 * radius;
+    const displacement = lens * REFRACTION_STRENGTH;
+    const chromaSpread = displacement * CHROMA * 0.018;
+    const channels = [displacement + chromaSpread, displacement, displacement - chromaSpread];
+    for (const [index, scale] of channels.entries()) {
+      displacementRefs.current[index]?.setAttribute('scale', String((scale * 255) / 254));
+    }
+  };
+
+  const showLens = (radius: number, token: number) => {
+    if (token !== generation) return;
+    coverStarted = false;
+    writeScales(radius);
+    dock.style.removeProperty('backdrop-filter');
+    dock.style.removeProperty('-webkit-backdrop-filter');
+    backdrop.style.removeProperty('opacity');
+    dock.dataset.dockNative = 'true';
+    delete dock.dataset.dockMoving;
+  };
+
+  const paintMap = (width: number, height: number, radius: number) => {
+    const density = Math.min(1, 512 / width);
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(width * density);
+    canvas.height = Math.ceil(height * density);
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const pixels = context.createImageData(canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const localX = (x + 0.5) / density - width / 2;
+        const localY = (y + 0.5) / density - height / 2;
+        const direction = roundedRectangleDisplacement(
+          localX,
+          localY,
+          dock.offsetWidth,
+          dock.offsetHeight,
+          radius,
+        );
+        const index = (y * canvas.width + x) * 4;
+        pixels.data[index] = 128 + 127 * direction.x;
+        pixels.data[index + 1] = 128 + 127 * direction.y;
+        pixels.data[index + 2] = 128;
+        pixels.data[index + 3] = 255;
+      }
+    }
+    context.putImageData(pixels, 0, 0);
+    const map = mapRef.current;
+    if (!map) return;
+    map.setAttribute('width', String(width));
+    map.setAttribute('height', String(height));
+    map.setAttribute('href', canvas.toDataURL());
+  };
+
+  const update = (token: number) => {
+    const width = dock.offsetWidth;
+    const height = dock.offsetHeight;
+    if (!width || !height || token !== generation) return;
+    const size = `${width}x${height}`;
+    const radius = Math.min(
+      parseFloat(getComputedStyle(dock).borderRadius) || 0,
+      dock.offsetWidth / 2,
+      dock.offsetHeight / 2,
+    );
+    if (size === builtSize) {
+      showLens(radius, token);
+      return;
+    }
+    builtSize = size;
+    paintMap(width, height, radius);
+    // The new map is blank for a frame. Show it once that frame has passed,
+    // or the channel split reads as a turquoise flash.
+    requestAnimationFrame(() => {
+      showLens(radius, token);
+    });
+  };
+
+  const scheduleUpdate = () => {
+    const size = `${Math.round(dock.offsetWidth)}x${Math.round(dock.offsetHeight)}`;
+    if (size === '0x0' || size === pendingSize) return;
+    pendingSize = size;
+    const handoff = Boolean(builtSize);
+    if (handoff) beginCover();
+    const token = ++generation;
+    window.clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(() => update(token), handoff ? 70 : 0);
+  };
+
+  const observer = new ResizeObserver(scheduleUpdate);
+  observer.observe(dock);
+  scheduleUpdate();
+  return () => {
+    observer.disconnect();
+    window.clearTimeout(settleTimer);
+    generation += 1;
+    dock.style.removeProperty('backdrop-filter');
+    dock.style.removeProperty('-webkit-backdrop-filter');
+    backdrop.style.removeProperty('opacity');
+    delete dock.dataset.dockNative;
+    delete dock.dataset.dockMoving;
+  };
+}
+
 export function DockGlass() {
   const id = useId().replace(/:/g, '');
   const ref = useRef<HTMLSpanElement>(null);
@@ -417,137 +544,10 @@ export function DockGlass() {
     const backdrop = ref.current;
     const dock = backdrop?.parentElement;
     if (!backdrop || !dock) return;
-    if (!/Chrome|Chromium|Edg\//.test(navigator.userAgent)) return mountCapturedGlass(dock);
-    // The backdrop is display:none until this is set, so the map can be measured.
-    dock.dataset.dockNative = 'true';
-    let settleTimer = 0;
-    let generation = 0;
-    let coverStarted = false;
-    let closingAtStart = false;
-    let builtSize = '';
-    let pendingSize = '';
-
-    // The lens map only matches one size. Frost covers that gap. A backdrop
-    // filter on the panel would hide the lens, so the panel stays unfiltered.
-    const holdCover = (closing: boolean) => {
-      coverStarted = true;
-      closingAtStart = closing;
-      for (const element of displacementRefs.current) element?.setAttribute('scale', '0');
-      backdrop.style.removeProperty('opacity');
-      dock.style.setProperty('backdrop-filter', 'none');
-      dock.style.setProperty('-webkit-backdrop-filter', 'none');
-      dock.dataset.dockNative = 'false';
-      dock.dataset.dockMoving = 'true';
-    };
-
-    const beginCover = () => {
-      const closing = dock.closest('.mx-dock')?.getAttribute('data-closing') === 'true';
-      if (coverStarted && closingAtStart === closing) return;
-      holdCover(closing);
-    };
-
-    const writeScales = (radius: number) => {
-      const lens = 2 * radius;
-      const displacement = lens * REFRACTION_STRENGTH;
-      const chromaSpread = displacement * CHROMA * 0.018;
-      const channels = [displacement + chromaSpread, displacement, displacement - chromaSpread];
-      for (const [index, scale] of channels.entries()) {
-        displacementRefs.current[index]?.setAttribute('scale', String((scale * 255) / 254));
-      }
-    };
-
-    const showLens = (radius: number, token: number) => {
-      if (token !== generation) return;
-      coverStarted = false;
-      writeScales(radius);
-      dock.style.removeProperty('backdrop-filter');
-      dock.style.removeProperty('-webkit-backdrop-filter');
-      backdrop.style.removeProperty('opacity');
-      dock.dataset.dockNative = 'true';
-      delete dock.dataset.dockMoving;
-    };
-
-    const paintMap = (width: number, height: number, radius: number) => {
-      const density = Math.min(1, 512 / width);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.ceil(width * density);
-      canvas.height = Math.ceil(height * density);
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      const pixels = context.createImageData(canvas.width, canvas.height);
-      for (let y = 0; y < canvas.height; y++) {
-        for (let x = 0; x < canvas.width; x++) {
-          const localX = (x + 0.5) / density - width / 2;
-          const localY = (y + 0.5) / density - height / 2;
-          const direction = roundedRectangleDisplacement(
-            localX,
-            localY,
-            dock.offsetWidth,
-            dock.offsetHeight,
-            radius,
-          );
-          const index = (y * canvas.width + x) * 4;
-          pixels.data[index] = 128 + 127 * direction.x;
-          pixels.data[index + 1] = 128 + 127 * direction.y;
-          pixels.data[index + 2] = 128;
-          pixels.data[index + 3] = 255;
-        }
-      }
-      context.putImageData(pixels, 0, 0);
-      const map = mapRef.current;
-      if (!map) return;
-      map.setAttribute('width', String(width));
-      map.setAttribute('height', String(height));
-      map.setAttribute('href', canvas.toDataURL());
-    };
-
-    const update = (token: number) => {
-      const width = dock.offsetWidth;
-      const height = dock.offsetHeight;
-      if (!width || !height || token !== generation) return;
-      const size = `${width}x${height}`;
-      const radius = Math.min(
-        parseFloat(getComputedStyle(dock).borderRadius) || 0,
-        dock.offsetWidth / 2,
-        dock.offsetHeight / 2,
-      );
-      if (size === builtSize) {
-        showLens(radius, token);
-        return;
-      }
-      builtSize = size;
-      paintMap(width, height, radius);
-      // The new map is blank for a frame. Show it once that frame has passed,
-      // or the channel split reads as a turquoise flash.
-      requestAnimationFrame(() => {
-        showLens(radius, token);
-      });
-    };
-
-    const scheduleUpdate = () => {
-      const size = `${Math.round(dock.offsetWidth)}x${Math.round(dock.offsetHeight)}`;
-      if (size === '0x0' || size === pendingSize) return;
-      pendingSize = size;
-      const handoff = Boolean(builtSize);
-      if (handoff) beginCover();
-      const token = ++generation;
-      window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(() => update(token), handoff ? 70 : 0);
-    };
-
-    const observer = new ResizeObserver(scheduleUpdate);
-    observer.observe(dock);
-    scheduleUpdate();
-    return () => {
-      observer.disconnect();
-      window.clearTimeout(settleTimer);
-      generation += 1;
-      dock.style.removeProperty('backdrop-filter');
-      dock.style.removeProperty('-webkit-backdrop-filter');
-      backdrop.style.removeProperty('opacity');
-      delete dock.dataset.dockNative;
-      delete dock.dataset.dockMoving;
-    };
+    if (usesSvgBackdropLens(navigator.userAgent)) {
+      return mountSvgLens(dock, backdrop, mapRef, displacementRefs);
+    }
+    return mountCapturedGlass(dock);
   }, []);
 
   return (
