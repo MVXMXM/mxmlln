@@ -758,7 +758,11 @@ function openYouTubeLightbox(href, source) {
     const hint = document.createElement('div');
     hint.className = 'yt-lightbox-hint';
     hint.setAttribute('aria-hidden', 'true');
-    hint.textContent = 'ESC to close ↓';
+    const hintKey = document.createElement('kbd');
+    hintKey.textContent = 'ESC';
+    const hintLabel = document.createElement('span');
+    hintLabel.textContent = 'to close';
+    hint.append(hintKey, hintLabel);
 
     const player = document.createElement('div');
     player.className = 'yt-lightbox-player';

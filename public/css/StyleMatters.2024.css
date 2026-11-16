@@ -1432,24 +1432,42 @@ input:focus {
 .yt-lightbox-hint {
 	pointer-events: none;
 	position: absolute;
-	top: -42px;
+	top: -44px;
 	left: 50%;
 	z-index: 2;
-	height: 0;
-	overflow: hidden;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	opacity: 0;
 	transform: translateX(-50%);
 	font-family: Archivo, sans-serif;
 	font-size: 14px;
-	font-weight: 700;
-	line-height: 21px;
-	color: #f8fafc;
+	font-weight: 600;
+	line-height: 1;
+	color: #ffffff;
 	white-space: nowrap;
-	transition: height 0.4s ease, opacity 0.4s ease;
+	transition: opacity 0.35s ease;
+}
+
+.yt-lightbox-hint kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 18px;
+	padding: 0 4px;
+	border-radius: 4px;
+	border: 1px solid rgba(0, 0, 0, 0.14);
+	background: #ffffff;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+	font-family: Archivo, sans-serif;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	line-height: 1;
+	color: #1a1a1a;
 }
 
 .yt-lightbox.is-hint .yt-lightbox-hint {
-	height: 21px;
 	opacity: 1;
 }
 
@@ -1457,17 +1475,13 @@ input:focus {
 	overflow: hidden;
 	cursor: default;
 	background: #000;
-	border: 1px solid #CBD5E1;
-	border-radius: 8px;
+	border: 10px solid #ffffff;
+	border-radius: 24px;
 	width: min(90vw, 151vh, 1280px);
 	aspect-ratio: 16 / 9;
-	box-shadow:
-		0 690px 250px 0 rgba(0, 0, 0, 0.01),
-		0 388px 233px 0 rgba(0, 0, 0, 0.05),
-		0 172px 172px 0 rgba(0, 0, 0, 0.09),
-		0 43px 95px 0 rgba(0, 0, 0, 0.10);
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
 	transform: translateY(0);
-	transition: transform 0.4s ease;
+	transition: transform 0.35s ease;
 }
 
 .yt-lightbox.is-hint .yt-lightbox-player {
@@ -1483,7 +1497,6 @@ input:focus {
 
 @media (min-width: 640px) {
 	.yt-lightbox-player {
-		border-radius: 16px;
 		width: min(93.5vw, 160vh, 1280px);
 	}
 }
