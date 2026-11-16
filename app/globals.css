@@ -42,6 +42,13 @@
 
 html {
   background-color: var(--background);
+  scrollbar-gutter: stable;
+}
+
+/* Chromium does not inherit scrollbar-width from the root. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: gray transparent;
 }
 
 body {
