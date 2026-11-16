@@ -346,12 +346,12 @@ h3 {
 	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
 }
 
-#cardLinkOut {
-	cursor: url('../assets/icons/LinkOutFill50.png') 25 25, pointer;
+#cardPlay {
+	cursor: url('../assets/icons/PlayFill50.png') 25 25, pointer;
 }
 
-#cardLinkOut.cardPlay {
-	cursor: url('../assets/icons/PlayFill50.png') 25 25, pointer;
+#cardLinkOut {
+	cursor: url('../assets/icons/LinkOutFill50.png') 25 25, pointer;
 }
 
 .card-blog-link {
