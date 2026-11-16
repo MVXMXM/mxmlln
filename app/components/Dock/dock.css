@@ -186,6 +186,15 @@
   -webkit-backdrop-filter: none;
 }
 
+.mx-dock .dockDynamicContainer[data-dock-glass='live']:not([data-dock-moving='true']) {
+  backdrop-filter: saturate(1.6);
+  -webkit-backdrop-filter: saturate(1.6);
+}
+
+.mx-dock .dockDynamicContainer[data-dock-capture='true'] > :not(.dockGlassTint):not(.dockGlassBackdrop):not(.dockGlassDefs) {
+  pointer-events: auto;
+}
+
 .mx-dock .dockDynamicContainer[data-dock-native='true'] .dockGlassBackdrop {
   display: block;
 }
