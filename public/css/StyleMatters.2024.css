@@ -346,6 +346,10 @@ h3 {
 	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
 }
 
+#cardPlay {
+	cursor: url('../assets/icons/PlayFill50.png') 25 25, pointer;
+}
+
 #cardLinkOut {
 	cursor: url('../assets/icons/LinkOutFill50.png') 25 25, pointer;
 }
@@ -1395,4 +1399,119 @@ input:focus {
 	font-size: 32px;
 	text-shadow: 0px 3px 10px rgba(0, 0, 0, .25);
 	text-align: left;
+}
+
+.yt-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 10050;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.25);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+.yt-lightbox.is-open {
+	opacity: 1;
+}
+
+.yt-lightbox-stage {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	will-change: transform, opacity;
+}
+
+.yt-lightbox-hint {
+	pointer-events: none;
+	position: absolute;
+	top: -44px;
+	left: 50%;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	opacity: 0;
+	transform: translateX(-50%);
+	font-family: Archivo, sans-serif;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
+	color: #ffffff;
+	white-space: nowrap;
+	transition: opacity 0.35s ease;
+}
+
+.yt-lightbox-hint kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 18px;
+	padding: 0 4px;
+	border-radius: 4px;
+	border: 1px solid rgba(0, 0, 0, 0.14);
+	background: #ffffff;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+	font-family: Archivo, sans-serif;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	line-height: 1;
+	color: #1a1a1a;
+}
+
+.yt-lightbox.is-hint .yt-lightbox-hint {
+	opacity: 1;
+}
+
+.yt-lightbox-player {
+	overflow: hidden;
+	cursor: default;
+	background: #000;
+	border: 10px solid #ffffff;
+	border-radius: 24px;
+	width: min(90vw, 151vh, 1280px);
+	aspect-ratio: 16 / 9;
+	box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+	transform: translateY(0);
+	transition: transform 0.35s ease;
+}
+
+.yt-lightbox.is-hint .yt-lightbox-player {
+	transform: translateY(8px);
+}
+
+.yt-lightbox-player iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+@media (min-width: 640px) {
+	.yt-lightbox-player {
+		width: min(93.5vw, 160vh, 1280px);
+	}
+}
+
+@media (max-width: 639px) {
+	.yt-lightbox-hint {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.yt-lightbox,
+	.yt-lightbox-stage,
+	.yt-lightbox-hint,
+	.yt-lightbox-player {
+		transition: none;
+	}
 }
