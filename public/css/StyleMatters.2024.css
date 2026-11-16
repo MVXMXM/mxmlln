@@ -6,7 +6,6 @@
    without 100dvh/100lvh height math (absolute + % height collapsed). */
 html, body {
 	scroll-behavior: smooth;
-	scrollbar-gutter: stable;
 	margin: 0;
 	top: 0px;
 	left: 0px;
@@ -20,7 +19,36 @@ html, body {
 	animation: gradient 5s ease infinite;
 }
 
-* {
+/* Native document bar paints its track with the canvas color, a purple
+   lane beside the fixed grade. Hide that bar and draw a thumb over the page. */
+html.overlayScroll,
+html.overlayScroll body {
+	scrollbar-width: none;
+}
+
+.scrollThumb {
+	position: fixed;
+	z-index: 1200;
+	top: 0;
+	right: 4px;
+	width: 4px;
+	border-radius: 999px;
+	background: gray;
+	opacity: 0.7;
+	cursor: grab;
+	touch-action: none;
+}
+
+.scrollThumb.is-off {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.scrollThumb:active {
+	cursor: grabbing;
+}
+
+body * {
 	scrollbar-width: thin;
 	scrollbar-color: gray transparent;
 }
