@@ -26,6 +26,47 @@
   --accent: #00BBFF;
   --font-sans: var(--font-archivo), 'Archivo', sans-serif;
   --font-handwritten: var(--font-homemade-apple), 'Homemade Apple', cursive;
+  /* Resolved on :root, so these cannot reference fonts loaded lower in the tree.
+     .system-layout and .blog-layout override them once the faces are present. */
+  --font-serif: Georgia, serif;
+  --font-mono: ui-monospace, monospace;
+
+  /* Text styles. /system specimens in content/system.mdx mirror these.
+     --sm steps apply below 640px. */
+  --text-display: 125px;
+  --text-h1: 44px;
+  --text-h1-sm: 28px;
+  --text-h2: 32px;
+  --text-h2-sm: 22px;
+  --text-h3: 20px;
+  --text-body: 16px;
+  --text-body-sm: 15px;
+  --text-caption: 13px;
+  --text-scrawl: 18px;
+
+  --text-button: 14px;
+  --text-nav: 13px;
+  --text-label: 12px;
+  --text-micro: 11px;
+  --text-tabular: 10px;
+
+  --leading-display: 1.1;
+  --leading-h1: 1.1;
+  --leading-h2: 1.2;
+  --leading-h3: 1.3;
+  --leading-body: 1.75;
+  --leading-caption: 1.5;
+  --leading-scrawl: 1.5;
+}
+
+.blog-post-header .description,
+.system-header-desc,
+.originally-published,
+.blog-figure figcaption {
+  font-size: var(--text-caption);
+  line-height: var(--leading-caption);
+  text-wrap: pretty;
+  color: var(--muted);
 }
 
 @theme inline {
@@ -287,7 +328,7 @@ body {
 .folio-sidebar::-webkit-scrollbar { display: none; }
 
 .folio-eyebrow {
-  font-size: 11px;
+  font-size: var(--text-micro);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--folio-muted-2);
@@ -340,7 +381,7 @@ body {
 }
 
 .folio-sidebar-item .num {
-  font-size: 10px;
+  font-size: var(--text-tabular);
   color: var(--folio-muted-2);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.05em;

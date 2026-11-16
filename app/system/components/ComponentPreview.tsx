@@ -13,6 +13,7 @@ export function ComponentPreview({
   background = 'light',
   tall = false,
   square = false,
+  block = false,
   children,
 }: {
   background?: 'light' | 'dark' | 'checker' | 'glass';
@@ -20,12 +21,14 @@ export function ComponentPreview({
   tall?: boolean;
   /** Canvas matches its width, for specimens that should read as a square stage. */
   square?: boolean;
+  /** Full-width stack, for specimens that read as a document rather than a centered demo. */
+  block?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className={`component-preview${square ? ' component-preview--square' : ''}`}>
       <div
-        className={`component-preview-canvas component-preview-canvas--${background}${tall ? ' component-preview-canvas--tall' : ''}`}
+        className={`component-preview-canvas component-preview-canvas--${background}${tall ? ' component-preview-canvas--tall' : ''}${block ? ' component-preview-canvas--block' : ''}`}
       >
         {children}
       </div>

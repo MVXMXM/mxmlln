@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
 import Minimap from '../blog/Minimap';
-import { Type } from './components/TokenSwatch';
+import { Families, Type } from './components/TokenSwatch';
 import { Palette } from './components/ColorScale';
 import { ComponentPreview } from './components/ComponentPreview';
 import { AnchorHeading } from './components/AnchorHeading';
@@ -43,6 +43,7 @@ const mdxComponents: MDXComponents = {
   },
   // Doc helpers
   Palette,
+  Families,
   Type,
   ComponentPreview,
   LogoDemo,
