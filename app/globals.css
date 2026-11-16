@@ -46,8 +46,6 @@
   --text-button: 14px;
   --text-nav: 13px;
   --text-label: 12px;
-  --text-micro: 11px;
-  --text-tabular: 10px;
 
   --leading-display: 1.1;
   --leading-h1: 1.1;
@@ -155,14 +153,6 @@ body {
   box-sizing: border-box;
 }
 
-.experiments-title {
-  font-size: 32px;
-  font-weight: 600;
-  margin-bottom: 48px;
-  text-align: center;
-  color: var(--foreground);
-}
-
 .experiments-grid {
   display: flex;
   flex-wrap: wrap;
@@ -241,41 +231,6 @@ body {
   background: var(--background);
 }
 
-@media (max-width: 768px) {
-  .experiments-title {
-    font-size: 28px;
-    margin-bottom: 32px;
-  }
-}
-
-/* Chat container and text styles */
-.text-block {
-  font-family: var(--font-sans);
-  font-size: 6rem;
-  font-weight: 500;
-  color: var(--foreground);
-  text-align: center;
-  line-height: 110%;
-  letter-spacing: -4px;
-  display: flex;
-}
-
-.char {
-  transition: font-weight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.char.space {
-  width: 0.25em;
-  display: inline-block;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
 /* ─── Folio variant gallery (scoped) ───────────────────────────── */
 .folio-root {
   --folio-bg: #ffffff;
@@ -326,16 +281,6 @@ body {
 }
 .folio-sidebar::-webkit-scrollbar { display: none; }
 
-.folio-eyebrow {
-  font-size: var(--text-micro);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--folio-muted-2);
-  margin-bottom: 24px;
-  font-weight: 500;
-  text-align: center;
-}
-
 /* Sketchbook hero scoped to the folio sidebar: same fonts, sidebar-fit sizing */
 .folio-hero {
   padding: 0;
@@ -377,31 +322,6 @@ body {
   color: var(--folio-fg);
   font-size: 22px;
   font-weight: 700;
-}
-
-.folio-sidebar-item .num {
-  font-size: var(--text-tabular);
-  color: var(--folio-muted-2);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-  transition: color 0.35s ease;
-}
-.folio-sidebar-item.active .num { color: var(--folio-muted); }
-
-.folio-sidebar-item .tag {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--folio-muted);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
-  align-self: center;
-}
-.folio-sidebar-item.active .tag {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 .folio-cards {
@@ -446,42 +366,6 @@ body {
 }
 .folio-card.is-active .folio-card-frame {
   pointer-events: auto;
-}
-
-.folio-card-meta {
-  position: absolute;
-  left: 28px;
-  bottom: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 2;
-  mix-blend-mode: difference;
-  color: #fff;
-}
-.folio-card-meta .title {
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.folio-card-meta .subtitle {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  opacity: 0.7;
-}
-
-.folio-card-number {
-  position: absolute;
-  top: 24px;
-  right: 28px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: #fff;
-  mix-blend-mode: difference;
-  font-variant-numeric: tabular-nums;
-  z-index: 2;
 }
 
 @media (max-width: 900px) {
