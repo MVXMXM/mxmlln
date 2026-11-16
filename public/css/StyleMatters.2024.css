@@ -6,6 +6,7 @@
    without 100dvh/100lvh height math (absolute + % height collapsed). */
 html, body {
 	scroll-behavior: smooth;
+	scrollbar-gutter: stable;
 	margin: 0;
 	top: 0px;
 	left: 0px;
@@ -17,6 +18,11 @@ html, body {
 	background-image: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
 	background-size: 400% 400%;
 	animation: gradient 5s ease infinite;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: gray transparent;
 }
 
 button:disabled {

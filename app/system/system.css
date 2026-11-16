@@ -394,9 +394,6 @@
   .dock-demo-scroll { transition: none; }
 }
 
-html {
-  scrollbar-gutter: stable;
-}
 .dock-demo-scroll {
   scrollbar-width: none;
 }
