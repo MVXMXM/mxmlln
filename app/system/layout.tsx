@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Archivo, Homemade_Apple } from 'next/font/google';
+import { Archivo, Homemade_Apple, JetBrains_Mono, Playfair_Display } from 'next/font/google';
 import { SiteLogo } from '../components/SiteLogo';
 
 const archivo = Archivo({
@@ -14,13 +14,27 @@ const homemadeApple = Homemade_Apple({
   variable: '--font-homemade-apple',
 });
 
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-jetbrains',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: '600',
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: 'Design System — Maximillian Piras',
 };
 
 export default function SystemLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`system-layout ${archivo.variable} ${homemadeApple.variable}`}>
+    <div className={`system-layout ${archivo.variable} ${homemadeApple.variable} ${jetbrains.variable} ${playfair.variable}`}>
       <SiteLogo
         href="/"
         ariaLabel="Back to maximin.design"
