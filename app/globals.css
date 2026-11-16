@@ -31,8 +31,7 @@
   --font-serif: Georgia, serif;
   --font-mono: ui-monospace, monospace;
 
-  /* Text styles. /system specimens in content/system.mdx mirror these.
-     --sm steps apply below 640px. */
+  /* Specimens in content/system.mdx hardcode these values. */
   --text-display: 125px;
   --text-h1: 44px;
   --text-h1-sm: 28px;

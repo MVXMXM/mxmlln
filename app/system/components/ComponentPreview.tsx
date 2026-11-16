@@ -21,7 +21,6 @@ export function ComponentPreview({
   tall?: boolean;
   /** Canvas matches its width, for specimens that should read as a square stage. */
   square?: boolean;
-  /** Full-width stack, for specimens that read as a document rather than a centered demo. */
   block?: boolean;
   children: React.ReactNode;
 }) {
