@@ -1,0 +1,305 @@
+body:has(.folio-page) {
+  display: block;
+  align-items: stretch;
+  max-width: none;
+  background-color: #5357eb;
+  background-image: linear-gradient(10deg, #30d6ff, #5357eb, #dd8aba, #d8d8ff);
+}
+
+html:has(.folio-page),
+html:has(.folio-page) body {
+  scrollbar-width: none;
+}
+
+.folio-page,
+.folio-page *,
+.folio-page *::before,
+.folio-page *::after {
+  box-sizing: content-box;
+}
+
+.folio-page img {
+  max-width: none;
+}
+
+.folio-page .IntroLoader svg,
+.folio-page .IntroLoader img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+.folio-page .IntroLoader svg {
+  filter: brightness(0);
+}
+
+/* Matches the old nav intro: parked below the screen, then a 250ms rise.
+   Fill stops when the rise ends. A lingering opacity or transform animation
+   becomes the backdrop root and the glass lens stops seeing the page. */
+.folio-dock:not(.is-in) .dockCluster {
+  visibility: hidden;
+  transform: translateY(calc(124px + env(safe-area-inset-bottom, 0px)));
+}
+
+.folio-dock.is-in .dockCluster {
+  animation: folio-dock-rise 250ms ease-in-out 250ms backwards;
+}
+
+@keyframes folio-dock-rise {
+  from { transform: translateY(calc(124px + env(safe-area-inset-bottom, 0px))); }
+  to { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-dock.is-in .dockCluster {
+    animation: none;
+    transform: none;
+  }
+}
+
+.folio-user-msg {
+  position: fixed;
+  z-index: 1000;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 24px;
+  left: 24px;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.folio-user-msg .chatQueryContainer {
+  width: auto;
+  margin-bottom: 0;
+}
+
+.folio-user-msg .chatQuery {
+  border-radius: 24px 24px 4px 24px;
+}
+
+.folio-user-msg,
+.folio-user-msg *,
+.folio-assistant-msg,
+.folio-assistant-msg * {
+  box-sizing: border-box;
+}
+
+.folio-user-msg .chatQuery p {
+  margin: 0;
+  padding: 0;
+  color: #333;
+  font-family: var(--font-sans), Archivo, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.folio-assistant-msg {
+  position: fixed;
+  z-index: 850;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.folio-focus-column {
+  position: fixed;
+  z-index: 850;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  width: min(420px, calc(100vw - 48px));
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  pointer-events: none;
+}
+
+.folio-focus-column.is-session {
+  width: min(520px, calc(100vw - 48px));
+}
+
+.folio-masonry {
+  position: fixed;
+  z-index: 700;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  align-content: start;
+  gap: 12px;
+  padding: 0 24px 140px;
+  overflow: auto;
+  pointer-events: none;
+}
+
+.folio-masonry.is-result {
+  overflow: hidden;
+}
+
+.folio-page.is-folio-session .TitleBlock3 {
+  animation: folio-header-out 0.55s ease forwards;
+  pointer-events: none;
+}
+
+.folio-page.is-folio-session .AllStacks,
+.folio-page.is-folio-session #StackBar {
+  height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@keyframes folio-header-out {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(-110%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(-110%);
+    opacity: 0;
+    height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-page.is-folio-session .TitleBlock3 {
+    animation: none;
+    opacity: 0;
+    height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.folio-focus-column .folio-user-msg {
+  position: static;
+  z-index: auto;
+  top: auto;
+  right: auto;
+  left: auto;
+  width: 100%;
+}
+
+.folio-focus-column .folio-user-msg .chatQueryContainer {
+  max-width: 100%;
+}
+
+.folio-focus-column .folio-assistant-msg.is-reply {
+  position: static;
+  left: auto;
+  width: 100%;
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+}
+
+.folio-assistant-msg.is-reply .chatBlurb {
+  width: 100%;
+}
+
+.folio-assistant-msg.is-reply .chatBlurb p {
+  min-width: 0;
+}
+
+.folio-page.is-folio-focus #StackBar {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.folio-assistant-msg .chatBlurb {
+  width: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+.folio-assistant-msg .chatResponseLogoContainer {
+  border-width: 1px;
+}
+
+.folio-assistant-msg.is-scan {
+  width: max-content;
+  max-width: min(320px, calc(100vw - 48px));
+}
+
+.folio-assistant-msg .chatBlurb p {
+  margin: 0;
+  padding: 0;
+  color: #333;
+  font-family: var(--font-sans), Archivo, sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  text-align: left;
+}
+
+.folio-assistant-msg .chatBlurb .folio-scan-label,
+.folio-assistant-msg .chatBlurb .folio-scan-kicker {
+  font-family: var(--font-handwritten), "Homemade Apple", cursive;
+  color: #000;
+}
+
+.folio-assistant-msg .chatBlurb .folio-scan-label {
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.folio-assistant-msg .chatBlurb .folio-scan-kicker {
+  margin-bottom: 2px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.folio-assistant-msg.is-scan .chatBlurb {
+  width: max-content;
+  max-width: min(320px, calc(100vw - 48px));
+}
+
+.folio-page .CardStackLabelContainer.is-scanning {
+  outline: 3px solid #000;
+  outline-offset: 8px;
+}
+
+.folio-scan-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.folio-page .Card.is-picked {
+  outline: 3px solid #000;
+  outline-offset: 4px;
+}
+
+.folio-chat-failure {
+  position: fixed;
+  z-index: 901;
+  left: 50%;
+  bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #000;
+  font-family: var(--font-sans), Archivo, sans-serif;
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: nowrap;
+}

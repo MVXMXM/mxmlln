@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useId, useRef } from 'react';
+import { openGif, type GifReel } from './gif-frames';
 
 const AIR_TO_GLASS = 1 / 1.5;
 const DISTORTION_CURVE = 5;
@@ -110,17 +111,25 @@ function blurAxis(
 }
 
 // Shader frost bands, and backdrop-filter paints behind this canvas.
+let blurScratch = new Uint8ClampedArray(0);
+let blurSigma = -1;
+let blurBoxes: number[] = [];
+
 function blurPhoto(source: HTMLCanvasElement, sigma: number) {
-  const context = source.getContext('2d');
+  const context = source.getContext('2d', { willReadFrequently: true });
   if (!context || sigma <= 0) return;
   const { width, height } = source;
   const image = context.getImageData(0, 0, width, height);
   const pixels = image.data;
-  const scratch = new Uint8ClampedArray(pixels.length);
-  for (const diameter of gaussBoxes(sigma)) {
+  if (blurScratch.length !== pixels.length) blurScratch = new Uint8ClampedArray(pixels.length);
+  if (blurSigma !== sigma) {
+    blurSigma = sigma;
+    blurBoxes = gaussBoxes(sigma);
+  }
+  for (const diameter of blurBoxes) {
     const radius = (diameter - 1) >> 1;
-    blurAxis(pixels, scratch, width, height, radius, true);
-    blurAxis(scratch, pixels, width, height, radius, false);
+    blurAxis(pixels, blurScratch, width, height, radius, true);
+    blurAxis(blurScratch, pixels, width, height, radius, false);
   }
   context.putImageData(image, 0, 0);
 }
@@ -132,7 +141,718 @@ type CapturedRenderer = Omit<NonNullable<Window['__liquidGLRenderer__']>, 'captu
   _renderLens?: (lens: unknown) => void;
 };
 
+// The bevel reads past the rim, so the photo is the pill plus this margin.
+const PAGE_PAD = 48;
+const PAGE_SCALE = 0.5;
+
+const GRADE_STOPS = [
+  [0x30, 0xd6, 0xff],
+  [0x53, 0x57, 0xeb],
+  [0xdd, 0x8a, 0xba],
+  [0xd8, 0xd8, 0xff],
+];
+
+function axisLength(part: string, area: number) {
+  if (part.endsWith('%')) return (area * Number.parseFloat(part)) / 100;
+  if (part.endsWith('px')) return Number.parseFloat(part);
+  return area;
+}
+
+function axisOffset(part: string, area: number, image: number) {
+  if (part.endsWith('%')) return (area - image) * (Number.parseFloat(part) / 100);
+  if (part.endsWith('px')) return Number.parseFloat(part);
+  if (part === 'center') return (area - image) / 2;
+  if (part === 'left' || part === 'top') return 0;
+  if (part === 'right' || part === 'bottom') return area - image;
+  return 0;
+}
+
+function linearToSrgb(channel: number) {
+  const clamped = Math.min(1, Math.max(0, channel));
+  const encoded = clamped <= 0.0031308 ? 12.92 * clamped : 1.055 * clamped ** (1 / 2.4) - 0.055;
+  return Math.round(encoded * 255);
+}
+
+function srgbToLinear(channel: number) {
+  const value = channel / 255;
+  return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+}
+
+function toOklab(rgb: number[]) {
+  const r = srgbToLinear(rgb[0]);
+  const g = srgbToLinear(rgb[1]);
+  const b = srgbToLinear(rgb[2]);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+function fromOklab(lab: number[]) {
+  const l = lab[0] + 0.3963377774 * lab[1] + 0.2158037573 * lab[2];
+  const m = lab[0] - 0.1055613458 * lab[1] - 0.0638541728 * lab[2];
+  const s = lab[0] - 0.0894841775 * lab[1] - 1.291485548 * lab[2];
+  const linear = [
+    4.0767416621 * l ** 3 - 3.3077115913 * m ** 3 + 0.2309699292 * s ** 3,
+    -1.2684380046 * l ** 3 + 2.6097574011 * m ** 3 - 0.3413193965 * s ** 3,
+    -0.0041960863 * l ** 3 - 0.7034186147 * m ** 3 + 1.707614701 * s ** 3,
+  ];
+  return linear.map(linearToSrgb);
+}
+
+const GRADE_LABS = GRADE_STOPS.map((rgb) => toOklab(rgb));
+
+function gradeMix(amount: number) {
+  const stops = [0, 1 / 3, 2 / 3, 1];
+  const t = Math.min(1, Math.max(0, amount));
+  let index = 0;
+  while (index < stops.length - 2 && t > stops[index + 1]) index += 1;
+  const span = stops[index + 1] - stops[index];
+  const local = span ? (t - stops[index]) / span : 0;
+  const start = GRADE_LABS[index];
+  const end = GRADE_LABS[index + 1];
+  return fromOklab(start.map((channel, channelIndex) => channel + (end[channelIndex] - channel) * local));
+}
+
+function gradeTone(channel: number) {
+  const contrasted = (channel / 255 - 0.5) * 1.1 + 0.5;
+  return Math.round(Math.min(255, Math.max(0, contrasted * 1.1 * 255)));
+}
+
+// .gradeBG paints the ramp at 400% and slides it. The pill covers one point of that slice.
+function samplePageColor(region: DOMRect) {
+  const grade = document.querySelector<HTMLElement>('.gradeBG');
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const x = region.left + region.width / 2;
+  const y = region.top + region.height / 2;
+  if (!grade) return 'rgb(83 87 235)';
+  const style = getComputedStyle(grade);
+  const size = style.backgroundSize.split(/\s+/);
+  const position = style.backgroundPosition.split(/\s+/);
+  const imageW = axisLength(size[0] || '100%', width);
+  const imageH = axisLength(size[1] || size[0] || '100%', height);
+  const offsetX = axisOffset(position[0] || '0%', width, imageW);
+  const offsetY = axisOffset(position[1] || '50%', height, imageH);
+  const rad = (10 * Math.PI) / 180;
+  const dx = Math.sin(rad);
+  const dy = -Math.cos(rad);
+  const half = Math.abs((imageW / 2) * dx) + Math.abs((imageH / 2) * dy);
+  const along = (x - offsetX - imageW / 2) * dx + (y - offsetY - imageH / 2) * dy;
+  const [red, green, blue] = gradeMix(half ? along / (2 * half) + 0.5 : 0).map(gradeTone);
+  const rx = 525 / 2;
+  const ry = 525 / 2;
+  const outsideX = Math.abs(x - width / 2) - rx;
+  const outsideY = Math.abs(y - height / 2) - ry;
+  const distance = Math.hypot(Math.max(outsideX, 0), Math.max(outsideY, 0)) + Math.min(Math.max(outsideX, outsideY), 0);
+  const bloom = 0.75 * Math.exp(-(Math.max(distance, 0) ** 2) / (2 * 75 * 75));
+  const mix = (channel: number) => Math.round(channel * (1 - bloom) + 255 * bloom);
+  return `rgb(${mix(red)} ${mix(green)} ${mix(blue)})`;
+}
+
+function overlaps(rect: DOMRect, region: DOMRect) {
+  return (
+    rect.width > 1 &&
+    rect.height > 1 &&
+    rect.bottom > region.top &&
+    rect.top < region.bottom &&
+    rect.right > region.left &&
+    rect.left < region.right
+  );
+}
+
+const cardImages = new Map<string, HTMLImageElement>();
+const gifClips = new Map<string, { reel: GifReel; canvas: HTMLCanvasElement; epoch: number }>();
+const gifLoads = new Map<string, Promise<void>>();
+
+function cardSrc(card: HTMLElement) {
+  const match = /url\((['"]?)(.*?)\1\)/.exec(card.style.backgroundImage);
+  return match?.[2] || null;
+}
+
+function cardPhoto(card: HTMLElement) {
+  const src = cardSrc(card);
+  if (!src) return null;
+  let image = cardImages.get(src);
+  if (!image) {
+    image = new Image();
+    image.src = src;
+    cardImages.set(src, image);
+  }
+  return image.complete && image.naturalWidth > 0 ? image : null;
+}
+
+function paintCard(context: CanvasRenderingContext2D, card: HTMLElement, rect: DOMRect, region: DOMRect) {
+  const style = getComputedStyle(card);
+  if (style.visibility === 'hidden' || style.display === 'none') return;
+  // Inline transform is the destination. The painted frame has to use the
+  // matrix the browser is interpolating, or a hover snaps to its last pose.
+  const matrix = new DOMMatrix(style.transform);
+  const visual = Math.hypot(matrix.a, matrix.b) || 1;
+  const rotation = Math.atan2(matrix.b, matrix.a);
+  const width = card.offsetWidth * visual * PAGE_SCALE;
+  const height = card.offsetHeight * visual * PAGE_SCALE;
+  if (width < 1 || height < 1) return;
+  const radius = (Number.parseFloat(style.borderTopLeftRadius) || 0) * visual * PAGE_SCALE;
+  const border = (Number.parseFloat(style.borderTopWidth) || 0) * visual * PAGE_SCALE;
+  context.save();
+  context.translate(
+    (rect.left + rect.width / 2 - region.left) * PAGE_SCALE,
+    (rect.top + rect.height / 2 - region.top) * PAGE_SCALE,
+  );
+  if (rotation) context.rotate(rotation);
+  context.beginPath();
+  context.roundRect(-width / 2, -height / 2, width, height, radius);
+  context.fillStyle = style.borderTopColor;
+  context.fill();
+  const innerW = width - border * 2;
+  const innerH = height - border * 2;
+  if (innerW > 1 && innerH > 1) {
+    context.beginPath();
+    context.roundRect(-innerW / 2, -innerH / 2, innerW, innerH, Math.max(0, radius - border));
+    context.fillStyle = style.backgroundColor;
+    context.fill();
+    const video = card.querySelector('video');
+    const clip = cardSrc(card);
+    const source = video && video.readyState >= 2 ? video : (clip && gifClips.get(clip)?.canvas) || cardPhoto(card);
+    if (source) {
+      const sourceW = source instanceof HTMLVideoElement ? source.videoWidth : source instanceof HTMLCanvasElement ? source.width : source.naturalWidth;
+      const sourceH = source instanceof HTMLVideoElement ? source.videoHeight : source instanceof HTMLCanvasElement ? source.height : source.naturalHeight;
+      if (sourceW > 0 && sourceH > 0) {
+        context.save();
+        context.clip();
+        const cover = Math.max(innerW / sourceW, innerH / sourceH);
+        context.drawImage(source, (-sourceW * cover) / 2, (-sourceH * cover) / 2, sourceW * cover, sourceH * cover);
+        context.restore();
+      }
+    }
+  }
+  context.restore();
+}
+
+// A pile rasterized with snapdom finishes after the scroll has moved on.
+// The card images are already decoded, so the strip is redrawn from them.
+function paintCards(context: CanvasRenderingContext2D, region: DOMRect) {
+  const cards = document.getElementsByClassName('Card');
+  const hits: { card: HTMLElement; rect: DOMRect }[] = [];
+  for (let index = 0; index < cards.length; index += 1) {
+    const card = cards[index];
+    if (!(card instanceof HTMLElement) || card.closest('.mx-dock')) continue;
+    const rect = card.getBoundingClientRect();
+    if (!overlaps(rect, region)) continue;
+    hits.push({ card, rect });
+  }
+  hits.sort(
+    (a, b) => (Number.parseInt(a.card.style.zIndex, 10) || 0) - (Number.parseInt(b.card.style.zIndex, 10) || 0),
+  );
+  for (const { card, rect } of hits) paintCard(context, card, rect, region);
+}
+
+function mountPageGlass(dock: HTMLElement) {
+  let cancelled = false;
+  let started = false;
+  let revealed = false;
+  let resizeTimer = 0;
+  let scrollTimer = 0;
+  let motionFrame = 0;
+  let mediaFrame = 0;
+  let scrollingClips: { reel: GifReel; canvas: HTMLCanvasElement; epoch: number }[] | null = null;
+  let presented = false;
+  let refreshedAt = 0;
+  let plateKey = '';
+  let settleTimer = 0;
+  let sharp: HTMLCanvasElement | null = null;
+  let prior: HTMLCanvasElement | null = null;
+  let lastScroll = Number.NaN;
+  let home: DOMRect | null = null;
+  let scrollShape = false;
+  let lastSize = '';
+  let masonryObserver: MutationObserver | null = null;
+  let capture: () => void = () => {};
+  // Glassworks snapshots whatever carries this attribute, using that node's
+  // scroll height, and parks its canvas at z-index 0. An empty plate the size
+  // of the pill keeps the first snapshot off the page; the canvas is lifted
+  // under the dock because the portfolio gradient sits at z-index 1.
+  const plate = document.createElement('div');
+  plate.setAttribute('data-dock-snapshot', '');
+  plate.setAttribute('data-liquid-ignore', '');
+  plate.setAttribute('aria-hidden', 'true');
+  plate.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;visibility:hidden';
+  document.body.appendChild(plate);
+  dock.closest('.mx-dock')?.setAttribute('data-liquid-ignore', '');
+  dock.dataset.dockCapture = 'true';
+
+  const syncPlate = () => {
+    const rect = home ?? dock.getBoundingClientRect();
+    const left = rect.left - PAGE_PAD;
+    const top = rect.top - PAGE_PAD;
+    const width = rect.width + PAGE_PAD * 2;
+    const height = rect.height + PAGE_PAD * 2;
+    const key = `${left}|${top}|${width}|${height}`;
+    if (key !== plateKey) {
+      plateKey = key;
+      plate.style.left = `${left}px`;
+      plate.style.top = `${top}px`;
+      plate.style.width = `${width}px`;
+      plate.style.height = `${height}px`;
+    }
+    return new DOMRect(left, top, width, height);
+  };
+
+  const liftCanvas = () => {
+    const canvas = window.__liquidGLRenderer__?.canvas;
+    if (!canvas) return;
+    if (!canvas.isConnected) document.body.appendChild(canvas);
+    const cluster = dock.closest('.dockCluster');
+    const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 900;
+    canvas.style.zIndex = String(Number.isFinite(z) && z > 1 ? z - 1 : 899);
+  };
+
+  const fitRim = () => {
+    const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === dock);
+    if (!lens) return;
+    const short = Math.min(dock.offsetWidth, dock.offsetHeight);
+    const specified = parseFloat(getComputedStyle(dock).borderTopLeftRadius) || 0;
+    const radius = Math.min(specified, dock.offsetWidth / 2, dock.offsetHeight / 2);
+    if (short > 0 && radius > 0) lens.options.bevelWidth = radius / (2 * short);
+    dock.style.removeProperty('transition');
+  };
+
+  const restorePill = () => {
+    dock.style.opacity = '';
+    dock.style.pointerEvents = '';
+    dock.style.background = '';
+    dock.style.backgroundColor = '';
+    dock.style.backdropFilter = '';
+    dock.style.removeProperty('-webkit-backdrop-filter');
+    dock.style.removeProperty('transition');
+  };
+
+  const upload = (photo: HTMLCanvasElement, region: DOMRect) => {
+    const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+    if (!renderer?._uploadTexture || cancelled || region.height < 1) return;
+    renderer.snapshotTarget = plate;
+    renderer.scaleFactor = photo.height / region.height;
+    renderer._uploadTexture(photo);
+    if (!presented) {
+      presented = true;
+      liftCanvas();
+      fitRim();
+      revealed = true;
+      dock.dataset.dockGlass = 'live';
+      // The lens writes backdrop-filter: none. The live rule is saturate only,
+      // and it has to win or the pill stays uncolored over the refraction.
+      dock.style.backdropFilter = '';
+      (dock.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
+    }
+    refreshedAt = performance.now();
+    if (renderer.canvas && !dock.dataset.dockMoving && !dock.dataset.dockScrolling) {
+      renderer.canvas.style.opacity = '1';
+    }
+  };
+
+  const sized = (canvas: HTMLCanvasElement | null, width: number, height: number) => {
+    if (canvas && canvas.width === width && canvas.height === height) return canvas;
+    const next = document.createElement('canvas');
+    next.width = width;
+    next.height = height;
+    next.getContext('2d', { willReadFrequently: true });
+    return next;
+  };
+
+  const paintStrip = (region: DOMRect) => {
+    const width = Math.max(1, Math.round(region.width * PAGE_SCALE));
+    const height = Math.max(1, Math.round(region.height * PAGE_SCALE));
+    sharp = sized(sharp, width, height);
+    const context = sharp.getContext('2d');
+    if (!context) return sharp;
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.fillStyle = samplePageColor(region);
+    context.fillRect(0, 0, width, height);
+    paintCards(context, region);
+    const marker = document.querySelector('.ContentContainer');
+    const origin = marker ? marker.getBoundingClientRect().top : window.scrollY;
+    const dy = Number.isNaN(lastScroll) ? 0 : (lastScroll - origin) * PAGE_SCALE;
+    lastScroll = origin;
+    if (prior && prior.width === width && prior.height === height && Math.abs(dy) >= 1) {
+      // Ghosts sit between the last photograph and this one, along the scroll.
+      context.save();
+      const steps = 3;
+      for (let step = 1; step <= steps; step += 1) {
+        context.globalAlpha = 0.34 * ((steps - step + 1) / steps);
+        context.drawImage(prior, 0, -dy * (1 - step / (steps + 1)));
+      }
+      context.restore();
+    }
+    blurPhoto(sharp, 4 * PAGE_SCALE);
+    prior = sized(prior, width, height);
+    prior.getContext('2d')?.drawImage(sharp, 0, 0);
+    return sharp;
+  };
+
+  // One clock for anything that keeps moving under the pill. A video is copied
+  // as it plays. A GIF is seeked to the same loop time as the card.
+  const videoUnder = (region: DOMRect) => {
+    for (const video of document.querySelectorAll<HTMLVideoElement>('.Card video')) {
+      if (video.paused || video.ended || video.readyState < 2) continue;
+      const card = video.closest('.Card');
+      if (!(card instanceof HTMLElement) || card.closest('.mx-dock')) continue;
+      if (overlaps(card.getBoundingClientRect(), region)) return true;
+    }
+    return false;
+  };
+
+  const paintClip = (clip: { reel: GifReel; canvas: HTMLCanvasElement }) => {
+    const context = clip.canvas.getContext('2d');
+    if (!context) return;
+    const pixels = clip.reel.pixels as Uint8ClampedArray<ArrayBuffer>;
+    context.putImageData(new ImageData(pixels, clip.reel.width, clip.reel.height), 0, 0);
+  };
+
+  const gifEpoch = (src: string) => {
+    const url = new URL(src, location.href).href;
+    let start = Number.POSITIVE_INFINITY;
+    for (const entry of performance.getEntriesByName(url)) {
+      if (entry instanceof PerformanceResourceTiming && entry.responseEnd > 0) {
+        start = Math.min(start, entry.responseEnd);
+      }
+    }
+    return Number.isFinite(start) ? start : performance.now();
+  };
+
+  const ensureGif = (src: string) => {
+    if (gifClips.has(src) || gifLoads.has(src)) return;
+    const load = (async () => {
+      try {
+        const bytes = new Uint8Array(await (await fetch(src)).arrayBuffer());
+        if (cancelled) return;
+        const reel = openGif(bytes);
+        if (!reel) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = reel.width;
+        canvas.height = reel.height;
+        const clip = { reel, canvas, epoch: gifEpoch(src) };
+        clip.reel.sync(performance.now() - clip.epoch);
+        paintClip(clip);
+        gifClips.set(src, clip);
+        if (started) refresh();
+      } catch (error) {
+        console.warn('Dock gif decode failed', error);
+      }
+    })();
+    gifLoads.set(src, load);
+  };
+
+  const gifsUnder = (region: DOMRect) => {
+    const playing: { reel: GifReel; canvas: HTMLCanvasElement; epoch: number }[] = [];
+    const seen = new Set<string>();
+    const cards = document.getElementsByClassName('Card');
+    for (let index = 0; index < cards.length; index += 1) {
+      const card = cards[index];
+      if (!(card instanceof HTMLElement) || card.closest('.mx-dock')) continue;
+      const src = cardSrc(card);
+      if (!src || seen.has(src) || !/\.gif(?:$|[?#])/i.test(src)) continue;
+      if (!overlaps(card.getBoundingClientRect(), region)) continue;
+      seen.add(src);
+      const clip = gifClips.get(src);
+      if (clip) playing.push(clip);
+      else ensureGif(src);
+    }
+    return playing;
+  };
+
+  const seekGifs = (clips: { reel: GifReel; canvas: HTMLCanvasElement; epoch: number }[]) => {
+    const now = performance.now();
+    for (const clip of clips) {
+      const before = clip.reel.index;
+      clip.reel.sync(now - clip.epoch);
+      if (clip.reel.index !== before) paintClip(clip);
+    }
+  };
+
+  const followMedia = (region: DOMRect) => {
+    if (mediaFrame || cancelled || dock.dataset.dockMoving) return;
+    const scrolling = Boolean(dock.dataset.dockScrolling);
+    if (!scrolling && !gifsUnder(region).length && !videoUnder(region)) return;
+    mediaFrame = requestAnimationFrame(() => {
+      mediaFrame = 0;
+      if (cancelled || !started || dock.dataset.dockMoving) return;
+      if (dock.dataset.dockScrolling) {
+        // The pill is solid, so skip the photograph, but keep the GIF on the page's clock.
+        if (!scrollingClips) scrollingClips = gifsUnder(syncPlate());
+        if (!scrollingClips.length) return;
+        seekGifs(scrollingClips);
+        followMedia(region);
+        return;
+      }
+      scrollingClips = null;
+      const next = syncPlate();
+      const due = gifsUnder(next);
+      if (!due.length && !videoUnder(next)) return;
+      seekGifs(due);
+      if (performance.now() - refreshedAt > 12) refresh();
+      else followMedia(next);
+    });
+  };
+
+  const refresh = (force = false) => {
+    const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+    if (!renderer?._uploadTexture || cancelled || (!force && dock.dataset.dockScrolling)) return;
+    const region = syncPlate();
+    if (region.width < 1 || region.height < 1) return;
+    try {
+      seekGifs(gifsUnder(region));
+      upload(paintStrip(region), region);
+      followMedia(region);
+    } catch (error) {
+      console.warn('Dock glass recapture failed', error);
+      if (!revealed) restorePill();
+    }
+  };
+
+  capture = () => refresh();
+
+  const schedule = (delay: number) => {
+    window.clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(() => {
+      if (started) refresh();
+    }, delay);
+  };
+
+  // The frost eases with the pill. The controls fold down to the mark, and the
+  // size change is the pill itself, so it does not take the width-change cover.
+  const releaseScroll = () => {
+    scrollTimer = 0;
+    if (!dock.dataset.dockScrolling) return;
+    scrollingClips = null;
+    if (mediaFrame) {
+      cancelAnimationFrame(mediaFrame);
+      mediaFrame = 0;
+    }
+    lastScroll = Number.NaN;
+    if (started) refresh(true);
+    const canvas = window.__liquidGLRenderer__?.canvas;
+    if (canvas) canvas.style.transition = 'opacity 0.56s cubic-bezier(0.22, 1, 0.36, 1)';
+    dock.dataset.dockExpanding = 'true';
+    delete dock.dataset.dockScrolling;
+    if (canvas && !dock.dataset.dockMoving) canvas.style.opacity = '1';
+    window.clearTimeout(scrollTimer);
+    scrollTimer = window.setTimeout(() => {
+      delete dock.dataset.dockExpanding;
+      scrollShape = false;
+      // The open pill is what covers the GIFs. Dropping this region earlier
+      // follows the tiny mark, and the photograph stays on an old frame.
+      home = null;
+      scrollTimer = 0;
+      if (started) refresh();
+    }, 600);
+  };
+
+  const onScroll = (event: Event) => {
+    if (!started) return;
+    if (event.target instanceof Node && dock.contains(event.target)) return;
+    if (!dock.dataset.dockScrolling) {
+      if (!home) home = dock.getBoundingClientRect();
+      scrollShape = true;
+      delete dock.dataset.dockExpanding;
+      dock.dataset.dockScrolling = 'true';
+      const canvas = window.__liquidGLRenderer__?.canvas;
+      if (canvas) {
+        canvas.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+        canvas.style.opacity = '0';
+      }
+      if (!mediaFrame) followMedia(syncPlate());
+    }
+    window.clearTimeout(scrollTimer);
+    scrollTimer = window.setTimeout(releaseScroll, 400);
+  };
+
+  // A hover writes the destination style once. The cards keep moving for the
+  // transition, and nothing else asks for a new photograph until it ends.
+  const sceneTransition = (target: EventTarget | null) =>
+    target instanceof Element && !target.closest('.mx-dock') && Boolean(target.closest('.folio-page'));
+  const sceneMoving = () =>
+    document.getAnimations().some((animation) => {
+      if (!(animation instanceof CSSTransition) || animation.playState !== 'running') return false;
+      const source = animation.effect && 'target' in animation.effect ? animation.effect.target : null;
+      return source instanceof Element && sceneTransition(source);
+    });
+  const pumpMotion = () => {
+    motionFrame = 0;
+    if (!started || cancelled) return;
+    refresh();
+    if (sceneMoving()) motionFrame = requestAnimationFrame(pumpMotion);
+  };
+  const onTransitionRun = (event: Event) => {
+    if (!sceneTransition(event.target) || !started || motionFrame) return;
+    motionFrame = requestAnimationFrame(pumpMotion);
+  };
+
+  const onResize = () => {
+    fitRim();
+    const size = `${Math.round(dock.offsetWidth)}x${Math.round(dock.offsetHeight)}`;
+    if (!lastSize) {
+      lastSize = size;
+      return;
+    }
+    if (size === lastSize) return;
+    lastSize = size;
+    if (scrollShape) return;
+    dock.dataset.dockMoving = 'true';
+    const canvas = window.__liquidGLRenderer__?.canvas;
+    if (canvas) {
+      canvas.style.transition = 'none';
+      canvas.style.opacity = '0';
+    }
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => {
+      delete dock.dataset.dockMoving;
+      void refresh();
+    }, 120);
+  };
+
+  const resizeObserver = new ResizeObserver(onResize);
+  resizeObserver.observe(dock);
+  const content = document.querySelector('.ContentContainer');
+  const contentObserver = content ? new MutationObserver(() => schedule(400)) : null;
+  if (content) contentObserver?.observe(content, { attributes: true, attributeFilter: ['style'] });
+  const page = dock.closest('.folio-page');
+  const watchMasonry = () => {
+    const masonry = page?.querySelector('.folio-masonry');
+    if (!masonry || masonryObserver) return;
+    masonryObserver = new MutationObserver(() => schedule(360));
+    masonryObserver.observe(masonry, { attributes: true, attributeFilter: ['class'] });
+  };
+  const pageObserver = page
+    ? new MutationObserver(() => {
+        watchMasonry();
+        schedule(360);
+      })
+    : null;
+  if (page) pageObserver?.observe(page, { attributes: true, attributeFilter: ['class'], childList: true });
+  watchMasonry();
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+  document.addEventListener('transitionrun', onTransitionRun, true);
+  const onPlaying = (event: Event) => {
+    if (!started || mediaFrame || !(event.target instanceof HTMLVideoElement)) return;
+    refresh();
+  };
+  document.addEventListener('playing', onPlaying, true);
+
+  const begin = () => {
+    if (cancelled || started) return;
+    if (dock.offsetWidth < 1 || dock.offsetHeight < 1) {
+      requestAnimationFrame(begin);
+      return;
+    }
+    started = true;
+    void (async () => {
+      try {
+        const [{ default: glassworks, createSnapdomEngine }, { snapdom }] = await Promise.all([
+          import('@codedgar/glassworks'),
+          import('@zumer/snapdom'),
+        ]);
+        if (cancelled) return;
+        glassworks({
+          target: '.dockDynamicContainer[data-dock-capture="true"]',
+          snapshot: '[data-dock-snapshot]',
+          engine: createSnapdomEngine(snapdom),
+          resolution: 2,
+          refraction: 0.04,
+          bevelDepth: 0.012,
+          bevelWidth: 0.25,
+          frost: 0,
+          shadow: false,
+          specular: false,
+          reveal: 'none',
+          tilt: false,
+          magnify: 1,
+          on: {
+            init() {
+              if (cancelled) return;
+              liftCanvas();
+              fitRim();
+            },
+          },
+        });
+        const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+        if (renderer) {
+          renderer.snapshotTarget = plate;
+          renderer.captureSnapshot = capture;
+          liftCanvas();
+        }
+        capture();
+      } catch (error) {
+        console.warn('Dock glass capture failed', error);
+        restorePill();
+      }
+    })();
+  };
+
+  const cluster = dock.closest('.dockCluster');
+  const folioDock = dock.closest('.folio-dock');
+  let settleWait = 0;
+  const dockSettled = () => {
+    if (!cluster) return true;
+    const transform = getComputedStyle(cluster).transform;
+    return transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+  };
+  const queueBegin = () => {
+    window.clearTimeout(settleWait);
+    settleWait = window.setTimeout(() => {
+      if (cancelled) return;
+      if (dockSettled()) begin();
+      else queueBegin();
+    }, 40);
+  };
+  const onIntroEnd = () => queueBegin();
+  cluster?.addEventListener('animationend', onIntroEnd);
+  const introObserver =
+    folioDock && !folioDock.classList.contains('is-in')
+      ? new MutationObserver(() => {
+          if (folioDock.classList.contains('is-in')) queueBegin();
+        })
+      : null;
+  introObserver?.observe(folioDock!, { attributes: true, attributeFilter: ['class'] });
+  if (!folioDock || folioDock.classList.contains('is-in')) queueBegin();
+
+  return () => {
+    cancelled = true;
+    window.clearTimeout(settleWait);
+    window.clearTimeout(resizeTimer);
+    window.clearTimeout(settleTimer);
+    window.clearTimeout(scrollTimer);
+    if (motionFrame) cancelAnimationFrame(motionFrame);
+    if (mediaFrame) cancelAnimationFrame(mediaFrame);
+    document.removeEventListener('transitionrun', onTransitionRun, true);
+    document.removeEventListener('playing', onPlaying, true);
+    cluster?.removeEventListener('animationend', onIntroEnd);
+    introObserver?.disconnect();
+    resizeObserver.disconnect();
+    contentObserver?.disconnect();
+    pageObserver?.disconnect();
+    masonryObserver?.disconnect();
+    document.removeEventListener('scroll', onScroll, { capture: true });
+    plate.remove();
+    const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+    if (renderer?.captureSnapshot === capture) renderer.captureSnapshot = () => {};
+    if (renderer) renderer.lenses = renderer.lenses.filter((lens) => lens.el !== dock);
+    delete dock.dataset.dockCapture;
+    delete dock.dataset.dockGlass;
+    delete dock.dataset.dockMoving;
+    delete dock.dataset.dockScrolling;
+    delete dock.dataset.dockExpanding;
+    dock.closest('.mx-dock')?.removeAttribute('data-liquid-ignore');
+    restorePill();
+  };
+}
+
 function mountCapturedGlass(dock: HTMLElement) {
+  if (!dock.closest('.dock-demo-stage')) return mountPageGlass(dock);
   let cancelled = false;
   let recaptureTimer = 0;
   let resizeTimer = 0;

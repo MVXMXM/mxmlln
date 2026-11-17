@@ -9,7 +9,9 @@ const cardSchema = z.object({
   cardImage: z.string(),
   cardHeader: z.string(),
   cardDescription: z.string(),
+  // ChatIntelligence.js reads cardURL as one string. cardURLs is the full list.
   cardURL: z.string(),
+  cardURLs: z.array(z.string()).min(1).max(6),
 });
 
 export async function POST(req: NextRequest) {

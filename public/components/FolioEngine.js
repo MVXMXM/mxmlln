@@ -413,16 +413,6 @@ function loadCards(cardStack = document.querySelector('.CardStack')) {
     });
 }
 
-// Initialize default styles
-document.addEventListener('DOMContentLoaded', function() {
-    setDefaultCardStackStyles();
-    
-    // Load all card stacks immediately
-    const cardStacks = document.querySelectorAll('.CardStack');
-    cardStacks.forEach(stack => {
-        loadCards(stack);
-    });
-});
 
 function collapseExpandedStack() {
     if (StackIsExpanded) {
@@ -685,6 +675,7 @@ function initIntroAnimation() {
         this.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
       });
     });
+    document.querySelector('.folio-dock')?.classList.add('is-in');
   }, 1250);
 
   $('body').css('overflow-y', 'hidden');
@@ -828,12 +819,13 @@ function openYouTubeLightbox(href, source) {
     return true;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function bindFolioCards() {
     // Handle card links
     document.querySelectorAll('.Card[data-href]').forEach(card => {
         card.addEventListener('click', function() {
             const container = this.closest('.CardStackLabelContainer');
-            if (container && container.classList.contains('expanded')) {
+            const featured = this.closest('.folio-masonry.is-result');
+            if ((container && container.classList.contains('expanded')) || featured) {
                 const href = this.getAttribute('data-href');
                 if (!href) return;
                 if (openYouTubeLightbox(href, this)) return;
@@ -905,5 +897,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-});
+}
+
+// `/` injects this classic script after DOMContentLoaded. The same boot
+// has to run when that event has already passed.
+function bootFolioDocument() {
+    setDefaultCardStackStyles();
+    document.querySelectorAll('.CardStack').forEach(stack => {
+        loadCards(stack);
+    });
+    bindFolioCards();
+    window.__folioReady = true;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootFolioDocument);
+} else {
+    bootFolioDocument();
+}
 

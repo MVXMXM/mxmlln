@@ -93,7 +93,7 @@ export function Dock({
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
-  onSend?: () => void;
+  onSend?: (value: string) => void;
 }) {
   const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
   const [panel, setPanel] = useState<Panel | null>(null);
@@ -292,9 +292,10 @@ export function Dock({
             inert={!composer || undefined}
             onSubmit={(event) => {
               event.preventDefault();
-              if (!draft.trim()) return;
+              const value = draft.trim();
+              if (!value) return;
               setDraft('');
-              onSend?.();
+              onSend?.(value);
             }}
           >
             <span className="dockComposerCaret" aria-hidden="true" />
