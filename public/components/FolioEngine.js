@@ -107,7 +107,7 @@ const initialStyles = {
     },
     card: {
         borderRadius: '24px',
-        boxShadow: '0 0px 30px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         overflow: 'hidden',
         height: '300px',
         width: '300px',
@@ -119,6 +119,7 @@ const initialStyles = {
         pointerEvents: 'none',
         transition: 'all 0.35s ease',
     },
+    cardShadowLifted: '0 16px 48px rgba(0, 0, 0, 0.25)',
     CardInnerContainer: {
         zIndex: '200',
         position: 'relative',
@@ -314,6 +315,7 @@ function resetGradeFrontStyles() {
 function applyCardHoverStyles(cardStack, cardIndexInStack) {
     const cards = cardStack.querySelectorAll('.Card');
     cards.forEach((card, index) => {
+        card.style.boxShadow = initialStyles.cardShadowLifted;
         switch (index) {
             case 0:
                 card.style.transform = 'translate(-200px, -20px) rotate(-10deg)';
@@ -352,6 +354,7 @@ function applyCardHoverStyles(cardStack, cardIndexInStack) {
 function resetCardStyles(cardStack, cardIndexInStack, totalCards) {
     const cards = cardStack.querySelectorAll('.Card');
     cards.forEach((card, index) => {
+        card.style.boxShadow = initialStyles.card.boxShadow;
         setCardPosition(card, index, totalCards, cardStack.id || `stack-${Math.random().toString(36).substr(2, 9)}`);
     });
 
@@ -533,6 +536,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                     card.style.transform = 'translate(0px, 0px) rotate(0deg)';
                     card.style.width = '400px';
                     card.style.height = '400px';
+                    card.style.boxShadow = initialStyles.cardShadowLifted;
                 });
             }, 50);
             const cardInnerContainers = CardStackLabelContainer.querySelectorAll('.CardInnerContainer');

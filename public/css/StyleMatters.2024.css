@@ -371,9 +371,14 @@ h3 {
 	position: absolute;
 	border-radius: 24px;
 	border: #ffffff 8px solid;
-	box-shadow: 0px 3px 30px 0px rgba(0, 0, 0, .025);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	width: 35%;
 	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
+	transition: box-shadow 0.25s ease;
+}
+
+.timelinePhoto:hover {
+	box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
 }
 
 #cardZoom {
