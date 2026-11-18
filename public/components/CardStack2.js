@@ -137,7 +137,7 @@ const initialStyles = {
         width: '100vw',
         height: '100dvh',
         overflow: 'hidden',
-        background: 'linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF)',
+        background: 'linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285))',
         backgroundSize: '400% 400%',
         animation: 'gradient 5s ease infinite'
     },
