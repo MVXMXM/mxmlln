@@ -17,10 +17,9 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
-    }
-
-    body {
-      background: #f8fafc;
+      background: #fcfcfc;
+      background-image: none;
+      animation: none;
     }
 
     html.is-expanded,
@@ -57,8 +56,17 @@
     }
 
     .TitleBlock3,
-    .appStore {
+    .appStore,
+    .gradeBG,
+    .gradeFront {
       display: none !important;
+    }
+
+    /* FolioEngine paints each card black and then covers it with data-src.
+       This specimen has no media, so the face stays a flat blank fill. */
+    .Card {
+      background-color: #e2e8f0 !important;
+      background-image: none !important;
     }
 
     .CardStackLabelContainerValue {
@@ -102,28 +110,19 @@
     <div class="AllStacks">
       <div class="CardStackLabelContainer">
         <div class="CardStack" id="systemAnimatingStack">
-          <div class="Card" data-src="assets/img/Ramen.gif">
+          <div class="Card">
             <div class="CardInnerContainer">
-              <div class="CardContent">
-                <div class="CardBadge"><div class="BadgeText">TOKYOITER</div></div>
-                <div class="CardTitle">Cover animation</div>
-              </div>
+              <div class="CardContent"></div>
             </div>
           </div>
-          <div class="Card" data-src="assets/AndataFill.gif">
+          <div class="Card">
             <div class="CardInnerContainer">
-              <div class="CardContent">
-                <div class="CardBadge"><div class="BadgeText">MILAN RECORDS</div></div>
-                <div class="CardTitle">Ryuichi Sakamoto music video</div>
-              </div>
+              <div class="CardContent"></div>
             </div>
           </div>
-          <div class="Card" data-src="assets/img/ConsABN_v4.gif">
+          <div class="Card">
             <div class="CardInnerContainer">
-              <div class="CardContent">
-                <div class="CardBadge"><div class="BadgeText">CONSEQUENCE</div></div>
-                <div class="CardTitle">Album cover animation</div>
-              </div>
+              <div class="CardContent"></div>
             </div>
           </div>
         </div>

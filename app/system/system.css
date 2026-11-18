@@ -589,7 +589,7 @@
 .dock-skel-bubble:nth-child(4n) { width: 76%; }
 
 /* Card stack — the production FolioEngine rendered in an isolated viewport so
-   its fixed gradient layers and full-stack expansion stay inside the specimen. */
+   full-stack expansion stays inside the specimen. */
 .card-stack-demo-frame {
   display: block;
   width: 100%;
@@ -890,33 +890,6 @@
     width: var(--knob);
     margin-left: 0;
   }
-}
-
-/* ─── Card ───────────────────────────────────────────────── */
-/* Resting elevation combines the two card shadows from the Elevation section:
-   the wide "Folio card" lift + inset hairline, layered over the tighter
-   "Card hover" shadow. Radius is the 16px "Card" token. */
-.ui-card {
-  width: 100%;
-  max-width: 340px;
-  aspect-ratio: 3 / 2;
-  padding: 24px;
-  background: var(--surface);
-  border-radius: 16px;
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.08),
-    0 12px 24px rgba(0, 0, 0, 0.08),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.ui-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 28px 52px rgba(0, 0, 0, 0.1),
-    0 16px 30px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 /* ─── Chat bubbles ───────────────────────────────────────── */

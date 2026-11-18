@@ -13,8 +13,8 @@ html, body {
 	min-height: 100%;
 	min-height: 100lvh;
 	overflow-x: clip;
-	background-color: #5357EB;
-	background-image: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
+	background-color: oklch(0.86 0.04 260);
+	background-image: linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285));
 	background-size: 400% 400%;
 	animation: gradient 5s ease infinite;
 }
@@ -64,13 +64,13 @@ button:disabled {
 	width: auto;
 	height: auto;
 	overflow: hidden;
-	background: linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF);
-	/* background: linear-gradient(10deg, #aeebfa, #ccc4fb, #fde1d8, #fdcad9); */
+	background: linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285));
 	background-size: 400% 400%;
 	animation: gradient 5s ease infinite;
 	filter: contrast(1.1) brightness(1.1) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMzMiLz48L3N2Zz4=);
 	will-change: background-position;
 }
+
 
 .gradeFront {
 	position: fixed;
@@ -371,9 +371,14 @@ h3 {
 	position: absolute;
 	border-radius: 24px;
 	border: #ffffff 8px solid;
-	box-shadow: 0px 3px 30px 0px rgba(0, 0, 0, .025);
+	box-shadow: 0 4px 12px oklch(0.25 0.04 260 / 0.12);
 	width: 35%;
 	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
+	transition: box-shadow 0.25s ease;
+}
+
+.timelinePhoto:hover {
+	box-shadow: 0 14px 36px oklch(0.25 0.04 260 / 0.18);
 }
 
 #cardZoom {
@@ -462,6 +467,23 @@ h3 {
 	border: solid rgba(0, 0, 0, .03);
 }
 
+body::before {
+	content: "";
+	position: fixed;
+	z-index: 3;
+	inset: 0;
+	pointer-events: none;
+	background-image: radial-gradient(circle at center, #0f172b 0.85px, transparent 1px);
+	background-size: 16px 16px;
+	background-position: center var(--dot-shift, -8px);
+	mix-blend-mode: multiply;
+	opacity: 0.2;
+}
+
+body.folio-in::before {
+	opacity: 0;
+}
+
 .ContentContainer {
 	position: absolute;
 	z-index: 500;
@@ -471,7 +493,50 @@ h3 {
 	flex-direction: column;
 	align-items: center;
 	width:100%;
+	min-height: 100lvh;
 	padding-bottom: 0px;
+}
+
+.ContentContainer::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	background-image: radial-gradient(circle at center, #0f172b 0.85px, transparent 1px);
+	background-size: 16px 16px;
+	background-position: center var(--dot-shift, -8px);
+	mix-blend-mode: multiply;
+}
+
+body.folio-in .ContentContainer::before {
+	opacity: 0.2;
+}
+
+.TitleBlock3 .Name {
+	line-height: 32px;
+}
+
+.TitleBlock3 .Title {
+	line-height: 32px;
+}
+
+@media (min-width: 1000px) {
+	.TitleBlock3 .Title {
+		line-height: 48px;
+	}
+}
+
+.Title {
+	font-family: Archivo;
+	font-weight: 800;
+	letter-spacing: 0px;
+	line-height: 1.1;
+	color: #1a1a1a;
+	background: none;
+	mix-blend-mode: soft-light;
+	opacity: 0.5;
 }
 
 .ampersand {
@@ -644,18 +709,8 @@ body {
 	
 .Title {
 	padding-left: 30px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
 	font-size: 28px;
-	line-height: 1.1;
 	width: 450px;
-	background: linear-gradient(90deg, #19008b, #2D00F7, #6A00F4, #8900F2, #A100F2, #6d008e, #B100E8, #BC00DD, #7f007f);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	background-size: 400% 400%;
-	animation: gradient 10s ease infinite;
 }
 	
 .Desc {
@@ -817,19 +872,9 @@ hr {
 	
 .Title {
 	padding-left: 35px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
 	font-size: 44px;
-	line-height: 1.1;
-	background: linear-gradient(90deg, #19008b, #2D00F7, #6A00F4, #8900F2, #A100F2, #6d008e, #B100E8, #BC00DD, #7f007f);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	background-size: 400% 400%;
-	animation: gradient 10s ease infinite;
 }
-	
+
 .Desc {
 	/*padding-left: 35px;*/
 	font-family: Archivo;
@@ -844,7 +889,7 @@ hr {
 	align-content: center;
 	justify-content: center;
 	width: 250px;
-	}	
+	}
 	
 .Logo {
 	height: 180px;
@@ -978,21 +1023,6 @@ hr {
 .ampersand {
 	font-size: 44px;
 }	
-	
-.Title {
-	padding-left: 35px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
-	font-size: 44px;
-	line-height: 1.1;
-	background: linear-gradient(90deg, #19008b, #2D00F7, #6A00F4, #8900F2, #A100F2, #6d008e, #B100E8, #BC00DD, #7f007f);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	background-size: 400% 400%;
-	animation: gradient 10s ease infinite;
-}
 	
 .Desc {
 	/*padding-left: 35px;*/

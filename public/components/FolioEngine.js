@@ -28,12 +28,12 @@ const initialStyles = {
         flexDirection: 'row',
         height: 'auto',
         width: '100vw',
-        maxWidth: '1000px',
+        maxWidth: '1024px',
         flexWrap: 'wrap',
         justifyContent: 'center',
         alignItems: 'center',
         gap: '80px',
-        margin: '80px 0 200px',
+        margin: '76px 0 200px',
         //backgroundColor: 'green',
         transition: 'all 0.15s ease'
     },
@@ -41,10 +41,10 @@ const initialStyles = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        width: '450px',
-        height: '450px',
-        minHeight: '450px',
+        justifyContent: 'flex-start',
+        width: '464px',
+        height: '464px',
+        minHeight: '464px',
         overflow: 'visible',
         //backgroundColor: 'blue',
         margin: '0px',
@@ -59,9 +59,13 @@ const initialStyles = {
         letterSpacing: '1.5px',
         fontSize: '18px',
         color: '#000000',
-        padding: '16px',
-        height: 'auto',
+        padding: '0px',
+        height: '64px',
         width: 'auto',
+        flex: '0 0 64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         overflow: 'visible',
         transition: 'all 0.15s ease'
     },
@@ -99,6 +103,7 @@ const initialStyles = {
         flexWrap: 'wrap',
         width: '400px',
         height: '400px',
+        flexShrink: '0',
         gap: '0px',
         cursor: 'pointer',
         margin: '0px',
@@ -107,7 +112,7 @@ const initialStyles = {
     },
     card: {
         borderRadius: '24px',
-        boxShadow: '0 0px 30px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0 4px 12px oklch(0.25 0.04 260 / 0.12)',
         overflow: 'hidden',
         height: '300px',
         width: '300px',
@@ -119,6 +124,7 @@ const initialStyles = {
         pointerEvents: 'none',
         transition: 'all 0.35s ease',
     },
+    cardShadowLifted: '0 14px 36px oklch(0.25 0.04 260 / 0.18)',
     CardInnerContainer: {
         zIndex: '200',
         position: 'relative',
@@ -178,7 +184,7 @@ const initialStyles = {
         width: 'auto',
         height: 'auto',
         overflow: 'hidden',
-        background: 'linear-gradient(10deg, #30d6ff, #5357EB, #DD8ABA, #D8D8FF)',
+        background: 'linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285))',
         backgroundSize: '400% 400%',
         animation: 'gradient 5s ease infinite'
     },
@@ -246,6 +252,10 @@ function setDefaultCardStackStyles() {
             Object.assign(element.style, initialStyles[styleName]);
         });
     }
+
+    const grid = 16;
+    const titleCenter = parseFloat(initialStyles.TitleBlock3.marginTop) + parseFloat(initialStyles.TitleBlock3.height) / 2;
+    document.documentElement.style.setProperty('--dot-shift', `${titleCenter - grid / 2}px`);
 }
 // Card controls
 const cards = document.querySelectorAll('.Card');
@@ -314,6 +324,7 @@ function resetGradeFrontStyles() {
 function applyCardHoverStyles(cardStack, cardIndexInStack) {
     const cards = cardStack.querySelectorAll('.Card');
     cards.forEach((card, index) => {
+        card.style.boxShadow = initialStyles.cardShadowLifted;
         switch (index) {
             case 0:
                 card.style.transform = 'translate(-200px, -20px) rotate(-10deg)';
@@ -352,6 +363,7 @@ function applyCardHoverStyles(cardStack, cardIndexInStack) {
 function resetCardStyles(cardStack, cardIndexInStack, totalCards) {
     const cards = cardStack.querySelectorAll('.Card');
     cards.forEach((card, index) => {
+        card.style.boxShadow = initialStyles.card.boxShadow;
         setCardPosition(card, index, totalCards, cardStack.id || `stack-${Math.random().toString(36).substr(2, 9)}`);
     });
 
@@ -523,6 +535,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                     card.style.transform = 'translate(0px, 0px) rotate(0deg)';
                     card.style.width = '400px';
                     card.style.height = '400px';
+                    card.style.boxShadow = initialStyles.cardShadowLifted;
                 });
             }, 50);
             const cardInnerContainers = CardStackLabelContainer.querySelectorAll('.CardInnerContainer');
@@ -665,7 +678,9 @@ function initIntroAnimation() {
     .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
   setTimeout(function() {
     $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
-      $('.ContentContainer').animate({top: '0px'}, 1000);
+      $('.ContentContainer').animate({top: '0px'}, 1000, function() {
+        document.body.classList.add('folio-in');
+      });
     });
   }, 1000);
 
