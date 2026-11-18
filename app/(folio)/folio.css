@@ -283,18 +283,22 @@ html:has(.folio-page.is-folio-session) body {
   pointer-events: auto;
 }
 
-/* Apple-style gallery controls — vertically centered between card and dock. */
+/* Apple-style gallery controls — vertically centered between card and dock.
+   Center with margin (not translateX) so backdrop-filter can see the page. */
 .folio-carousel-stepper {
   position: fixed;
   z-index: 880;
-  left: 50%;
+  left: 0;
+  right: 0;
   top: auto;
   bottom: auto;
+  width: max-content;
+  margin-inline: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateY(8px);
   opacity: 0;
   pointer-events: none;
   transition:
@@ -304,33 +308,90 @@ html:has(.folio-page.is-folio-session) body {
 
 .folio-carousel-stepper.is-in {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: none;
   pointer-events: auto;
 }
 
-/* Secondary button chrome — surface fill, hairline stroke, #f5f5f5 hover. */
-.folio-carousel-play {
+/* Same liquid-glass shell as .mx-dock .dockDynamicContainer. */
+.folio-carousel-play,
+.folio-carousel-pill {
+  position: relative;
   box-sizing: border-box;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1a1a1a;
+  backdrop-filter: blur(8px) saturate(1.6);
+  -webkit-backdrop-filter: blur(8px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.32),
+    0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.folio-carousel-play::before,
+.folio-carousel-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  transition: background-color 0.2s ease;
+}
+
+.folio-carousel-play:hover::before,
+.folio-carousel-pill:hover::before {
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+.folio-carousel-play::after,
+.folio-carousel-pill::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  content: '';
+  pointer-events: none;
+  box-sizing: border-box;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 76deg,
+    rgb(255 255 255 / 0.28) 86deg,
+    rgb(255 255 255 / 0.55) 94deg,
+    rgb(255 255 255 / 0.28) 102deg,
+    transparent 120deg,
+    transparent 248deg,
+    rgb(255 255 255 / 0.28) 266deg,
+    rgb(255 255 255 / 0.55) 274deg,
+    rgb(255 255 255 / 0.28) 282deg,
+    transparent 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.folio-carousel-play {
   display: grid;
   place-items: center;
   width: 60px;
   height: 60px;
   margin: 0;
   padding: 0;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: var(--surface);
-  color: #1a1a1a;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.1s ease;
-}
-
-.folio-carousel-play:hover {
-  background: #f5f5f5;
+  transition: transform 0.1s ease;
 }
 
 .folio-carousel-play:active {
@@ -343,6 +404,8 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-carousel-play svg {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 24px;
   height: 24px;
@@ -353,23 +416,15 @@ html:has(.folio-page.is-folio-session) body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-sizing: border-box;
   height: 60px;
   padding: 0 22px;
-  border: 1px solid #e5e7eb;
-  border-radius: 999px;
-  background: var(--surface);
   /* Locked in JS from dot count so last→first doesn’t momentarily shrink. */
   flex: 0 0 auto;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.folio-carousel-pill:hover {
-  background: #f5f5f5;
 }
 
 .folio-carousel-dot {
   position: relative;
+  z-index: 1;
   box-sizing: border-box;
   width: 10px;
   height: 10px;

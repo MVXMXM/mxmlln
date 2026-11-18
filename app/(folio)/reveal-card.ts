@@ -110,6 +110,9 @@ let orbitFrame = 0
 let orbitSpin = 0
 let orbitSlots: HTMLElement[] = []
 let orbitStartedAt = 0
+/** 0 = empty-state wide ring; 1 = loading ring pulled in around the logo. */
+let orbitTighten = 0
+let orbitTightenTarget = 0
 
 type CarouselState = {
   cards: HTMLElement[]
@@ -149,8 +152,6 @@ type RingPose = {
   size: number
 }
 
-/** Clear space between neighboring cards’ bottom edges (which face the ring center). */
-const CAROUSEL_GUTTER_PX = 40
 /** Autoplay dwell — progress fill on the active pill is the clock. */
 const CAROUSEL_AUTOPLAY_MS = 4500
 const CAROUSEL_WHEEL_GAIN = 0.005
@@ -203,24 +204,54 @@ export function armOrbitHold() {
   orbitStartedAt = performance.now() - ORBIT_INTRO_MS
 }
 
+/** Pull the orbit in around the logo while a turn is loading; release for empty idle. */
+export function setOrbitLoading(loading: boolean) {
+  orbitTightenTarget = loading ? 1 : 0
+  if (!orbitFrame && document.querySelector('.folio-masonry.is-orbit')) runOrbit()
+}
+
 function stopOrbit() {
   if (orbitFrame) cancelAnimationFrame(orbitFrame)
   orbitFrame = 0
 }
 
+/** Empty-state thumb chrome — scaled down with the card when the ring tightens. */
+const ORBIT_THUMB_BORDER = 4
+const ORBIT_THUMB_RADIUS = 16
+const ORBIT_THUMB_SHADOW_Y = 8
+const ORBIT_THUMB_SHADOW_BLUR = 18
+
 function orbitMetrics(count: number) {
   const vw = window.innerWidth
   const vh = window.innerHeight
-  const size = Math.min(112, Math.max(72, Math.min(vw, vh) / Math.max(8, Math.sqrt(count) * 2.2)))
-  // One radius for both axes so the ring stays round and may spill past the short sides.
-  const radius = Math.max(vw, vh) / 2 - size * 0.2
+  const sizeWide = orbitThumbSize(count)
+  // Wide empty ring may spill past the short sides; loading hugs the 300px logo.
+  const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
+  const ratio = sizeWide / Math.max(wide, 1)
+  // Keep size/radius constant so arc gutters match empty-state spacing while tight.
+  const logoHalf = 150
+  const tight = (logoHalf + 20) / Math.max(0.35, 1 - 0.55 * ratio)
+  const radius = wide + (tight - wide) * orbitTighten
+  const size = Math.max(28, radius * ratio)
   return {
     size,
+    sizeWide,
     rx: Math.max(size, radius),
     ry: Math.max(size, radius),
     cx: vw / 2,
     cy: vh / 2,
   }
+}
+
+function styleOrbitThumb(card: HTMLElement, size: number, sizeWide: number) {
+  const t = size / Math.max(sizeWide, 1)
+  const border = Math.max(1, ORBIT_THUMB_BORDER * t)
+  const radius = Math.max(2, ORBIT_THUMB_RADIUS * t)
+  const shadowY = ORBIT_THUMB_SHADOW_Y * t
+  const shadowBlur = ORBIT_THUMB_SHADOW_BLUR * t
+  card.style.border = `${border}px solid #ffffff`
+  card.style.borderRadius = `${radius}px`
+  card.style.boxShadow = `0 ${shadowY}px ${shadowBlur}px rgba(0, 0, 0, 0.12)`
 }
 
 function placeOrbitSlot(slot: HTMLElement, index: number, total: number, spin: number, metrics: ReturnType<typeof orbitMetrics>) {
@@ -233,6 +264,8 @@ function placeOrbitSlot(slot: HTMLElement, index: number, total: number, spin: n
   slot.style.height = `${metrics.size}px`
   slot.style.transformOrigin = 'center center'
   slot.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}rad)`
+  const card = slot.firstElementChild
+  if (card instanceof HTMLElement) styleOrbitThumb(card, metrics.size, metrics.sizeWide)
 }
 
 function paintOrbit(spin: number) {
@@ -244,11 +277,15 @@ function paintOrbit(spin: number) {
 function runOrbit() {
   stopOrbit()
   if (motion()) {
+    orbitTighten = orbitTightenTarget
     paintOrbit(orbitSpin)
     return
   }
   const tick = () => {
     orbitSpin += 0.0028
+    const gap = orbitTightenTarget - orbitTighten
+    if (Math.abs(gap) > 0.001) orbitTighten += gap * 0.08
+    else orbitTighten = orbitTightenTarget
     paintOrbit(orbitSpin)
     orbitFrame = requestAnimationFrame(tick)
   }
@@ -256,6 +293,7 @@ function runOrbit() {
 }
 
 function thumbCard(card: HTMLElement) {
+  const metrics = orbitMetrics(Math.max(1, sessionCards.length || orbitSlots.length))
   card.style.boxSizing = 'border-box'
   card.style.position = 'relative'
   card.style.left = 'auto'
@@ -265,9 +303,7 @@ function thumbCard(card: HTMLElement) {
   card.style.height = '100%'
   card.style.aspectRatio = '1'
   card.style.margin = '0'
-  card.style.border = '4px solid #ffffff'
-  card.style.borderRadius = '16px'
-  card.style.boxShadow = '0 8px 18px rgba(0, 0, 0, 0.12)'
+  styleOrbitThumb(card, metrics.size, metrics.sizeWide)
   card.style.minWidth = '0'
   card.style.alignSelf = 'start'
   card.style.pointerEvents = 'none'
@@ -332,6 +368,8 @@ function ensureSession(grid: HTMLElement) {
       sessionUndo = null
       sessionCards = []
       orbitStartedAt = 0
+      orbitTighten = 0
+      orbitTightenTarget = 0
       grid.classList.remove('is-result', 'is-orbit', 'is-carousel')
       page()?.classList.remove('is-folio-session')
     }
@@ -366,6 +404,8 @@ export function beginFolioSession(grid: HTMLElement) {
   window.scrollTo(0, 0)
   stopOrbit()
   orbitSpin = 0
+  orbitTighten = 0
+  orbitTightenTarget = 0
   orbitStartedAt = performance.now()
 
   for (const card of sessionCards) {
@@ -621,15 +661,21 @@ function syncCarouselStepperPos() {
   carouselStepper.style.bottom = 'auto'
 }
 
-function carouselMetrics(_count: number) {
+/** Empty-orbit thumb size — shared so assortment and carousel keep one packing ratio. */
+function orbitThumbSize(count: number) {
+  const span = Math.min(window.innerWidth, window.innerHeight)
+  return Math.min(112, Math.max(72, span / Math.max(8, Math.sqrt(Math.max(count, 1)) * 2.2)))
+}
+
+function carouselMetrics(count: number) {
   const { size, focusX, focusY } = folioFocusMetrics()
-  const vh = window.innerHeight
-  // Circle center sits below the focus so the on-state rests at viewport center.
-  const radius = Math.max(vh * 0.78, size * 2.05)
-  // Bottoms face the center — space those inner edges by a fixed gutter along the arc.
-  const rInner = Math.max(radius - size / 2, 1)
-  const half = Math.atan(size / 2 / rInner)
-  const step = CAROUSEL_GUTTER_PX / rInner + 2 * half
+  const packCount = Math.max(sessionCards.length, count, 1)
+  const thumb = orbitThumbSize(packCount)
+  const thumbRadius = Math.max(window.innerWidth, window.innerHeight) / 2 - thumb * 0.2
+  // Same size/radius as the full assortment at featured scale.
+  const radius = size * (thumbRadius / Math.max(thumb, 1))
+  // Same angular step as pre-cull equal spacing — don’t re-pack after the cull.
+  const step = (Math.PI * 2) / packCount
   return { size, radius, step, cx: focusX, cy: focusY + radius, focusX, focusY }
 }
 
@@ -689,15 +735,37 @@ function angleDelta(from: number, to: number) {
   return ((((to - from) + Math.PI) % tau) + tau) % tau - Math.PI
 }
 
-function meanAngle(angles: number[]) {
-  if (!angles.length) return 0
-  let x = 0
-  let y = 0
-  for (const angle of angles) {
-    x += Math.cos(angle)
-    y += Math.sin(angle)
+/** Always-counterclockwise delta in [0, 2π) — used to order neighbors around the ring. */
+function ccwDelta(from: number, to: number) {
+  const tau = Math.PI * 2
+  return (((to - from) % tau) + tau) % tau
+}
+
+/** True if traveling `delta` from `from` passes through `barrier` (not just endpoints). */
+function openArcContains(from: number, delta: number, barrier: number) {
+  if (Math.abs(delta) < 1e-12) return false
+  const tau = Math.PI * 2
+  if (delta > 0) {
+    const t = ccwDelta(from, barrier)
+    return t > 1e-9 && t < delta - 1e-9
   }
-  return Math.atan2(y / angles.length, x / angles.length)
+  const t = (((from - barrier) % tau) + tau) % tau
+  return t > 1e-9 && t < -delta - 1e-9
+}
+
+/**
+ * Slide along the shortest arc that does not cross the focused card.
+ * Shortest-path alone lets right-side cards hop through the top.
+ */
+function arcAvoidingBarrier(from: number, to: number, barrier: number) {
+  const tau = Math.PI * 2
+  const short = angleDelta(from, to)
+  const long = short === 0 ? 0 : short > 0 ? short - tau : short + tau
+  const shortCross = openArcContains(from, short, barrier)
+  const longCross = openArcContains(from, long, barrier)
+  if (!shortCross) return short
+  if (!longCross) return long
+  return Math.abs(short) <= Math.abs(long) ? short : long
 }
 
 function placeOnRing(
@@ -1044,6 +1112,9 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
     ensureSession(grid)
     window.scrollTo(0, 0)
     orbitSpin = 0
+    // Follow-up loading — land on the tight ring around the logo.
+    orbitTighten = 1
+    orbitTightenTarget = 1
     grid.classList.remove('is-carousel')
 
     const shrink = motion() ? 0 : ORBIT_ENLARGE_MS
@@ -1225,89 +1296,130 @@ export function revealSessionCards(
     card.style.position = 'fixed'
     card.style.boxSizing = 'border-box'
     card.style.margin = '0'
-    card.style.border = '4px solid #ffffff'
-    card.style.borderRadius = '16px'
-    card.style.boxShadow = '0 8px 18px rgba(0, 0, 0, 0.12)'
     card.style.opacity = '1'
     card.style.pointerEvents = 'none'
     card.style.contentVisibility = 'visible'
     card.style.display = 'block'
+    styleOrbitThumb(card, startRing.size, startMetrics.sizeWide)
     placeOnRing(card, startRing, angle, 1)
   }
 
   const culls = sessionCards.filter((card) => !keep.has(card))
-  // Keep angular order so neighbors stay neighbors while clustering at the top.
+  const focusCard =
+    chosen.find((card) => keep.has(card)) ??
+    [...keep][0]!
+  // Carousel order: focus at top, then the rest continuing counterclockwise.
+  const settledAngles = new Map<HTMLElement, number>()
+  const focusSpin = angleDelta(startAngles.get(focusCard) ?? -Math.PI / 2, -Math.PI / 2)
+  for (const card of sessionCards) {
+    settledAngles.set(card, (startAngles.get(card) ?? 0) + focusSpin)
+  }
   const kept = [...keep].sort(
-    (a, b) => (startAngles.get(a) ?? 0) - (startAngles.get(b) ?? 0),
+    (a, b) =>
+      ccwDelta(settledAngles.get(focusCard) ?? -Math.PI / 2, settledAngles.get(a) ?? 0) -
+      ccwDelta(settledAngles.get(focusCard) ?? -Math.PI / 2, settledAngles.get(b) ?? 0),
   )
   const multi = kept.length > 1
 
-  const focus = folioFocusMetrics()
   const endMetrics = multi
     ? carouselMetrics(kept.length)
-    : (() => {
-        const size = focus.size
-        const radius = Math.max(window.innerHeight * 0.78, size * 2.05)
-        return {
-          size,
-          radius,
-          step: 0,
-          cx: focus.focusX,
-          cy: focus.cardTop + size / 2 + radius,
-        }
-      })()
+    : carouselMetrics(1)
   const endRing: RingPose = {
     cx: endMetrics.cx,
     cy: endMetrics.cy,
     radius: endMetrics.radius,
     size: endMetrics.size,
   }
+  // Size stays tied to radius; end ratio is the carousel’s so t=1 lands on endRing exactly.
+  const startRatio = startRing.size / Math.max(startRing.radius, 1)
+  const endRatio = endRing.size / Math.max(endRing.radius, 1)
   const endAngles = new Map(
-    kept.map((card, index) => [card, -Math.PI / 2 + index * endMetrics.step] as const),
+    kept.map((card, index) => [
+      card,
+      -Math.PI / 2 + index * (multi ? endMetrics.step : 0),
+    ] as const),
   )
 
   void (async () => {
-    // 1) Cull rejects in place — shrink to 0×0 on the loading ring.
+    // 1) Grow onto the shared ring at final carousel size; spin so the focus card lands at top.
+    await animateMs(motion() ? 0 : ORBIT_TRAVEL_MS * 0.55, token, (t) => {
+      const radius = lerp(startRing.radius, endRing.radius, t)
+      const size = radius * lerp(startRatio, endRatio, t)
+      const pose: RingPose = {
+        cx: lerp(startRing.cx, endRing.cx, t),
+        cy: lerp(startRing.cy, endRing.cy, t),
+        radius,
+        size,
+      }
+      const spin = focusSpin * t
+      const border = lerp(
+        ORBIT_THUMB_BORDER * (startRing.size / startMetrics.sizeWide),
+        10,
+        t,
+      )
+      const radiusPx = lerp(
+        ORBIT_THUMB_RADIUS * (startRing.size / startMetrics.sizeWide),
+        24,
+        t,
+      )
+      const shadowY = lerp(
+        ORBIT_THUMB_SHADOW_Y * (startRing.size / startMetrics.sizeWide),
+        0,
+        t,
+      )
+      const shadowBlur = lerp(
+        ORBIT_THUMB_SHADOW_BLUR * (startRing.size / startMetrics.sizeWide),
+        30,
+        t,
+      )
+      for (const card of sessionCards) {
+        if (card.style.display === 'none') continue
+        const angle = (startAngles.get(card) ?? 0) + spin
+        card.style.border = `${border}px solid #ffffff`
+        card.style.borderRadius = `${radiusPx}px`
+        card.style.boxShadow = `0 ${shadowY}px ${shadowBlur}px rgba(0, 0, 0, 0.15)`
+        placeOnRing(card, pose, angle, 1)
+      }
+    })
+    if (token !== motionToken) return
+
+    // Snap every visible card to the exact carousel pose before culling.
+    for (const card of sessionCards) {
+      if (card.style.display === 'none') continue
+      const angle = settledAngles.get(card)
+      if (angle == null) continue
+      card.style.border = '10px solid #ffffff'
+      card.style.borderRadius = '24px'
+      card.style.boxShadow = '0 0px 30px rgba(0, 0, 0, 0.15)'
+      placeOnRing(card, endRing, angle, 1)
+    }
+
+    // 2) Cull rejects in place on that same ring.
     await animateMs(motion() ? 0 : 420, token, (t) => {
       const scale = 1 - t
       for (const card of culls) {
-        const angle = startAngles.get(card)
+        const angle = settledAngles.get(card)
         if (angle == null) continue
-        placeOnRing(card, startRing, angle, scale)
+        placeOnRing(card, endRing, angle, scale)
         card.style.opacity = String(1 - t)
       }
     })
     if (token !== motionToken) return
     for (const card of culls) card.style.display = 'none'
 
-    // 2) Grow + drop the rig while kept cards slide on it: rigid rotate to the
-    //    top, then compress spacing — always painted from shared polar pose.
-    const fromAngles = kept.map((card) => startAngles.get(card) ?? -Math.PI / 2)
+    // 3) Slide kept cards into slots — never through the focused card at the top.
+    const barrier = settledAngles.get(focusCard) ?? -Math.PI / 2
+    const fromAngles = kept.map((card) => settledAngles.get(card) ?? -Math.PI / 2)
     const toAngles = kept.map((card) => endAngles.get(card)!)
-    const rigidShift = angleDelta(meanAngle(fromAngles), meanAngle(toAngles))
-    const midAngles = fromAngles.map((angle) => angle + rigidShift)
-    await animateMs(motion() ? 0 : ORBIT_TRAVEL_MS, token, (t) => {
-      const pose: RingPose = {
-        cx: lerp(startRing.cx, endRing.cx, t),
-        cy: lerp(startRing.cy, endRing.cy, t),
-        radius: lerp(startRing.radius, endRing.radius, t),
-        size: lerp(startRing.size, endRing.size, t),
-      }
-      // First half: rotate the kept arc as one piece. Second: close the gaps.
-      const compress = t < 0.45 ? 0 : (t - 0.45) / 0.55
-      const rigidT = Math.min(1, t / 0.45)
-      const border = lerp(4, 10, t)
-      const radiusPx = lerp(16, 24, t)
+    const slides = fromAngles.map((from, i) =>
+      kept[i] === focusCard ? 0 : arcAvoidingBarrier(from, toAngles[i]!, barrier),
+    )
+    await animateMs(motion() ? 0 : ORBIT_TRAVEL_MS * 0.55, token, (t) => {
       kept.forEach((card, i) => {
-        const live = compress > 0
-          ? midAngles[i]! + angleDelta(midAngles[i]!, toAngles[i]!) * compress
-          : fromAngles[i]! + rigidShift * rigidT
+        const live = fromAngles[i]! + slides[i]! * t
         const align = Math.cos(live + Math.PI / 2)
         const scale = multi ? 0.9 + 0.1 * Math.max(0, align) : 1
-        card.style.border = `${border}px solid #ffffff`
-        card.style.borderRadius = `${radiusPx}px`
-        card.style.boxShadow = '0 0px 30px rgba(0, 0, 0, 0.15)'
-        placeOnRing(card, pose, live, scale)
+        placeOnRing(card, endRing, live, scale)
         const inner = card.querySelector<HTMLElement>('.CardInnerContainer')
         if (inner) {
           const open = `${Math.round(t * 100)}%`

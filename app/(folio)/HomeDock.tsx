@@ -15,6 +15,7 @@ import {
   releaseFolioFocus,
   reorbitSession,
   revealSessionCards,
+  setOrbitLoading,
   snapFolioGrid,
 } from './reveal-card'
 
@@ -240,6 +241,7 @@ export function HomeDock() {
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
   const waiting = !answers
+  const loading = waiting && !!userMessage
 
   useLayoutEffect(() => {
     if (!chatMounted) return
@@ -259,11 +261,14 @@ export function HomeDock() {
         frame.style.transition = ''
         frame.style.opacity = ''
       }
+      setOrbitLoading(!!userMessage)
       if (skipBegin.current) {
         skipBegin.current = false
         return
       }
       if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
+      // beginFolioSession resets tighten — re-apply if this mount is a loading turn.
+      if (userMessage) setOrbitLoading(true)
       return
     }
 
@@ -343,6 +348,7 @@ export function HomeDock() {
     setDockLaunch(false)
     setMarkLanded(false)
     setLogoIn(false)
+    setOrbitLoading(false)
     releaseFolioFocus()
   }
 
@@ -441,6 +447,7 @@ export function HomeDock() {
       setFailure(null)
       // Empty-state orbit may have been spinning awhile — arm a fresh hold for this turn.
       if (!fromResult) armOrbitHold()
+      setOrbitLoading(true)
 
       const cards =
         fromResult && grid
@@ -454,6 +461,7 @@ export function HomeDock() {
       const nextGrid = masonry.current
       if (!fromResult && nextGrid && !nextGrid.classList.contains('is-orbit')) {
         beginFolioSession(nextGrid)
+        setOrbitLoading(true)
       }
       if (nextFrame) await presentLoadingTurn(nextFrame, value, origin)
       setDockLaunch(false)
@@ -533,7 +541,7 @@ export function HomeDock() {
             >
               <div className="chatBlurb">
                 <div className="chatResponseLogoContainer">
-                  <ChatResponseMark spinning={chatOpen && !markLanded && !reducedMotion()} />
+                  <ChatResponseMark spinning={loading && !reducedMotion()} />
                 </div>
                 {assistantMessage !== null ? <p>{assistantMessage}</p> : null}
               </div>
