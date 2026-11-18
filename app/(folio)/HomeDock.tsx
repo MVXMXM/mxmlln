@@ -29,7 +29,11 @@ type FolioTurn = {
 }
 
 const FAILURE = 'Something went wrong on my side. Try again in a moment.'
-/** Empty chat pops 0 → 300; loading settles at 200. Slightly slower so reorbit can meet it. */
+const NO_CARD_MSG =
+  "Sorry, my website isn't intelligent enough to answer that yet. I'm actively working on improvements, which you can follow along on X for updates."
+const NO_CARD_LINK = 'follow along on X for updates'
+const X_PROFILE = 'https://x.com/MVXMXM'
+/** Empty / loading chat pops 0 → 200. Slightly slower so reorbit can meet it. */
 const LOGO_POP_MS = 720
 
 function ChatResponseMark({ spinning }: { spinning: boolean }) {
@@ -135,6 +139,23 @@ async function streamBlurb(
   if (live()) setText(full)
 }
 
+/** Streamed miss copy — linkifies the X CTA once that phrase has arrived. */
+function MissBlurb({ text }: { text: string }) {
+  const at = text.indexOf(NO_CARD_LINK)
+  if (at < 0) {
+    return <p className="folio-empty-miss">{text}</p>
+  }
+  return (
+    <p className="folio-empty-miss">
+      {text.slice(0, at)}
+      <a href={X_PROFILE} target="_blank" rel="noreferrer">
+        {text.slice(at, at + NO_CARD_LINK.length)}
+      </a>
+      {text.slice(at + NO_CARD_LINK.length)}
+    </p>
+  )
+}
+
 function dockCapsuleRect() {
   return document.querySelector<HTMLElement>('.mx-dock .dockDynamicContainer')?.getBoundingClientRect() ?? null
 }
@@ -158,6 +179,18 @@ function placeReplyColumn(frame: HTMLElement) {
   frame.style.top = 'auto'
   frame.style.bottom = `${snapFolioGrid(bottom)}px`
   frame.style.transform = 'none'
+}
+
+/** No card to sit above — keep the reply stack on the viewport center. */
+function placeMissColumn(frame: HTMLElement) {
+  const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
+  const left = snapFolioGrid((window.innerWidth - width) / 2)
+  frame.style.width = `${width}px`
+  frame.style.left = `${left}px`
+  frame.style.right = 'auto'
+  frame.style.top = '50%'
+  frame.style.bottom = 'auto'
+  frame.style.transform = 'translateY(-50%)'
 }
 
 /** Peel a message chip off the dock capsule and morph it into the resting bubble. */
@@ -227,7 +260,7 @@ async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect
 }
 
 async function presentLoadingTurn(frame: HTMLElement, text: string, origin: DOMRect | null) {
-  frame.classList.remove('is-answered')
+  frame.classList.remove('is-answered', 'is-miss')
   frame.style.top = ''
   frame.style.left = ''
   frame.style.bottom = ''
@@ -251,6 +284,7 @@ export function HomeDock() {
   const [userMessage, setUserMessage] = useState<string | null>(null)
   const [assistantMessage, setAssistantMessage] = useState<string | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  const [emptyMiss, setEmptyMiss] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatMounted, setChatMounted] = useState(false)
   const [logoIn, setLogoIn] = useState(false)
@@ -260,8 +294,18 @@ export function HomeDock() {
   const fadeGen = useRef(0)
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
+  const logoFromRef = useRef<DOMRect | null>(null)
   const waiting = !answers
   const loading = waiting && !!userMessage
+
+  // Remember the loading mark’s screen box so the answer layout can FLIP from it.
+  useLayoutEffect(() => {
+    if (!waiting || !column.current) return
+    const logo = column.current.querySelector<HTMLElement>('.chatResponseLogoContainer')
+    if (!logo) return
+    const rect = logo.getBoundingClientRect()
+    if (rect.width > 2 && rect.height > 2) logoFromRef.current = rect
+  })
 
   useLayoutEffect(() => {
     if (!chatMounted) return
@@ -271,8 +315,9 @@ export function HomeDock() {
 
     // Empty chat + loading share the orbit; answers drives reveal afterward.
     if (!answers) {
+      logoFromRef.current = null
       if (frame) {
-        frame.classList.remove('is-answered')
+        frame.classList.remove('is-answered', 'is-miss')
         frame.style.top = ''
         frame.style.left = ''
         frame.style.bottom = ''
@@ -294,12 +339,47 @@ export function HomeDock() {
 
     if (!frame) return
     const { cardTop } = folioFocusMetrics()
+    const from = logoFromRef.current
+    logoFromRef.current = null
     frame.classList.add('is-answered')
+    frame.classList.toggle('is-miss', emptyMiss)
     frame.style.transition = 'none'
-    placeReplyColumn(frame)
+    if (emptyMiss) placeMissColumn(frame)
+    else placeReplyColumn(frame)
+
+    const logo = frame.querySelector<HTMLElement>('.chatResponseLogoContainer')
+    const mark = frame.querySelector<HTMLElement>('.chatResponseLogo')
+    const landMs = reducedMotion() ? 0 : Math.min(ORBIT_TRAVEL_MS, 560)
+    if (from && logo && mark && landMs > 0) {
+      const to = logo.getBoundingClientRect()
+      if (to.width > 2 && to.height > 2) {
+        const dx = from.left - to.left
+        const dy = from.top - to.top
+        const sx = from.width / to.width
+        const sy = from.height / to.height
+        const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
+        // Fill the reply box during the scale so 200→60 reads true.
+        mark.style.width = '100%'
+        mark.style.height = '100%'
+        logo.style.transformOrigin = 'top left'
+        logo.style.transition = 'none'
+        logo.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`
+        void logo.offsetWidth
+        logo.style.transition = `transform ${landMs}ms ${ease}`
+        logo.style.transform = 'none'
+        window.setTimeout(() => {
+          logo.style.transition = ''
+          logo.style.transform = ''
+          logo.style.transformOrigin = ''
+          mark.style.width = ''
+          mark.style.height = ''
+        }, landMs + 40)
+      }
+    }
+
     const gatherTop = cardTop
     const id = turnId.current
-    const blurb = turn.current?.assistantMessage ?? ''
+    const blurb = emptyMiss ? NO_CARD_MSG : (turn.current?.assistantMessage ?? '')
     revealSessionCards(grid, answers, gatherTop, {
       onCull: () => {
         setMarkLanded(true)
@@ -307,17 +387,20 @@ export function HomeDock() {
       },
       gatherTop: () => folioFocusMetrics().cardTop,
     })
-  }, [chatMounted, userMessage, answers])
+  }, [chatMounted, userMessage, answers, emptyMiss])
 
   // Only re-pin on viewport changes — blurb growth is handled by CSS `bottom`.
   useLayoutEffect(() => {
     if (!chatMounted || !answers || !column.current) return
     const frame = column.current
     if (!frame.classList.contains('is-answered')) return
-    const onResize = () => placeReplyColumn(frame)
+    const onResize = () => {
+      if (emptyMiss) placeMissColumn(frame)
+      else placeReplyColumn(frame)
+    }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [chatMounted, answers])
+  }, [chatMounted, answers, emptyMiss])
 
   useEffect(() => {
     return () => {
@@ -343,6 +426,7 @@ export function HomeDock() {
     setUserMessage(null)
     setAssistantMessage(null)
     setFailure(null)
+    setEmptyMiss(false)
     setDockLaunch(false)
     setMarkLanded(false)
     setLogoIn(false)
@@ -426,7 +510,7 @@ export function HomeDock() {
       // Follow-ups used to await a full column exit (~travelMs) before peeling —
       // that read as input lag. Reset instantly and peel on the next paint.
       if (fromResult && frame) {
-        frame.classList.remove('is-answered')
+        frame.classList.remove('is-answered', 'is-miss')
         frame.style.transition = 'none'
         frame.style.transform = ''
         frame.style.opacity = '1'
@@ -446,6 +530,7 @@ export function HomeDock() {
       setUserMessage(value)
       setAssistantMessage(null)
       setFailure(null)
+      setEmptyMiss(false)
       // Empty-state orbit may have been spinning awhile — arm a fresh hold for this turn.
       if (!fromResult) armOrbitHold()
       setOrbitLoading(true)
@@ -494,6 +579,12 @@ export function HomeDock() {
       revealTimer.current = window.setTimeout(() => {
         revealTimer.current = 0
         if (turnId.current !== id) return
+        if (!chosen.length) {
+          setEmptyMiss(true)
+          setAnswers([])
+          return
+        }
+        setEmptyMiss(false)
         setAnswers(chosen)
       }, waitMs)
     } catch {
@@ -539,7 +630,16 @@ export function HomeDock() {
                 <div className="chatResponseLogoContainer">
                   <ChatResponseMark spinning={loading && !reducedMotion()} />
                 </div>
-                {assistantMessage !== null ? <p>{assistantMessage}</p> : null}
+                {waiting ? (
+                  <p className="Title folio-empty-prompt" aria-hidden={loading}>
+                    What can I help you find?
+                  </p>
+                ) : null}
+                {emptyMiss && assistantMessage !== null ? (
+                  <MissBlurb text={assistantMessage} />
+                ) : assistantMessage !== null ? (
+                  <p>{assistantMessage}</p>
+                ) : null}
               </div>
             </div>
           ) : null}

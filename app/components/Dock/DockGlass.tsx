@@ -139,17 +139,179 @@ type CapturedRenderer = Omit<NonNullable<Window['__liquidGLRenderer__']>, 'captu
   captureSnapshot?: () => void;
   _uploadTexture?: (source: HTMLCanvasElement) => void;
   _renderLens?: (lens: unknown) => void;
+  addLens?: (element: HTMLElement, options: Record<string, unknown>) => { el: HTMLElement; options: { bevelWidth?: number } };
 };
 
 // The bevel reads past the rim, so the photo is the pill plus this margin.
 const PAGE_PAD = 48;
+
+const PAGE_GLASS_OPTS = {
+  resolution: 2,
+  refraction: 0.04,
+  bevelDepth: 0.012,
+  bevelWidth: 0.25,
+  frost: 0,
+  shadow: false,
+  specular: false,
+  reveal: 'none',
+  tilt: false,
+  magnify: 1,
+} as const;
+
+/** Extra lenses (carousel pill / play) that share the dock’s photograph. */
+const pageGlassHosts = new Set<HTMLElement>();
+let pageGlassRefresh: (() => void) | null = null;
+
+function fitHostRim(el: HTMLElement) {
+  const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === el);
+  if (!lens) return;
+  const short = Math.min(el.offsetWidth, el.offsetHeight);
+  const specified = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+  const radius = Math.min(specified, el.offsetWidth / 2, el.offsetHeight / 2);
+  if (short > 0 && radius > 0) lens.options.bevelWidth = radius / (2 * short);
+  el.style.removeProperty('transition');
+}
+
+function restoreGlassHost(el: HTMLElement) {
+  el.style.opacity = '';
+  el.style.pointerEvents = '';
+  el.style.background = '';
+  el.style.backgroundColor = '';
+  el.style.backdropFilter = '';
+  el.style.removeProperty('-webkit-backdrop-filter');
+  el.style.removeProperty('transition');
+  delete el.dataset.dockCapture;
+  delete el.dataset.dockGlass;
+}
+
+function unionPlateRect(primary: DOMRect) {
+  let left = primary.left;
+  let top = primary.top;
+  let right = primary.right;
+  let bottom = primary.bottom;
+  for (const host of pageGlassHosts) {
+    if (!host.isConnected) continue;
+    const rect = host.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) continue;
+    left = Math.min(left, rect.left);
+    top = Math.min(top, rect.top);
+    right = Math.max(right, rect.right);
+    bottom = Math.max(bottom, rect.bottom);
+  }
+  return new DOMRect(
+    left - PAGE_PAD,
+    top - PAGE_PAD,
+    right - left + PAGE_PAD * 2,
+    bottom - top + PAGE_PAD * 2,
+  );
+}
+
+function attachSvgLiquidGlass(el: HTMLElement) {
+  const id = `dock-glass-${Math.random().toString(36).slice(2, 10)}`;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '0');
+  svg.setAttribute('height', '0');
+  svg.classList.add('dockGlassDefs');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML = `<defs><filter id="${id}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blurred"/>
+    <feImage x="0" y="0" width="1" height="1" preserveAspectRatio="none" result="encoded-map"/>
+    <feComponentTransfer in="encoded-map" result="map">
+      <feFuncR type="linear" slope="1" intercept="${-1 / 510}"/>
+      <feFuncG type="linear" slope="1" intercept="${-1 / 510}"/>
+    </feComponentTransfer>
+    <feDisplacementMap in="blurred" in2="map" xChannelSelector="R" yChannelSelector="G" result="red-shift"/>
+    <feColorMatrix in="red-shift" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red"/>
+    <feDisplacementMap in="blurred" in2="map" xChannelSelector="R" yChannelSelector="G" result="green-shift"/>
+    <feColorMatrix in="green-shift" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="green"/>
+    <feDisplacementMap in="blurred" in2="map" xChannelSelector="R" yChannelSelector="G" result="blue-shift"/>
+    <feColorMatrix in="blue-shift" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue"/>
+    <feBlend in="red" in2="green" mode="screen" result="red-green"/>
+    <feBlend in="red-green" in2="blue" mode="screen"/>
+  </filter></defs>`;
+  const mapRef = { current: svg.querySelector('feImage') as unknown as SVGFEImageElement | null };
+  const displacementRefs = {
+    current: [...svg.querySelectorAll('feDisplacementMap')] as (SVGFEDisplacementMapElement | null)[],
+  };
+  const backdrop = document.createElement('span');
+  backdrop.className = 'dockGlassBackdrop';
+  backdrop.setAttribute('aria-hidden', 'true');
+  backdrop.style.backdropFilter = `url("#${id}") saturate(1.6)`;
+  (backdrop.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter =
+    `url("#${id}") saturate(1.6)`;
+  const tint = document.createElement('span');
+  tint.className = 'dockGlassTint';
+  tint.setAttribute('aria-hidden', 'true');
+  el.dataset.dockCapture = 'true';
+  el.prepend(tint);
+  el.prepend(backdrop);
+  el.prepend(svg);
+  const disposeLens = mountSvgLens(el, backdrop, mapRef, displacementRefs);
+  return () => {
+    disposeLens();
+    svg.remove();
+    backdrop.remove();
+    tint.remove();
+    restoreGlassHost(el);
+  };
+}
+
+function attachPhotoLiquidGlass(el: HTMLElement) {
+  el.dataset.dockCapture = 'true';
+  pageGlassHosts.add(el);
+  let cancelled = false;
+
+  const add = () => {
+    const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+    if (!renderer?.addLens || cancelled) return false;
+    if (renderer.lenses.some((lens) => lens.el === el)) {
+      fitHostRim(el);
+      el.dataset.dockGlass = 'live';
+      pageGlassRefresh?.();
+      return true;
+    }
+    renderer.addLens(el, { ...PAGE_GLASS_OPTS, on: {} });
+    fitHostRim(el);
+    el.dataset.dockGlass = 'live';
+    el.style.backdropFilter = '';
+    (el.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
+    pageGlassRefresh?.();
+    return true;
+  };
+
+  const boot = async () => {
+    if (add()) return;
+    const start = performance.now();
+    while (!cancelled && performance.now() - start < 12000) {
+      await new Promise((resolve) => window.setTimeout(resolve, 80));
+      if (add()) return;
+    }
+  };
+  void boot();
+
+  return () => {
+    cancelled = true;
+    pageGlassHosts.delete(el);
+    const renderer = window.__liquidGLRenderer__;
+    if (renderer) renderer.lenses = renderer.lenses.filter((lens) => lens.el !== el);
+    restoreGlassHost(el);
+    pageGlassRefresh?.();
+  };
+}
+
+/** Share the dock’s liquid-glass material with another pill (carousel stepper). */
+export function attachLiquidGlass(el: HTMLElement) {
+  if (usesSvgBackdropLens(navigator.userAgent)) return attachSvgLiquidGlass(el);
+  return attachPhotoLiquidGlass(el);
+}
 const PAGE_SCALE = 0.5;
 
+// .gradeBG quiet field: oklch(0.86 0.063 220 → 0.82 0.059 275 → 0.84 0.048 345 → 0.93 0.034 285).
 const GRADE_STOPS = [
-  [0x30, 0xd6, 0xff],
-  [0x53, 0x57, 0xeb],
-  [0xdd, 0x8a, 0xba],
-  [0xd8, 0xd8, 0xff],
+  [0xa3, 0xdb, 0xee],
+  [0xb8, 0xc2, 0xeb],
+  [0xe3, 0xbf, 0xd2],
+  [0xe5, 0xe5, 0xfe],
 ];
 
 function axisLength(part: string, area: number) {
@@ -230,7 +392,7 @@ function samplePageColor(region: DOMRect) {
   const height = window.innerHeight;
   const x = region.left + region.width / 2;
   const y = region.top + region.height / 2;
-  if (!grade) return 'rgb(83 87 235)';
+  if (!grade) return 'rgb(184 194 235)';
   const style = getComputedStyle(grade);
   const size = style.backgroundSize.split(/\s+/);
   const position = style.backgroundPosition.split(/\s+/);
@@ -286,12 +448,24 @@ function cardPhoto(card: HTMLElement) {
   return image.complete && image.naturalWidth > 0 ? image : null;
 }
 
+// Orbit rotation lives on .folio-orbit-slot; the card is transform:none.
+function cardVisualMatrix(card: HTMLElement) {
+  let matrix = new DOMMatrix();
+  let node: HTMLElement | null = card;
+  while (node && node !== document.documentElement) {
+    const transform = getComputedStyle(node).transform;
+    if (transform && transform !== 'none') {
+      matrix = new DOMMatrix(transform).multiply(matrix);
+    }
+    node = node.parentElement;
+  }
+  return matrix;
+}
+
 function paintCard(context: CanvasRenderingContext2D, card: HTMLElement, rect: DOMRect, region: DOMRect) {
   const style = getComputedStyle(card);
   if (style.visibility === 'hidden' || style.display === 'none') return;
-  // Inline transform is the destination. The painted frame has to use the
-  // matrix the browser is interpolating, or a hover snaps to its last pose.
-  const matrix = new DOMMatrix(style.transform);
+  const matrix = cardVisualMatrix(card);
   const visual = Math.hypot(matrix.a, matrix.b) || 1;
   const rotation = Math.atan2(matrix.b, matrix.a);
   const width = card.offsetWidth * visual * PAGE_SCALE;
@@ -360,6 +534,7 @@ function mountPageGlass(dock: HTMLElement) {
   let scrollTimer = 0;
   let motionFrame = 0;
   let mediaFrame = 0;
+  let orbitFrame = 0;
   let scrollingClips: { reel: GifReel; canvas: HTMLCanvasElement; epoch: number }[] | null = null;
   let presented = false;
   let refreshedAt = 0;
@@ -387,20 +562,16 @@ function mountPageGlass(dock: HTMLElement) {
   dock.dataset.dockCapture = 'true';
 
   const syncPlate = () => {
-    const rect = home ?? dock.getBoundingClientRect();
-    const left = rect.left - PAGE_PAD;
-    const top = rect.top - PAGE_PAD;
-    const width = rect.width + PAGE_PAD * 2;
-    const height = rect.height + PAGE_PAD * 2;
-    const key = `${left}|${top}|${width}|${height}`;
+    const region = unionPlateRect(home ?? dock.getBoundingClientRect());
+    const key = `${region.left}|${region.top}|${region.width}|${region.height}`;
     if (key !== plateKey) {
       plateKey = key;
-      plate.style.left = `${left}px`;
-      plate.style.top = `${top}px`;
-      plate.style.width = `${width}px`;
-      plate.style.height = `${height}px`;
+      plate.style.left = `${region.left}px`;
+      plate.style.top = `${region.top}px`;
+      plate.style.width = `${region.width}px`;
+      plate.style.height = `${region.height}px`;
     }
-    return new DOMRect(left, top, width, height);
+    return region;
   };
 
   const liftCanvas = () => {
@@ -599,6 +770,20 @@ function mountPageGlass(dock: HTMLElement) {
     });
   };
 
+  // Empty-chat orbit writes transforms from rAF — not CSS transitions — so the
+  // photograph has to keep shooting or the pill freezes the last pose under it.
+  const orbitLive = () =>
+    Boolean(dock.closest('.folio-page')?.querySelector('.folio-masonry.is-orbit'));
+  const followOrbit = () => {
+    if (orbitFrame || cancelled || dock.dataset.dockMoving || !orbitLive()) return;
+    orbitFrame = requestAnimationFrame(() => {
+      orbitFrame = 0;
+      if (cancelled || !started || dock.dataset.dockMoving || !orbitLive()) return;
+      if (performance.now() - refreshedAt > 12) refresh();
+      else followOrbit();
+    });
+  };
+
   const refresh = (force = false) => {
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
     if (!renderer?._uploadTexture || cancelled || dock.dataset.dockPaging || (!force && dock.dataset.dockScrolling)) return;
@@ -608,6 +793,7 @@ function mountPageGlass(dock: HTMLElement) {
       seekGifs(gifsUnder(region));
       upload(paintStrip(region), region);
       followMedia(region);
+      followOrbit();
     } catch (error) {
       console.warn('Dock glass recapture failed', error);
       if (!revealed) restorePill();
@@ -615,6 +801,9 @@ function mountPageGlass(dock: HTMLElement) {
   };
 
   capture = () => refresh();
+  pageGlassRefresh = () => {
+    if (started) refresh(true);
+  };
 
   const schedule = (delay: number) => {
     window.clearTimeout(settleTimer);
@@ -724,7 +913,10 @@ function mountPageGlass(dock: HTMLElement) {
   const watchMasonry = () => {
     const masonry = page?.querySelector('.folio-masonry');
     if (!masonry || masonryObserver) return;
-    masonryObserver = new MutationObserver(() => schedule(360));
+    masonryObserver = new MutationObserver(() => {
+      schedule(360);
+      if (orbitLive()) followOrbit();
+    });
     masonryObserver.observe(masonry, { attributes: true, attributeFilter: ['class'] });
   };
   const pageObserver = page
@@ -771,16 +963,7 @@ function mountPageGlass(dock: HTMLElement) {
           target: '.dockDynamicContainer[data-dock-capture="true"]',
           snapshot: '[data-dock-snapshot]',
           engine: createSnapdomEngine(snapdom),
-          resolution: 2,
-          refraction: 0.04,
-          bevelDepth: 0.012,
-          bevelWidth: 0.25,
-          frost: 0,
-          shadow: false,
-          specular: false,
-          reveal: 'none',
-          tilt: false,
-          magnify: 1,
+          ...PAGE_GLASS_OPTS,
           on: {
             init() {
               if (cancelled) return;
@@ -832,12 +1015,14 @@ function mountPageGlass(dock: HTMLElement) {
 
   return () => {
     cancelled = true;
+    if (pageGlassRefresh) pageGlassRefresh = null;
     window.clearTimeout(settleWait);
     window.clearTimeout(resizeTimer);
     window.clearTimeout(settleTimer);
     window.clearTimeout(scrollTimer);
     if (motionFrame) cancelAnimationFrame(motionFrame);
     if (mediaFrame) cancelAnimationFrame(mediaFrame);
+    if (orbitFrame) cancelAnimationFrame(orbitFrame);
     document.removeEventListener('transitionrun', onTransitionRun, true);
     document.removeEventListener('playing', onPlaying, true);
     cluster?.removeEventListener('animationend', onIntroEnd);

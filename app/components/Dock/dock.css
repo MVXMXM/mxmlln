@@ -262,12 +262,12 @@
 }
 
 .mx-dock[data-composer] .dockDynamicContainer {
-  width: min(100dvw, 600px);
+  width: min(calc(100dvw - 24px), 600px);
   min-width: 0;
 }
 
 .mx-dock.mx-dock--contained[data-composer] .dockDynamicContainer {
-  width: min(100cqw, 600px);
+  width: min(calc(100cqw - 24px), 600px);
 }
 
 .mx-dock .dockComposer {

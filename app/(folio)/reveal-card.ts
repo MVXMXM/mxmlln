@@ -1,3 +1,4 @@
+import { attachLiquidGlass } from '@/app/components/Dock/DockGlass'
 import { targetForCardUrl, type FolioTarget } from '@/content/folio-card-map'
 
 declare global {
@@ -173,11 +174,7 @@ let carouselPlaying = false
 let carouselStepperIndex = -1
 let carouselProgress: Animation | null = null
 let headlineFadeTimer = 0
-
-const PLAY_ICON =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg>'
-const PAUSE_ICON =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5.5h3.5v13H7zm6.5 0H17v13h-3.5z"/></svg>'
+let carouselGlassDispose: (() => void) | null = null
 
 /** Settle onto the ring, then hold it before any reveal may start. */
 export const ORBIT_INTRO_MS = 900
@@ -465,6 +462,8 @@ function disposeCarousel() {
   carouselStepperIndex = -1
   if (headlineFadeTimer) window.clearTimeout(headlineFadeTimer)
   headlineFadeTimer = 0
+  carouselGlassDispose?.()
+  carouselGlassDispose = null
   carouselChrome?.remove()
   carouselChrome = null
   carouselHeadline = null
@@ -502,13 +501,6 @@ function syncCarouselHeadline(activeOverride?: number) {
   }, 160)
 }
 
-function syncPlayButton() {
-  const button = carouselStepper?.querySelector<HTMLButtonElement>('.folio-carousel-play')
-  if (!button) return
-  button.innerHTML = carouselPlaying ? PAUSE_ICON : PLAY_ICON
-  button.setAttribute('aria-label', carouselPlaying ? 'Pause gallery' : 'Play gallery')
-}
-
 function fillActiveDot() {
   cancelCarouselProgress()
   const fill = carouselStepper?.querySelector<HTMLElement>('.folio-carousel-dot.is-active .folio-carousel-dot-fill')
@@ -522,14 +514,6 @@ function pauseCarouselAutoplay() {
   }
   carouselPlaying = false
   fillActiveDot()
-  syncPlayButton()
-}
-
-function playCarouselAutoplay() {
-  if (!carousel || !carouselStepper) return
-  carouselPlaying = true
-  syncPlayButton()
-  restartCarouselProgress()
 }
 
 function advanceCarouselAutoplay() {
@@ -563,9 +547,11 @@ function restartCarouselProgress() {
 }
 
 function syncCarouselStepper(activeOverride?: number) {
-  if (!carouselStepper || !carousel) return
+  if (!carousel) return
   const active = activeOverride ?? activeCarouselIndex()
   syncCarouselHeadline(active)
+  syncCarouselStepperPos()
+  if (!carouselStepper) return
   const dots = carouselStepper.querySelectorAll<HTMLElement>('.folio-carousel-dot')
   dots.forEach((dot, index) => {
     const on = index === active
@@ -604,70 +590,66 @@ function mountCarouselStepper(count: number) {
   carouselHeadline = null
   carouselStepper = null
   carouselStepperIndex = -1
-  if (count < 2) {
-    carouselPlaying = false
-    return
-  }
+  carouselPlaying = false
 
   const chrome = document.createElement('div')
   chrome.className = 'folio-carousel-chrome'
   chrome.setAttribute('aria-label', 'Result cards')
 
-  const headline = document.createElement('h1')
+  const headline = document.createElement('h2')
   headline.className = 'folio-carousel-headline'
   chrome.appendChild(headline)
 
-  const root = document.createElement('div')
-  root.className = 'folio-carousel-stepper'
+  // Single-card results share the headline, not the pager.
+  if (count >= 2) {
+    const root = document.createElement('div')
+    root.className = 'folio-carousel-stepper'
 
-  const play = document.createElement('button')
-  play.type = 'button'
-  play.className = 'folio-carousel-play'
-  play.addEventListener('click', (event) => {
-    event.preventDefault()
-    if (carouselPlaying) pauseCarouselAutoplay()
-    else playCarouselAutoplay()
-  })
-  root.appendChild(play)
-
-  const pill = document.createElement('div')
-  pill.className = 'folio-carousel-pill'
-  pill.setAttribute('role', 'tablist')
-  pill.setAttribute('aria-label', 'Card pages')
-  for (let i = 0; i < count; i++) {
-    const dot = document.createElement('button')
-    dot.type = 'button'
-    dot.className = 'folio-carousel-dot'
-    dot.setAttribute('role', 'tab')
-    dot.setAttribute('aria-label', `Show card ${i + 1}`)
-    const fill = document.createElement('span')
-    fill.className = 'folio-carousel-dot-fill'
-    fill.setAttribute('aria-hidden', 'true')
-    dot.appendChild(fill)
-    dot.addEventListener('click', (event) => {
-      event.preventDefault()
-      pauseCarouselAutoplay()
-      snapCarousel(i)
-    })
-    pill.appendChild(dot)
+    const pill = document.createElement('div')
+    pill.className = 'folio-carousel-pill'
+    pill.setAttribute('role', 'tablist')
+    pill.setAttribute('aria-label', 'Card pages')
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement('button')
+      dot.type = 'button'
+      dot.className = 'folio-carousel-dot'
+      dot.setAttribute('role', 'tab')
+      dot.setAttribute('aria-label', `Show card ${i + 1}`)
+      const fill = document.createElement('span')
+      fill.className = 'folio-carousel-dot-fill'
+      fill.setAttribute('aria-hidden', 'true')
+      dot.appendChild(fill)
+      dot.addEventListener('click', (event) => {
+        event.preventDefault()
+        pauseCarouselAutoplay()
+        snapCarousel(i)
+      })
+      pill.appendChild(dot)
+    }
+    lockCarouselPillWidth(pill, count)
+    root.appendChild(pill)
+    chrome.appendChild(root)
+    carouselStepper = root
+    carouselPlaying = !motion()
   }
-  lockCarouselPillWidth(pill, count)
-  root.appendChild(pill)
-  chrome.appendChild(root)
 
   document.body.appendChild(chrome)
   carouselChrome = chrome
   carouselHeadline = headline
-  carouselStepper = root
   syncCarouselStepperPos()
+  // Same liquid-glass material as the dock (photo lens on Safari, SVG on Chromium).
+  carouselGlassDispose?.()
+  const glassHosts = [...chrome.querySelectorAll<HTMLElement>('.folio-carousel-pill')]
+  const glassDisposers = glassHosts.map((host) => attachLiquidGlass(host))
+  carouselGlassDispose = () => {
+    for (const dispose of glassDisposers) dispose()
+  }
   // Enter after paint so the Apple-style expand can play.
   requestAnimationFrame(() => {
     chrome.classList.add('is-in')
     syncCarouselStepperPos()
   })
-  carouselPlaying = !motion()
-  syncPlayButton()
-  syncCarouselStepper()
+  if (carouselStepper) syncCarouselStepper()
 }
 
 /** Matches FolioEngine’s 16px lattice (background dots / title shift). */
@@ -715,16 +697,17 @@ function dockTopY() {
 }
 
 function syncCarouselStepperPos() {
-  if (!carousel || !carouselStepper) return
+  if (!carousel || !carouselHeadline) return
   const { cardBottom } = folioFocusMetrics()
-  const stepperH = carouselStepper.offsetHeight || 60
-  const stepperTop = dockTopY() - 24 - stepperH
-  carouselStepper.style.top = `${stepperTop}px`
-  carouselStepper.style.bottom = 'auto'
-
-  if (!carouselHeadline) return
+  const bottomAnchor = carouselStepper
+    ? dockTopY() - 24 - (carouselStepper.offsetHeight || 60)
+    : dockTopY() - 24
+  if (carouselStepper) {
+    carouselStepper.style.top = `${bottomAnchor}px`
+    carouselStepper.style.bottom = 'auto'
+  }
   const headlineH = carouselHeadline.offsetHeight || 28
-  const mid = (cardBottom + stepperTop) / 2
+  const mid = (cardBottom + bottomAnchor) / 2
   carouselHeadline.style.top = `${mid - headlineH / 2}px`
   carouselHeadline.style.bottom = 'auto'
 }
@@ -767,7 +750,7 @@ function styleCarouselCard(card: HTMLElement, size: number) {
   card.style.cursor = 'pointer'
   card.style.contentVisibility = 'visible'
   card.style.transformOrigin = 'center center'
-  // Carousel stays image-only — text layer opens on the single-card settle.
+  // Image-only — badge/title live in the carousel headline, even for one card.
   const inner = card.querySelector<HTMLElement>('.CardInnerContainer')
   if (inner) {
     inner.style.height = '0%'
@@ -1429,7 +1412,6 @@ export function revealSessionCards(
   const token = ++motionToken
   disposeCarousel()
   stopOrbit()
-  const enlarge = motion() ? '0.01s' : `${ORBIT_ENLARGE_MS}ms`
   const keep = new Set(chosen.filter((card) => sessionCards.includes(card)))
   const orbitCount = Math.max(sessionCards.length, 1)
   const startMetrics = orbitMetrics(orbitCount)
@@ -1595,79 +1577,24 @@ export function revealSessionCards(
         const align = Math.cos(live + Math.PI / 2)
         const scale = multi ? 0.9 + 0.1 * Math.max(0, align) : 1
         placeOnRing(card, endRing, live, scale)
-        if (multi) return
-        const inner = card.querySelector<HTMLElement>('.CardInnerContainer')
-        if (inner) {
-          const open = `${Math.round(t * 100)}%`
-          inner.style.height = open
-          inner.style.width = open
-          inner.style.opacity = String(t)
-        }
       })
     })
     if (token !== motionToken) return
 
-    if (multi) {
-      kept.forEach((card) => {
-        styleCarouselCard(card, endRing.size)
-        card.style.pointerEvents = 'none'
-      })
-      kept.forEach((card) => {
-        const angle = endAngles.get(card)!
-        const align = Math.cos(angle + Math.PI / 2)
-        placeOnRing(card, endRing, angle, 0.9 + 0.1 * Math.max(0, align))
-      })
-      if (options?.afterTravel) {
-        await options.afterTravel()
-        if (token !== motionToken) return
-      }
-      mountCarousel(grid, kept)
-      return
-    }
-
-    const card = kept[0]
-    if (!card) {
-      await options?.afterTravel?.()
-      return
-    }
-
-    // At the top of the circle, bottoms-to-center is already upright.
-    placeOnRing(card, endRing, -Math.PI / 2, 1)
-    card.style.border = '10px solid #ffffff'
-    card.style.borderRadius = '24px'
-    card.style.boxShadow = '0 0px 30px rgba(0, 0, 0, 0.15)'
-
+    kept.forEach((card) => {
+      styleCarouselCard(card, endRing.size)
+      card.style.pointerEvents = 'none'
+    })
+    kept.forEach((card) => {
+      const angle = endAngles.get(card)!
+      const align = Math.cos(angle + Math.PI / 2)
+      placeOnRing(card, endRing, angle, multi ? 0.9 + 0.1 * Math.max(0, align) : 1)
+    })
     if (options?.afterTravel) {
       await options.afterTravel()
       if (token !== motionToken) return
     }
-
-    const settle = folioFocusMetrics()
-    const before = card.getBoundingClientRect()
-    card.style.transition = 'none'
-    card.style.left = `${settle.focusX - settle.size / 2}px`
-    card.style.top = `${settle.cardTop}px`
-    card.style.width = `${settle.size}px`
-    card.style.height = `${settle.size}px`
-    card.style.transform = 'none'
-    card.style.zIndex = '30'
-    card.style.pointerEvents = 'auto'
-    card.style.cursor = ''
-    const inner = card.querySelector<HTMLElement>('.CardInnerContainer')
-    if (inner) {
-      inner.style.height = '100%'
-      inner.style.width = '100%'
-      inner.style.opacity = '1'
-    }
-    const last = card.getBoundingClientRect()
-    if (last.width > 2 && before.width > 2) {
-      card.style.transformOrigin = 'top left'
-      card.style.transform = `translate(${before.left - last.left}px, ${before.top - last.top}px) scale(${before.width / Math.max(last.width, 1)})`
-      void grid.offsetHeight
-      card.style.transition = `transform ${enlarge} cubic-bezier(0.22, 1, 0.36, 1)`
-      card.style.transform = 'none'
-      card.style.transformOrigin = 'center center'
-    }
+    mountCarousel(grid, kept)
   })()
 }
 

@@ -179,6 +179,14 @@ export function Dock({
     return () => observer.disconnect();
   }, [activeItem]);
 
+  const closePanel = useCallback(() => {
+    setPanel(null);
+    setContactSettled(false);
+    setClosing(true);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setClosing(false), 1000);
+  }, []);
+
   useEffect(() => {
     if (!panel) return;
     function onClick(event: MouseEvent) {
@@ -186,9 +194,19 @@ export function Dock({
       if (!(target instanceof Node) || clusterRef.current?.contains(target)) return;
       closePanel();
     }
+    // Minify assumes the bar chrome. Panels are a different layout — collapse
+    // them on page scroll instead of squashing the tall shell to 48px.
+    function onScroll(event: Event) {
+      if (event.target instanceof Node && clusterRef.current?.contains(event.target)) return;
+      closePanel();
+    }
     document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
-  }, [panel]);
+    document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('scroll', onScroll, { capture: true });
+    };
+  }, [panel, closePanel]);
 
   useEffect(() => {
     if (!composer) return;
@@ -229,14 +247,6 @@ export function Dock({
     setClosing(false);
     setContactSettled(false);
     setPanel(next);
-  }
-
-  function closePanel() {
-    setPanel(null);
-    setContactSettled(false);
-    setClosing(true);
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setClosing(false), 1000);
   }
 
   const root = (
@@ -303,7 +313,7 @@ export function Dock({
               ref={inputRef}
               className="dockComposerField"
               value={draft}
-              placeholder="Ask me anything..."
+              placeholder="Ask me about design..."
               aria-label="Message"
               autoComplete="off"
               spellCheck={false}
