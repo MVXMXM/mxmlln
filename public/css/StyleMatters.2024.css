@@ -467,10 +467,6 @@ h3 {
 	border: solid rgba(0, 0, 0, .03);
 }
 
-/* Dot grid on body so the intro sees it before ContentContainer exists.
-   --dot-shift is set from the folio layout so a dot sits on the title-block center.
-   After the folio lands, body.folio-in hides this and ContentContainer keeps the
-   scroll-aligned copy so the lattice moves with the page. */
 body::before {
 	content: "";
 	position: fixed;
@@ -530,6 +526,17 @@ body.folio-in .ContentContainer::before {
 	.TitleBlock3 .Title {
 		line-height: 48px;
 	}
+}
+
+.Title {
+	font-family: Archivo;
+	font-weight: 800;
+	letter-spacing: 0px;
+	line-height: 1.1;
+	color: #1a1a1a;
+	background: none;
+	mix-blend-mode: soft-light;
+	opacity: 0.5;
 }
 
 .ampersand {
@@ -702,16 +709,8 @@ body {
 	
 .Title {
 	padding-left: 30px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
 	font-size: 28px;
-	line-height: 1.1;
 	width: 450px;
-	color: #1a1a1a;
-	background: none;
-	mix-blend-mode: soft-light;
-	opacity: 0.5;
 }
 	
 .Desc {
@@ -873,15 +872,7 @@ hr {
 	
 .Title {
 	padding-left: 35px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
 	font-size: 44px;
-	line-height: 1.1;
-	color: #1a1a1a;
-	background: none;
-	mix-blend-mode: soft-light;
-	opacity: 0.5;
 }
 
 .Desc {
@@ -1033,19 +1024,6 @@ hr {
 	font-size: 44px;
 }	
 	
-.Title {
-	padding-left: 35px;
-	font-family: Archivo;
-	font-weight: 800;
-	letter-spacing: 0px;
-	font-size: 44px;
-	line-height: 1.1;
-	color: #1a1a1a;
-	background: none;
-	mix-blend-mode: soft-light;
-	opacity: 0.5;
-}
-
 .Desc {
 	/*padding-left: 35px;*/
 	font-family: Archivo;
