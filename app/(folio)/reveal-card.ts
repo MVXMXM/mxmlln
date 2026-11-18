@@ -527,7 +527,7 @@ function restartCarouselProgress() {
   if (!carouselStepper || !carousel || !carouselPlaying) return
   const active = carouselStepper.querySelector<HTMLElement>('.folio-carousel-dot.is-active')
   const fill = active?.querySelector<HTMLElement>('.folio-carousel-dot-fill')
-  if (!fill) return
+  if (!active || !fill) return
   // Circle (= track height) grows into the full capsule so the ends stay round.
   const circle = `${active.clientHeight || 10}px`
   fill.style.width = circle
