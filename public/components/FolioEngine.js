@@ -677,8 +677,10 @@ function initIntroAnimation() {
     .delay(1250)
     .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
   setTimeout(function() {
-    $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
-      $('.ContentContainer').animate({top: '0px'}, 1000, function() {
+    // Leave the about pane put. It shares the page and should not rise with work.
+    const $content = $('.ContentContainer').not('.folio-about');
+    $content.css('top', '200%').fadeIn(0, function() {
+      $content.animate({top: '0px'}, 1000, function() {
         document.body.classList.add('folio-in');
       });
     });

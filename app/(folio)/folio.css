@@ -11,6 +11,21 @@ html:has(.folio-page) body {
   scrollbar-width: none;
 }
 
+/* Chat/orbit owns vertical input — don’t let wheel/trackpad scroll the folio underneath. */
+html:has(.folio-page.is-folio-session),
+html:has(.folio-page.is-folio-session) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+}
+
+.folio-page.is-folio-session {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+  max-height: 100dvh;
+}
+
 .folio-page,
 .folio-page *,
 .folio-page *::before,
@@ -20,6 +35,67 @@ html:has(.folio-page) body {
 
 .folio-page img {
   max-width: none;
+}
+
+.folio-stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.folio-stage > .AllStacks,
+.folio-about-slot {
+  grid-area: 1 / 1;
+  width: 100%;
+}
+
+.folio-about {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 80px 0 200px;
+}
+
+.folio-about-slot {
+  display: flex;
+  justify-content: center;
+}
+
+.folio-page:not([data-folio-view='about']) .folio-about-slot,
+.folio-page[data-folio-view='about'] .folio-stage > .AllStacks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.folio-page[data-folio-fade] .folio-stage > .AllStacks,
+.folio-page[data-folio-fade] .folio-about-slot {
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.4s !important;
+}
+
+.folio-page[data-folio-fade][data-folio-view='about'] .folio-about-slot,
+.folio-page[data-folio-fade]:not([data-folio-view='about']) .folio-stage > .AllStacks {
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s !important;
+}
+
+.folio-page .folio-about .timeline {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* The app reset drops the browser's auto margins, which held this rule under the icons. */
+.folio-page .folio-about hr {
+  margin: 0.5em auto;
 }
 
 .folio-page .IntroLoader svg,
@@ -55,6 +131,11 @@ html:has(.folio-page) body {
     animation: none;
     transform: none;
   }
+
+  .folio-page[data-folio-fade] .folio-stage > .AllStacks,
+  .folio-page[data-folio-fade] .folio-about-slot {
+    transition: none !important;
+  }
 }
 
 .folio-user-msg {
@@ -75,6 +156,39 @@ html:has(.folio-page) body {
 
 .folio-user-msg .chatQuery {
   border-radius: 24px 24px 4px 24px;
+  background-color: var(--accent);
+  color: #fff;
+  padding: 10px 20px;
+}
+
+/* Detaches from the dock capsule on send, then morphs into .chatQuery. */
+.folio-launch-msg {
+  position: fixed;
+  z-index: 960;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  background-color: var(--accent);
+  box-shadow: 0 10px 28px rgba(0, 187, 255, 0.28);
+  color: #fff;
+  font-family: var(--font-sans), Archivo, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+  line-height: 28px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.folio-launch-msg p {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
 }
 
 .folio-user-msg,
@@ -87,7 +201,7 @@ html:has(.folio-page) body {
 .folio-user-msg .chatQuery p {
   margin: 0;
   padding: 0;
-  color: #333;
+  color: #fff;
   font-family: var(--font-sans), Archivo, sans-serif;
   font-size: 16px;
   line-height: 1.75;
@@ -105,7 +219,7 @@ html:has(.folio-page) body {
   z-index: 850;
   top: calc(16px + env(safe-area-inset-top, 0px));
   left: 50%;
-  width: min(420px, calc(100vw - 48px));
+  width: min(600px, calc(100vw - 40px));
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -115,7 +229,14 @@ html:has(.folio-page) body {
 }
 
 .folio-focus-column.is-session {
-  width: min(520px, calc(100vw - 48px));
+  top: 50%;
+  width: min(600px, calc(100vw - 40px));
+  transform: translate(-50%, -50%);
+}
+
+.folio-focus-column.is-session.is-answered {
+  top: calc(40px + env(safe-area-inset-top, 0px));
+  transform: none;
 }
 
 .folio-masonry {
@@ -126,17 +247,96 @@ html:has(.folio-page) body {
   bottom: 0;
   left: 0;
   box-sizing: border-box;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-  align-content: start;
-  gap: 12px;
-  padding: 0 24px 140px;
-  overflow: auto;
+  overflow: hidden;
   pointer-events: none;
 }
 
+.folio-masonry.is-orbit {
+  display: block;
+  overflow: visible;
+}
+
+.folio-orbit-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.folio-orbit-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
 .folio-masonry.is-result {
-  overflow: hidden;
+  overflow: visible;
+}
+
+.folio-masonry.is-result.is-carousel {
+  pointer-events: auto;
+}
+
+/* Apple-style gallery stepper — sits between the arc and the dock input. */
+.folio-carousel-stepper {
+  position: fixed;
+  z-index: 880;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 76px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.folio-carousel-stepper.is-in {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.folio-carousel-dot {
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 22%, transparent);
+  cursor: pointer;
+  transition:
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.35s ease;
+}
+
+.folio-carousel-dot.is-active {
+  width: 23px;
+  background: color-mix(in srgb, var(--foreground) 72%, transparent);
+}
+
+.folio-carousel-dot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-carousel-stepper,
+  .folio-carousel-dot {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-orbit-slot {
+    will-change: auto;
+  }
 }
 
 .folio-page.is-folio-session .TitleBlock3 {
@@ -207,6 +407,10 @@ html:has(.folio-page) body {
   width: 100%;
 }
 
+.folio-assistant-msg.is-reply.is-waiting .chatBlurb {
+  justify-content: center;
+}
+
 .folio-assistant-msg.is-reply .chatBlurb p {
   min-width: 0;
 }
@@ -227,6 +431,106 @@ html:has(.folio-page) body {
 
 .folio-assistant-msg .chatResponseLogoContainer {
   border-width: 1px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  overflow: hidden;
+  transition:
+    width var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),
+    height var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),
+    min-width var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),
+    min-height var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),
+    border-color var(--folio-travel, 1.5s) ease,
+    background-color var(--folio-travel, 1.5s) ease;
+}
+
+/* Empty / loading: pop 0 → 300 like IntroLoader; close reverses to 0. */
+.folio-assistant-msg.is-waiting .chatResponseLogoContainer {
+  width: 0;
+  height: 0;
+  min-width: 0;
+  min-height: 0;
+  border-color: transparent;
+  background-color: transparent;
+  transition:
+    width var(--folio-logo-pop, 0.5s) ease,
+    height var(--folio-logo-pop, 0.5s) ease,
+    min-width var(--folio-logo-pop, 0.5s) ease,
+    min-height var(--folio-logo-pop, 0.5s) ease,
+    border-color var(--folio-logo-pop, 0.5s) ease,
+    background-color var(--folio-logo-pop, 0.5s) ease;
+}
+
+.folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogoContainer {
+  width: 300px;
+  height: 300px;
+  min-width: 300px;
+  min-height: 300px;
+}
+
+.folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogoContainer {
+  width: 0;
+  height: 0;
+  min-width: 0;
+  min-height: 0;
+  border-color: transparent;
+  background-color: transparent;
+  transition:
+    width var(--folio-logo-pop, 0.5s) ease,
+    height var(--folio-logo-pop, 0.5s) ease,
+    min-width var(--folio-logo-pop, 0.5s) ease,
+    min-height var(--folio-logo-pop, 0.5s) ease,
+    border-color var(--folio-logo-pop, 0.5s) ease,
+    background-color var(--folio-logo-pop, 0.5s) ease;
+}
+
+.folio-assistant-msg .chatResponseLogo {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  filter: brightness(0);
+  transition:
+    width var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),
+    height var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.folio-assistant-msg.is-waiting .chatResponseLogo {
+  width: 0;
+  height: 0;
+  transition:
+    width var(--folio-logo-pop, 0.5s) ease,
+    height var(--folio-logo-pop, 0.5s) ease;
+}
+
+.folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
+  width: 300px;
+  height: 300px;
+}
+
+.folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogo {
+  width: 0;
+  height: 0;
+  transition:
+    width var(--folio-logo-pop, 0.5s) ease,
+    height var(--folio-logo-pop, 0.5s) ease;
+}
+
+.folio-assistant-msg .chatResponseLogoLottie,
+.folio-assistant-msg .chatResponseLogo img,
+.folio-assistant-msg .chatResponseLogo svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folio-assistant-msg .chatResponseLogoContainer,
+  .folio-assistant-msg .chatResponseLogo {
+    transition: none;
+  }
 }
 
 .folio-assistant-msg.is-scan {

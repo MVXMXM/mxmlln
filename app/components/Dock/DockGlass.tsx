@@ -450,7 +450,7 @@ function mountPageGlass(dock: HTMLElement) {
       (dock.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
     }
     refreshedAt = performance.now();
-    if (renderer.canvas && !dock.dataset.dockMoving && !dock.dataset.dockScrolling) {
+    if (renderer.canvas && !dock.dataset.dockMoving && !dock.dataset.dockScrolling && !dock.dataset.dockPaging) {
       renderer.canvas.style.opacity = '1';
     }
   };
@@ -601,7 +601,7 @@ function mountPageGlass(dock: HTMLElement) {
 
   const refresh = (force = false) => {
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
-    if (!renderer?._uploadTexture || cancelled || (!force && dock.dataset.dockScrolling)) return;
+    if (!renderer?._uploadTexture || cancelled || dock.dataset.dockPaging || (!force && dock.dataset.dockScrolling)) return;
     const region = syncPlate();
     if (region.width < 1 || region.height < 1) return;
     try {
@@ -639,7 +639,7 @@ function mountPageGlass(dock: HTMLElement) {
     if (canvas) canvas.style.transition = 'opacity 0.56s cubic-bezier(0.22, 1, 0.36, 1)';
     dock.dataset.dockExpanding = 'true';
     delete dock.dataset.dockScrolling;
-    if (canvas && !dock.dataset.dockMoving) canvas.style.opacity = '1';
+    if (canvas && !dock.dataset.dockMoving && !dock.dataset.dockPaging) canvas.style.opacity = '1';
     window.clearTimeout(scrollTimer);
     scrollTimer = window.setTimeout(() => {
       delete dock.dataset.dockExpanding;
@@ -730,10 +730,20 @@ function mountPageGlass(dock: HTMLElement) {
   const pageObserver = page
     ? new MutationObserver(() => {
         watchMasonry();
+        // The about timeline is HTML, which this photograph cannot paint.
+        const about = page instanceof HTMLElement && page.dataset.folioView === 'about';
+        if (about) {
+          dock.dataset.dockPaging = 'true';
+          const canvas = window.__liquidGLRenderer__?.canvas;
+          if (canvas) canvas.style.opacity = '0';
+        } else if (dock.dataset.dockPaging) {
+          delete dock.dataset.dockPaging;
+          if (started) refresh();
+        }
         schedule(360);
       })
     : null;
-  if (page) pageObserver?.observe(page, { attributes: true, attributeFilter: ['class'], childList: true });
+  if (page) pageObserver?.observe(page, { attributes: true, attributeFilter: ['class', 'data-folio-view'], childList: true });
   watchMasonry();
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
   document.addEventListener('transitionrun', onTransitionRun, true);
@@ -846,6 +856,7 @@ function mountPageGlass(dock: HTMLElement) {
     delete dock.dataset.dockMoving;
     delete dock.dataset.dockScrolling;
     delete dock.dataset.dockExpanding;
+    delete dock.dataset.dockPaging;
     dock.closest('.mx-dock')?.removeAttribute('data-liquid-ignore');
     restorePill();
   };

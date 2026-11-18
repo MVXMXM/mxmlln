@@ -11,7 +11,11 @@ const cardSchema = z.object({
   cardDescription: z.string(),
   // ChatIntelligence.js reads cardURL as one string. cardURLs is the full list.
   cardURL: z.string(),
-  cardURLs: z.array(z.string()).min(1).max(6),
+  // The model sometimes over-lists a theme. Keep the first six instead of failing.
+  cardURLs: z
+    .array(z.string())
+    .min(1)
+    .transform((urls) => urls.slice(0, 6)),
 });
 
 export async function POST(req: NextRequest) {

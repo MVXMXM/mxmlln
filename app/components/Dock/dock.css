@@ -213,7 +213,7 @@
   -webkit-backdrop-filter: none;
 }
 
-.mx-dock .dockDynamicContainer[data-dock-glass='live']:not([data-dock-moving='true']):not([data-dock-scrolling='true']) {
+.mx-dock .dockDynamicContainer[data-dock-glass='live']:not([data-dock-moving='true']):not([data-dock-scrolling='true']):not([data-dock-paging='true']) {
   backdrop-filter: saturate(1.6);
   -webkit-backdrop-filter: saturate(1.6);
 }
@@ -262,12 +262,12 @@
 }
 
 .mx-dock[data-composer] .dockDynamicContainer {
-  width: min(100dvw, 500px);
+  width: min(100dvw, 600px);
   min-width: 0;
 }
 
 .mx-dock.mx-dock--contained[data-composer] .dockDynamicContainer {
-  width: min(100cqw, 500px);
+  width: min(100cqw, 600px);
 }
 
 .mx-dock .dockComposer {

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import { AboutView } from './AboutView'
 import { FolioMarkup } from './FolioMarkup'
 import { FolioScripts } from './FolioScripts'
 import { HomeDock } from './HomeDock'
@@ -25,6 +26,7 @@ export default function Page() {
   return (
     <>
       <FolioMarkup />
+      <AboutView />
       <HomeDock />
       <FolioScripts />
       <Script src="https://www.googletagmanager.com/gtag/js?id=UA-36917341-6" strategy="afterInteractive" />
