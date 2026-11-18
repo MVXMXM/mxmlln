@@ -239,8 +239,23 @@ html:has(.folio-page.is-folio-session) body {
   transform: translate(-50%, -50%);
 }
 
+/* Empty / loading: center the column on the logo (orbit origin). User bubble sits
+   above so it doesn’t pull the mark off-center. */
+.folio-focus-column.is-session:not(.is-answered) {
+  display: block;
+  gap: 0;
+}
+
+.folio-focus-column.is-session:not(.is-answered) .folio-user-msg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 24px);
+  width: 100%;
+}
+
 .folio-focus-column.is-session.is-answered {
-  /* top set in JS — vertically centered in the band above the focused card. */
+  /* bottom set in JS — grows upward as the blurb streams, gap to the card stays put. */
   transform: none;
   gap: 16px;
 }
@@ -283,30 +298,70 @@ html:has(.folio-page.is-folio-session) body {
   pointer-events: auto;
 }
 
-/* Apple-style gallery controls — vertically centered between card and dock.
-   Center with margin (not translateX) so backdrop-filter can see the page. */
-.folio-carousel-stepper {
+.folio-masonry.is-result.is-carousel .CardContent {
+  display: none;
+}
+
+/* Headline centers between card & stepper; stepper sits 24px above the
+   chat input (positions set in JS). Fade children — not a parent opacity
+   group — so soft-light can blend with the page like .Title. */
+.folio-carousel-chrome {
   position: fixed;
+  inset: 0;
   z-index: 880;
+  pointer-events: none;
+}
+
+.folio-carousel-headline {
+  position: fixed;
   left: 0;
   right: 0;
-  top: auto;
-  bottom: auto;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 48px));
+  margin: 0 auto;
+  padding: 0 12px;
+  font-family: Archivo, var(--font-sans), sans-serif;
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: capitalize;
+  color: #1a1a1a;
+  background: none;
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.folio-carousel-chrome.is-in .folio-carousel-headline {
+  opacity: 0.5;
+}
+
+.folio-carousel-chrome.is-in .folio-carousel-headline.is-fading {
+  opacity: 0;
+}
+
+.folio-carousel-stepper {
+  position: fixed;
+  left: 0;
+  right: 0;
   width: max-content;
   margin-inline: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transform: translateY(8px);
   opacity: 0;
+  transform: translateY(8px);
   pointer-events: none;
   transition:
     opacity 0.4s ease,
     transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.folio-carousel-stepper.is-in {
+.folio-carousel-chrome.is-in .folio-carousel-stepper {
   opacity: 1;
   transform: none;
   pointer-events: auto;
@@ -471,6 +526,7 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .folio-carousel-headline,
   .folio-carousel-stepper,
   .folio-carousel-dot,
   .folio-carousel-play {
@@ -479,6 +535,13 @@ html:has(.folio-page.is-folio-session) body {
 
   .folio-carousel-play:active {
     transform: none;
+  }
+}
+
+@media (min-width: 1000px) {
+  .folio-carousel-headline {
+    font-size: 44px;
+    line-height: 1.1;
   }
 }
 
@@ -594,7 +657,14 @@ html:has(.folio-page.is-folio-session) body {
     background-color var(--folio-travel, 1.5s) ease;
 }
 
-/* Empty / loading: pop 0 → 300 like IntroLoader; close reverses to 0. */
+/* Answered: bare mark on the page bg — no circle chrome, no size tween. */
+.folio-focus-column.is-answered .chatResponseLogoContainer {
+  border-color: transparent;
+  background-color: transparent;
+  transition: none;
+}
+
+/* Empty: pop 0 → 300 like IntroLoader; loading shrinks to 80; close reverses to 0. */
 .folio-assistant-msg.is-waiting .chatResponseLogoContainer {
   width: 0;
   height: 0;
@@ -616,6 +686,13 @@ html:has(.folio-page.is-folio-session) body {
   height: 300px;
   min-width: 300px;
   min-height: 300px;
+}
+
+.folio-assistant-msg.is-waiting.is-loading.is-logo-in .chatResponseLogoContainer {
+  width: 200px;
+  height: 200px;
+  min-width: 200px;
+  min-height: 200px;
 }
 
 .folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogoContainer {
@@ -655,6 +732,11 @@ html:has(.folio-page.is-folio-session) body {
 .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
   width: 300px;
   height: 300px;
+}
+
+.folio-assistant-msg.is-waiting.is-loading.is-logo-in .chatResponseLogo {
+  width: 200px;
+  height: 200px;
 }
 
 .folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogo {

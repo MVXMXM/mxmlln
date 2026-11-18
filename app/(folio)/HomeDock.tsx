@@ -29,13 +29,14 @@ type FolioTurn = {
 }
 
 const FAILURE = 'Something went wrong on my side. Try again in a moment.'
-/** Matches FolioEngine’s IntroLoader pop (0 → 300). */
-const LOGO_POP_MS = 500
+/** Empty chat pops 0 → 300; loading settles at 200. Slightly slower so reorbit can meet it. */
+const LOGO_POP_MS = 720
 
 function ChatResponseMark({ spinning }: { spinning: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const animRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null)
   const spinningRef = useRef(spinning)
+  const stopOnFrontRef = useRef(false)
   const [ready, setReady] = useState(false)
   spinningRef.current = spinning
 
@@ -50,13 +51,24 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
       autoplay: spinningRef.current,
     })
     animRef.current = anim
+    const settleFront = () => {
+      stopOnFrontRef.current = false
+      anim.goToAndStop(0, true)
+    }
     const onReady = () => {
       setReady(true)
-      if (!spinningRef.current) anim.pause()
+      if (!spinningRef.current) settleFront()
+    }
+    // Front face is frame 0 — finish the current turn, then land there.
+    const onFrame = () => {
+      if (!stopOnFrontRef.current) return
+      if (anim.currentFrame < 1) settleFront()
     }
     anim.addEventListener('DOMLoaded', onReady)
+    anim.addEventListener('enterFrame', onFrame)
     return () => {
       anim.removeEventListener('DOMLoaded', onReady)
+      anim.removeEventListener('enterFrame', onFrame)
       anim.destroy()
       animRef.current = null
     }
@@ -65,8 +77,17 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
   useEffect(() => {
     const anim = animRef.current
     if (!anim) return
-    if (spinning) anim.play()
-    else anim.pause()
+    if (spinning) {
+      stopOnFrontRef.current = false
+      anim.play()
+      return
+    }
+    if (anim.currentFrame < 1) {
+      stopOnFrontRef.current = false
+      anim.goToAndStop(0, true)
+      return
+    }
+    stopOnFrontRef.current = true
   }, [spinning])
 
   return (
@@ -118,27 +139,25 @@ function dockCapsuleRect() {
   return document.querySelector<HTMLElement>('.mx-dock .dockDynamicContainer')?.getBoundingClientRect() ?? null
 }
 
-/** Vertically center the reply column in the band above the focused card (~40px gap), snapped to the 16px grid. */
+/** Clearance between the message stack and the focused card on the ring. */
+const REPLY_CARD_GAP = 80
+
+/**
+ * Pin the reply column with its bottom edge REPLY_CARD_GAP above the card.
+ * Uses `bottom` (not `top`) so the stack can grow upward as the blurb streams
+ * without JS re-anchoring every chunk.
+ */
 function placeReplyColumn(frame: HTMLElement) {
   const { cardTop } = folioFocusMetrics()
   const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
   const left = snapFolioGrid((window.innerWidth - width) / 2)
-  const bandTop = FOLIO_GRID
-  // Keep ~40px clearance, but land the band edge on a grid line.
-  const bandBottom = snapFolioGrid(cardTop - 40, 'floor')
+  const bottom = Math.max(0, window.innerHeight - (cardTop - REPLY_CARD_GAP))
   frame.style.width = `${width}px`
   frame.style.left = `${left}px`
   frame.style.right = 'auto'
-  frame.style.bottom = 'auto'
+  frame.style.top = 'auto'
+  frame.style.bottom = `${snapFolioGrid(bottom)}px`
   frame.style.transform = 'none'
-  frame.style.top = `${bandTop}px`
-  const height = frame.getBoundingClientRect().height
-  const band = Math.max(0, bandBottom - bandTop)
-  const rawTop =
-    height >= band
-      ? bandBottom - height
-      : bandTop + (band - height) / 2
-  frame.style.top = `${Math.max(0, snapFolioGrid(rawTop))}px`
 }
 
 /** Peel a message chip off the dock capsule and morph it into the resting bubble. */
@@ -211,6 +230,7 @@ async function presentLoadingTurn(frame: HTMLElement, text: string, origin: DOMR
   frame.classList.remove('is-answered')
   frame.style.top = ''
   frame.style.left = ''
+  frame.style.bottom = ''
   frame.style.width = ''
   frame.style.transform = ''
   frame.style.transition = ''
@@ -273,53 +293,31 @@ export function HomeDock() {
     }
 
     if (!frame) return
-    // Vertically center reply content in the band above the focused card (grid-snapped).
     const { cardTop } = folioFocusMetrics()
-    const travel = reducedMotion() ? '0.01s' : `${ORBIT_TRAVEL_MS}ms`
-    const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
     frame.classList.add('is-answered')
     frame.style.transition = 'none'
     placeReplyColumn(frame)
     const gatherTop = cardTop
-    const last = frame.getBoundingClientRect()
-    // Park back at center, then settle into the centered band with the orbit exit.
-    frame.style.bottom = ''
-    frame.style.top = '50%'
-    frame.style.left = '50%'
-    frame.style.transform = 'translate(-50%, -50%)'
-    void frame.offsetHeight
-    frame.style.transition = [
-      `top ${travel} ${ease}`,
-      `left ${travel} ${ease}`,
-      `transform ${travel} ${ease}`,
-    ].join(', ')
-    frame.style.top = `${last.top}px`
-    frame.style.left = `${last.left}px`
-    frame.style.transform = 'none'
     const id = turnId.current
     const blurb = turn.current?.assistantMessage ?? ''
     revealSessionCards(grid, answers, gatherTop, {
-      afterTravel: async () => {
-        // Logo has landed on the final reply frame — freeze the spin, then stream.
+      onCull: () => {
         setMarkLanded(true)
-        await streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
+        void streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
       },
       gatherTop: () => folioFocusMetrics().cardTop,
     })
   }, [chatMounted, userMessage, answers])
 
-  // Re-center as the blurb streams / viewport changes (skip while assistant is still empty
-  // so we don’t fight the opening travel animation).
+  // Only re-pin on viewport changes — blurb growth is handled by CSS `bottom`.
   useLayoutEffect(() => {
-    if (!chatMounted || !answers || !assistantMessage || !column.current) return
+    if (!chatMounted || !answers || !column.current) return
     const frame = column.current
     if (!frame.classList.contains('is-answered')) return
-    frame.style.transition = 'none'
-    placeReplyColumn(frame)
     const onResize = () => placeReplyColumn(frame)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [chatMounted, answers, assistantMessage])
+  }, [chatMounted, answers])
 
   useEffect(() => {
     return () => {
@@ -438,6 +436,9 @@ export function HomeDock() {
         frame.style.width = ''
       }
 
+      // Start the inverse reveal immediately — ring reconstructs on submit, no float gap.
+      const cards = fromResult && grid ? reorbitSession(grid) : Promise.resolve()
+
       skipBegin.current = true
       setDockLaunch(true)
       setMarkLanded(false)
@@ -448,11 +449,6 @@ export function HomeDock() {
       // Empty-state orbit may have been spinning awhile — arm a fresh hold for this turn.
       if (!fromResult) armOrbitHold()
       setOrbitLoading(true)
-
-      const cards =
-        fromResult && grid
-          ? reorbitSession(grid)
-          : Promise.resolve()
 
       await afterPaint()
       if (turnId.current !== id) return
@@ -498,7 +494,6 @@ export function HomeDock() {
       revealTimer.current = window.setTimeout(() => {
         revealTimer.current = 0
         if (turnId.current !== id) return
-        // Cards gather first; the blurb streams in afterTravel before enlarge.
         setAnswers(chosen)
       }, waitMs)
     } catch {
@@ -527,6 +522,7 @@ export function HomeDock() {
               className={[
                 'folio-assistant-msg is-reply',
                 waiting ? 'is-waiting' : '',
+                loading ? 'is-loading' : '',
                 logoIn ? 'is-logo-in' : '',
               ]
                 .filter(Boolean)
