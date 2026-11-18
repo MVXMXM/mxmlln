@@ -83,6 +83,7 @@ button:disabled {
 	/* width: calc( 100vw - 8px ); */
 	/* height: calc( 100lvh - 8px ); */
 	background-color: rgba(255, 255, 255, 0.75);
+	opacity: 0; /* hidden until intro JS reveals — avoids Safari flash of unblurred box */
 	overflow: hidden;
 	filter: blur(150px) contrast(1.1) brightness(1.1) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=);
 }
