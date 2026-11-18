@@ -144,7 +144,7 @@ html:has(.folio-page.is-folio-session) body {
 
 .folio-user-msg {
   position: fixed;
-  z-index: 1000;
+  z-index: 890;
   top: calc(16px + env(safe-area-inset-top, 0px));
   right: 24px;
   left: 24px;
@@ -165,10 +165,11 @@ html:has(.folio-page.is-folio-session) body {
   padding: 10px 20px;
 }
 
-/* Detaches from the dock capsule on send, then morphs into .chatQuery. */
+/* Detaches from the dock capsule on send, then morphs into .chatQuery.
+   Sits under the dock (900) so the chip reads as coming out from behind it. */
 .folio-launch-msg {
   position: fixed;
-  z-index: 960;
+  z-index: 890;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -239,8 +240,9 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-focus-column.is-session.is-answered {
-  top: calc(40px + env(safe-area-inset-top, 0px));
+  /* top set in JS — vertically centered in the band above the focused card. */
   transform: none;
+  gap: 16px;
 }
 
 .folio-masonry {
@@ -281,16 +283,17 @@ html:has(.folio-page.is-folio-session) body {
   pointer-events: auto;
 }
 
-/* Apple-style gallery stepper — sits between the arc and the dock input. */
+/* Apple-style gallery controls — vertically centered between card and dock. */
 .folio-carousel-stepper {
   position: fixed;
   z-index: 880;
   left: 50%;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 76px);
+  top: auto;
+  bottom: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 10px;
   transform: translateX(-50%) translateY(8px);
   opacity: 0;
   pointer-events: none;
@@ -305,24 +308,106 @@ html:has(.folio-page.is-folio-session) body {
   pointer-events: auto;
 }
 
-.folio-carousel-dot {
+/* Secondary button chrome — surface fill, hairline stroke, #f5f5f5 hover. */
+.folio-carousel-play {
   box-sizing: border-box;
-  width: 7px;
-  height: 7px;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: var(--surface);
+  color: #1a1a1a;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.folio-carousel-play:hover {
+  background: #f5f5f5;
+}
+
+.folio-carousel-play:active {
+  transform: translateY(1px);
+}
+
+.folio-carousel-play:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.folio-carousel-play svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.folio-carousel-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
+  height: 60px;
+  padding: 0 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: var(--surface);
+  /* Locked in JS from dot count so last→first doesn’t momentarily shrink. */
+  flex: 0 0 auto;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.folio-carousel-pill:hover {
+  background: #f5f5f5;
+}
+
+.folio-carousel-dot {
+  position: relative;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
   margin: 0;
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--foreground) 22%, transparent);
+  overflow: hidden;
+  background: color-mix(in srgb, #1a1a1a 22%, transparent);
   cursor: pointer;
   transition:
-    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    background 0.35s ease;
+    width 0.4s cubic-bezier(0.645, 0.045, 0.355, 1),
+    background 0.15s ease;
+}
+
+.folio-carousel-dot:hover:not(.is-active) {
+  background: color-mix(in srgb, #1a1a1a 40%, transparent);
 }
 
 .folio-carousel-dot.is-active {
-  width: 23px;
-  background: color-mix(in srgb, var(--foreground) 72%, transparent);
+  width: 40px;
+  background: color-mix(in srgb, #1a1a1a 14%, transparent);
+}
+
+/* Starts as a circle (width = height), then elongates — always a full capsule. */
+.folio-carousel-dot-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  border-radius: 999px;
+  background: #1a1a1a;
+  pointer-events: none;
+}
+
+.folio-carousel-dot:not(.is-active) .folio-carousel-dot-fill {
+  width: 0;
 }
 
 .folio-carousel-dot:focus-visible {
@@ -332,8 +417,13 @@ html:has(.folio-page.is-folio-session) body {
 
 @media (prefers-reduced-motion: reduce) {
   .folio-carousel-stepper,
-  .folio-carousel-dot {
+  .folio-carousel-dot,
+  .folio-carousel-play {
     transition: none;
+  }
+
+  .folio-carousel-play:active {
+    transform: none;
   }
 }
 

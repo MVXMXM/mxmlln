@@ -7,12 +7,15 @@ import {
   armOrbitHold,
   beginFolioSession,
   cardsForAnswer,
+  FOLIO_GRID,
+  folioFocusMetrics,
   folioSessionOpen,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   releaseFolioFocus,
   reorbitSession,
   revealSessionCards,
+  snapFolioGrid,
 } from './reveal-card'
 
 type FolioTurn = {
@@ -114,24 +117,45 @@ function dockCapsuleRect() {
   return document.querySelector<HTMLElement>('.mx-dock .dockDynamicContainer')?.getBoundingClientRect() ?? null
 }
 
-async function exitAnswerColumn(frame: HTMLElement) {
-  const ms = travelMs()
-  frame.style.transition = `transform ${ms}ms cubic-bezier(0.33, 1, 0.68, 1), opacity ${ms}ms ease`
-  frame.style.transform = 'translateY(-130%)'
-  frame.style.opacity = '0'
-  await wait(ms || 40)
+/** Vertically center the reply column in the band above the focused card (~40px gap), snapped to the 16px grid. */
+function placeReplyColumn(frame: HTMLElement) {
+  const { cardTop } = folioFocusMetrics()
+  const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
+  const left = snapFolioGrid((window.innerWidth - width) / 2)
+  const bandTop = FOLIO_GRID
+  // Keep ~40px clearance, but land the band edge on a grid line.
+  const bandBottom = snapFolioGrid(cardTop - 40, 'floor')
+  frame.style.width = `${width}px`
+  frame.style.left = `${left}px`
+  frame.style.right = 'auto'
+  frame.style.bottom = 'auto'
+  frame.style.transform = 'none'
+  frame.style.top = `${bandTop}px`
+  const height = frame.getBoundingClientRect().height
+  const band = Math.max(0, bandBottom - bandTop)
+  const rawTop =
+    height >= band
+      ? bandBottom - height
+      : bandTop + (band - height) / 2
+  frame.style.top = `${Math.max(0, snapFolioGrid(rawTop))}px`
 }
 
 /** Peel a message chip off the dock capsule and morph it into the resting bubble. */
 async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect) {
-  const ms = travelMs()
+  const ms = reducedMotion() ? 0 : 400
+  const copy = bubble.querySelector<HTMLElement>('p')
+  // Measure the landing pill with nowrap so in-flight height matches the single-line chip
+  // (wrapped height + nowrap text was leaving the line stranded too high in the pill).
+  if (copy) copy.style.whiteSpace = 'nowrap'
   const dest = bubble.getBoundingClientRect()
+  const style = getComputedStyle(bubble)
+  const copyStyle = copy ? getComputedStyle(copy) : null
+  if (copy) copy.style.whiteSpace = ''
   if (dest.width < 2 || dest.height < 2) {
     bubble.style.opacity = ''
     return
   }
 
-  const style = getComputedStyle(bubble)
   bubble.style.opacity = '0'
 
   const fly = document.createElement('div')
@@ -145,10 +169,12 @@ async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect
   fly.style.height = `${origin.height}px`
   fly.style.borderRadius = '40px'
   fly.style.padding = '0 52px 0 28px'
+  fly.style.filter = 'blur(5px)'
   document.body.appendChild(fly)
   void fly.offsetHeight
 
-  const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
+  // Fast peel like before, with less late-stage coasting so the second half stays alive.
+  const ease = 'cubic-bezier(0.22, 0.15, 0.25, 1)'
   fly.style.transition = [
     `left ${ms}ms ${ease}`,
     `top ${ms}ms ${ease}`,
@@ -157,17 +183,23 @@ async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect
     `border-radius ${ms}ms ${ease}`,
     `padding ${ms}ms ${ease}`,
     `box-shadow ${ms}ms ease`,
-    `line-height ${ms}ms ease`,
+    `filter ${ms}ms ${ease}`,
   ].join(', ')
   fly.style.left = `${dest.left}px`
   fly.style.top = `${dest.top}px`
   fly.style.width = `${dest.width}px`
   fly.style.height = `${dest.height}px`
   fly.style.borderRadius = style.borderRadius || '24px 24px 4px 24px'
-  fly.style.padding = style.padding || '16px 24px'
+  fly.style.padding = style.padding
   fly.style.boxShadow = 'none'
-  fly.style.lineHeight = style.lineHeight || '1.75'
-  fly.style.alignItems = 'flex-start'
+  fly.style.filter = 'blur(0px)'
+  fly.style.alignItems = 'center'
+  if (copyStyle) {
+    line.style.fontSize = copyStyle.fontSize
+    line.style.fontWeight = copyStyle.fontWeight
+    line.style.letterSpacing = copyStyle.letterSpacing
+    line.style.lineHeight = copyStyle.lineHeight
+  }
 
   await wait(ms || 40)
   fly.remove()
@@ -221,6 +253,7 @@ export function HomeDock() {
         frame.classList.remove('is-answered')
         frame.style.top = ''
         frame.style.left = ''
+        frame.style.bottom = ''
         frame.style.width = ''
         frame.style.transform = ''
         frame.style.transition = ''
@@ -235,21 +268,17 @@ export function HomeDock() {
     }
 
     if (!frame) return
-    // Rise user + assistant with the card exit on one shared timeline.
-    const width = Math.min(600, window.innerWidth - 40)
-    const left = Math.max(24, (window.innerWidth - width) / 2)
-    const top = 'calc(40px + env(safe-area-inset-top, 0px))'
+    // Vertically center reply content in the band above the focused card (grid-snapped).
+    const { cardTop } = folioFocusMetrics()
     const travel = reducedMotion() ? '0.01s' : `${ORBIT_TRAVEL_MS}ms`
     const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
     frame.classList.add('is-answered')
     frame.style.transition = 'none'
-    frame.style.width = `${width}px`
-    // Measure the resting top layout first so cards can aim at the same landing.
-    frame.style.top = top
-    frame.style.left = `${left}px`
-    frame.style.transform = 'none'
-    const gatherTop = frame.getBoundingClientRect().bottom + 28
-    // Park back at center, then rise with the orbit exit.
+    placeReplyColumn(frame)
+    const gatherTop = cardTop
+    const last = frame.getBoundingClientRect()
+    // Park back at center, then settle into the centered band with the orbit exit.
+    frame.style.bottom = ''
     frame.style.top = '50%'
     frame.style.left = '50%'
     frame.style.transform = 'translate(-50%, -50%)'
@@ -259,8 +288,8 @@ export function HomeDock() {
       `left ${travel} ${ease}`,
       `transform ${travel} ${ease}`,
     ].join(', ')
-    frame.style.top = top
-    frame.style.left = `${left}px`
+    frame.style.top = `${last.top}px`
+    frame.style.left = `${last.left}px`
     frame.style.transform = 'none'
     const id = turnId.current
     const blurb = turn.current?.assistantMessage ?? ''
@@ -270,12 +299,22 @@ export function HomeDock() {
         setMarkLanded(true)
         await streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
       },
-      gatherTop: () => {
-        const el = column.current
-        return el ? el.getBoundingClientRect().bottom + 28 : gatherTop
-      },
+      gatherTop: () => folioFocusMetrics().cardTop,
     })
   }, [chatMounted, userMessage, answers])
+
+  // Re-center as the blurb streams / viewport changes (skip while assistant is still empty
+  // so we don’t fight the opening travel animation).
+  useLayoutEffect(() => {
+    if (!chatMounted || !answers || !assistantMessage || !column.current) return
+    const frame = column.current
+    if (!frame.classList.contains('is-answered')) return
+    frame.style.transition = 'none'
+    placeReplyColumn(frame)
+    const onResize = () => placeReplyColumn(frame)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [chatMounted, answers, assistantMessage])
 
   useEffect(() => {
     return () => {
@@ -380,9 +419,17 @@ export function HomeDock() {
     })
 
     try {
-      if (fromResult && grid && frame) {
-        await exitAnswerColumn(frame)
-        if (turnId.current !== id) return
+      // Follow-ups used to await a full column exit (~travelMs) before peeling —
+      // that read as input lag. Reset instantly and peel on the next paint.
+      if (fromResult && frame) {
+        frame.classList.remove('is-answered')
+        frame.style.transition = 'none'
+        frame.style.transform = ''
+        frame.style.opacity = '1'
+        frame.style.top = ''
+        frame.style.left = ''
+        frame.style.bottom = ''
+        frame.style.width = ''
       }
 
       skipBegin.current = true
