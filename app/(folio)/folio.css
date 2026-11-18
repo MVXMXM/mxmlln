@@ -68,6 +68,10 @@ html:has(.folio-page.is-folio-session) body {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  /* Absolute panes still extend scrollable overflow — collapse them when hidden. */
+  height: 0;
+  overflow: hidden;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
