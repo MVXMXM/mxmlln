@@ -600,7 +600,6 @@ function mountCarouselStepper(count: number) {
   headline.className = 'folio-carousel-headline'
   chrome.appendChild(headline)
 
-  // Single-card results share the headline, not the pager.
   if (count >= 2) {
     const root = document.createElement('div')
     root.className = 'folio-carousel-stepper'
@@ -637,14 +636,13 @@ function mountCarouselStepper(count: number) {
   carouselChrome = chrome
   carouselHeadline = headline
   syncCarouselStepperPos()
-  // Same liquid-glass material as the dock (photo lens on Safari, SVG on Chromium).
   carouselGlassDispose?.()
   const glassHosts = [...chrome.querySelectorAll<HTMLElement>('.folio-carousel-pill')]
   const glassDisposers = glassHosts.map((host) => attachLiquidGlass(host))
   carouselGlassDispose = () => {
     for (const dispose of glassDisposers) dispose()
   }
-  // Enter after paint so the Apple-style expand can play.
+  // After paint — otherwise the expand transition never runs.
   requestAnimationFrame(() => {
     chrome.classList.add('is-in')
     syncCarouselStepperPos()

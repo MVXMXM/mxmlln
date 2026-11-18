@@ -194,8 +194,7 @@ export function Dock({
       if (!(target instanceof Node) || clusterRef.current?.contains(target)) return;
       closePanel();
     }
-    // Minify assumes the bar chrome. Panels are a different layout — collapse
-    // them on page scroll instead of squashing the tall shell to 48px.
+    // Minify is bar chrome only — tall panels fight the 48px shell.
     function onScroll(event: Event) {
       if (event.target instanceof Node && clusterRef.current?.contains(event.target)) return;
       closePanel();

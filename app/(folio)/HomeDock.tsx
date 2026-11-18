@@ -33,7 +33,7 @@ const NO_CARD_MSG =
   "Sorry, my website isn't intelligent enough to answer that yet. I'm actively working on improvements, which you can follow along on X for updates."
 const NO_CARD_LINK = 'follow along on X for updates'
 const X_PROFILE = 'https://x.com/MVXMXM'
-/** Empty / loading chat pops 0 → 200. Slightly slower so reorbit can meet it. */
+/** Outlasts reorbit so the pop can meet the ring. */
 const LOGO_POP_MS = 720
 
 function ChatResponseMark({ spinning }: { spinning: boolean }) {
@@ -139,7 +139,6 @@ async function streamBlurb(
   if (live()) setText(full)
 }
 
-/** Streamed miss copy — linkifies the X CTA once that phrase has arrived. */
 function MissBlurb({ text }: { text: string }) {
   const at = text.indexOf(NO_CARD_LINK)
   if (at < 0) {
@@ -160,14 +159,9 @@ function dockCapsuleRect() {
   return document.querySelector<HTMLElement>('.mx-dock .dockDynamicContainer')?.getBoundingClientRect() ?? null
 }
 
-/** Clearance between the message stack and the focused card on the ring. */
 const REPLY_CARD_GAP = 80
 
-/**
- * Pin the reply column with its bottom edge REPLY_CARD_GAP above the card.
- * Uses `bottom` (not `top`) so the stack can grow upward as the blurb streams
- * without JS re-anchoring every chunk.
- */
+/** `bottom` (not `top`) so the blurb can grow up without re-anchoring each chunk. */
 function placeReplyColumn(frame: HTMLElement) {
   const { cardTop } = folioFocusMetrics()
   const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
@@ -181,7 +175,6 @@ function placeReplyColumn(frame: HTMLElement) {
   frame.style.transform = 'none'
 }
 
-/** No card to sit above — keep the reply stack on the viewport center. */
 function placeMissColumn(frame: HTMLElement) {
   const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
   const left = snapFolioGrid((window.innerWidth - width) / 2)
@@ -193,12 +186,10 @@ function placeMissColumn(frame: HTMLElement) {
   frame.style.transform = 'translateY(-50%)'
 }
 
-/** Peel a message chip off the dock capsule and morph it into the resting bubble. */
 async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect) {
   const ms = reducedMotion() ? 0 : 400
   const copy = bubble.querySelector<HTMLElement>('p')
-  // Measure the landing pill with nowrap so in-flight height matches the single-line chip
-  // (wrapped height + nowrap text was leaving the line stranded too high in the pill).
+  // nowrap measure — wrapped height left the line stranded too high in the pill.
   if (copy) copy.style.whiteSpace = 'nowrap'
   const dest = bubble.getBoundingClientRect()
   const style = getComputedStyle(bubble)
@@ -226,7 +217,6 @@ async function launchFromDock(bubble: HTMLElement, text: string, origin: DOMRect
   document.body.appendChild(fly)
   void fly.offsetHeight
 
-  // Fast peel like before, with less late-stage coasting so the second half stays alive.
   const ease = 'cubic-bezier(0.22, 0.15, 0.25, 1)'
   fly.style.transition = [
     `left ${ms}ms ${ease}`,
@@ -298,7 +288,6 @@ export function HomeDock() {
   const waiting = !answers
   const loading = waiting && !!userMessage
 
-  // Remember the loading mark’s screen box so the answer layout can FLIP from it.
   useLayoutEffect(() => {
     if (!waiting || !column.current) return
     const logo = column.current.querySelector<HTMLElement>('.chatResponseLogoContainer')
@@ -313,7 +302,6 @@ export function HomeDock() {
     if (!grid) return
     const frame = column.current
 
-    // Empty chat + loading share the orbit; answers drives reveal afterward.
     if (!answers) {
       logoFromRef.current = null
       if (frame) {
@@ -332,7 +320,7 @@ export function HomeDock() {
         return
       }
       if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
-      // beginFolioSession resets tighten — re-apply if this mount is a loading turn.
+      // beginFolioSession resets tighten — re-apply on a loading mount.
       if (userMessage) setOrbitLoading(true)
       return
     }
@@ -358,7 +346,7 @@ export function HomeDock() {
         const sx = from.width / to.width
         const sy = from.height / to.height
         const ease = 'cubic-bezier(0.22, 1, 0.36, 1)'
-        // Fill the reply box during the scale so 200→60 reads true.
+        // Fill the box during scale so 200→60 reads true.
         mark.style.width = '100%'
         mark.style.height = '100%'
         logo.style.transformOrigin = 'top left'
@@ -389,7 +377,7 @@ export function HomeDock() {
     })
   }, [chatMounted, userMessage, answers, emptyMiss])
 
-  // Only re-pin on viewport changes — blurb growth is handled by CSS `bottom`.
+  // Resize only — blurb growth rides CSS `bottom`.
   useLayoutEffect(() => {
     if (!chatMounted || !answers || !column.current) return
     const frame = column.current
@@ -494,7 +482,7 @@ export function HomeDock() {
     if (revealTimer.current) window.clearTimeout(revealTimer.current)
     revealTimer.current = 0
 
-    // Capture before the draft clears / any column motion so the peel lines up.
+    // Before draft clear / column motion — peel origin has to match the capsule now.
     const origin = dockCapsuleRect()
     const grid = masonry.current
     const frame = column.current
@@ -507,8 +495,7 @@ export function HomeDock() {
     })
 
     try {
-      // Follow-ups used to await a full column exit (~travelMs) before peeling —
-      // that read as input lag. Reset instantly and peel on the next paint.
+      // Skip the column-exit wait on follow-ups — it read as input lag.
       if (fromResult && frame) {
         frame.classList.remove('is-answered', 'is-miss')
         frame.style.transition = 'none'
@@ -520,7 +507,6 @@ export function HomeDock() {
         frame.style.width = ''
       }
 
-      // Start the inverse reveal immediately — ring reconstructs on submit, no float gap.
       const cards = fromResult && grid ? reorbitSession(grid) : Promise.resolve()
 
       skipBegin.current = true
@@ -531,7 +517,7 @@ export function HomeDock() {
       setAssistantMessage(null)
       setFailure(null)
       setEmptyMiss(false)
-      // Empty-state orbit may have been spinning awhile — arm a fresh hold for this turn.
+      // Empty orbit may already be mid-spin — hold clock has to restart for this turn.
       if (!fromResult) armOrbitHold()
       setOrbitLoading(true)
 

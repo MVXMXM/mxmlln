@@ -261,7 +261,6 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-focus-column.is-session.is-answered.is-miss {
-  /* No card — JS pins top:50% + translateY(-50%). */
   gap: 16px;
 }
 
@@ -644,7 +643,7 @@ html:has(.folio-page.is-folio-session) body {
   transition: gap 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Empty-state prompt: same face as the Amplifying .Title (chatBlurb p would crush it to 16px). */
+/* chatBlurb p would crush this to 16px — keep Amplifying .Title face. */
 .folio-assistant-msg .chatBlurb .folio-empty-prompt {
   width: max-content;
   max-width: min(560px, calc(100vw - 48px));
@@ -725,7 +724,7 @@ html:has(.folio-page.is-folio-session) body {
     background-color var(--folio-travel, 1.5s) ease;
 }
 
-/* Answered: bare mark — snap box size; loading→reply position FLIPs via transform. */
+/* Size snaps here; loading→reply position FLIPs via transform on the mark. */
 .folio-focus-column.is-answered .chatResponseLogoContainer {
   border-color: transparent;
   background-color: transparent;
@@ -736,7 +735,6 @@ html:has(.folio-page.is-folio-session) body {
   transition: none;
 }
 
-/* Empty / loading: pop 0 → 200; close reverses to 0. */
 .folio-assistant-msg.is-waiting .chatResponseLogoContainer {
   width: 0;
   height: 0;
