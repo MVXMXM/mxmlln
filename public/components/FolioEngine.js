@@ -384,43 +384,151 @@ function resetCardStyles(cardStack, cardIndexInStack, totalCards) {
     cardStack.style.zIndex = '100';
 }
 
+const isSafariVideo = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+function posterSrcForVideo(videoSrc) {
+    return videoSrc.replace(/\.webm$/i, '.poster.webp');
+}
+
+function resolvedVideoSrc(videoSrc) {
+    return isSafariVideo ? videoSrc.replace(/\.webm$/i, '.mp4') : videoSrc;
+}
+
+function applyCardPoster(card, videoSrc) {
+    const poster = card.dataset.poster || posterSrcForVideo(videoSrc);
+    card.style.backgroundImage = `url('${poster}')`;
+    card.style.backgroundSize = 'cover';
+    card.style.backgroundPosition = 'center';
+    card.style.overflow = 'hidden';
+    card.style.position = 'relative';
+}
+
+function ensureCardCursorHit(card) {
+    if (card.querySelector(':scope > .card-cursor-hit')) return;
+    // Transparent hit target above <video>; Safari's media layer otherwise eats cursor:url().
+    const hit = document.createElement('div');
+    hit.className = 'card-cursor-hit';
+    hit.style.cssText = 'position:absolute;inset:0;z-index:250;background:transparent;';
+    card.appendChild(hit);
+}
+
+function unmountCardVideo(card) {
+    const wrap = card.querySelector(':scope > .card-media-wrap');
+    const video = wrap?.querySelector('video.card-media') || card.querySelector(':scope > video.card-media');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+    wrap?.remove();
+    if (video && !wrap) video.remove();
+    card.querySelector(':scope > .card-cursor-hit')?.remove();
+    if (card.dataset.videoSrc) {
+        applyCardPoster(card, card.dataset.videoSrc);
+    }
+}
+
+function mountCardVideo(card) {
+    const videoSrc = card.dataset.videoSrc;
+    if (!videoSrc || card.querySelector('.card-media-wrap video.card-media, :scope > video.card-media')) return;
+
+    applyCardPoster(card, videoSrc);
+
+    // Contain <video> in the page layer tree — Safari otherwise punches through and kills cursor:url().
+    const wrap = document.createElement('div');
+    wrap.className = 'card-media-wrap';
+    wrap.style.cssText = `
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+        transform: translateZ(0);
+        isolation: isolate;
+    `;
+
+    const video = document.createElement('video');
+    video.className = 'card-media';
+    video.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+        opacity: 0.999;
+        transform: translateZ(0);
+    `;
+    video.muted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.src = resolvedVideoSrc(videoSrc);
+
+    wrap.appendChild(video);
+    card.appendChild(wrap);
+    ensureCardCursorHit(card);
+    video.play().catch(error => {
+        console.warn('Video autoplay failed:', error);
+    });
+}
+
+function hydrateStackVideos(cardStack, { frontOnly = false } = {}) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card').forEach((card, index) => {
+        if (!card.dataset.videoSrc) return;
+        if (frontOnly && index > 0) {
+            unmountCardVideo(card);
+            return;
+        }
+        mountCardVideo(card);
+    });
+}
+
 function loadCards(cardStack = document.querySelector('.CardStack')) {
-    const cards = cardStack.querySelectorAll('.Card');
-    cards.forEach(function(card) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card').forEach(function(card) {
         const imageSrc = card.dataset.src;
         const videoSrc = card.dataset.videoSrc;
-        
-        if (videoSrc) {
-            const video = document.createElement('video');
-            video.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                z-index: 0;
-            `;
-            video.muted = true;
-            video.autoplay = true;
-            video.loop = true;
-            video.playsInline = true;
-            video.controls = false;
 
-            // Handle Safari video format
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            const videoSource = isSafari ? videoSrc.replace('.webm', '.mp4') : videoSrc;
-            video.src = videoSource;
-            
-            card.style.overflow = 'hidden';
-            card.style.position = 'relative';
-            card.appendChild(video);
-            
-            video.play().catch(error => {
-                console.warn('Video autoplay failed:', error);
-            });
+        if (videoSrc) {
+            applyCardPoster(card, videoSrc);
         } else if (imageSrc) {
             card.style.backgroundImage = `url('${imageSrc}')`;
+        }
+    });
+}
+
+function observeCardStackMedia() {
+    const stacks = document.querySelectorAll('.CardStack');
+    if (!('IntersectionObserver' in window)) {
+        stacks.forEach(stack => hydrateStackVideos(stack, { frontOnly: true }));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const stack = entry.target;
+            const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded');
+            if (StackIsExpanded) {
+                if (!expanded) {
+                    stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+                }
+                return;
+            }
+            if (entry.isIntersecting) {
+                hydrateStackVideos(stack, { frontOnly: true });
+            } else {
+                stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+            }
+        });
+    }, { rootMargin: '120px 0px', threshold: 0.05 });
+
+    stacks.forEach(stack => {
+        observer.observe(stack);
+        const rect = stack.getBoundingClientRect();
+        if (rect.bottom > -120 && rect.top < window.innerHeight + 120) {
+            hydrateStackVideos(stack, { frontOnly: true });
         }
     });
 }
@@ -428,12 +536,12 @@ function loadCards(cardStack = document.querySelector('.CardStack')) {
 // Initialize default styles
 document.addEventListener('DOMContentLoaded', function() {
     setDefaultCardStackStyles();
-    
-    // Load all card stacks immediately
+
     const cardStacks = document.querySelectorAll('.CardStack');
     cardStacks.forEach(stack => {
         loadCards(stack);
     });
+    observeCardStackMedia();
 });
 
 function collapseExpandedStack() {
@@ -513,8 +621,11 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                 stack.style.transition = 'width 0.05s ease, height 0.05s ease';
                 stack.style.width = '0px';
                 stack.style.height = '0px';
+                stack.style.cursor = 'default';
+                stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+            } else {
+                stack.style.cursor = '';
             }
-            stack.style.cursor = 'default';
         });
         allCards.forEach(card => {
             if (card.parentNode !== cardStack) {
@@ -526,6 +637,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
             }
             card.style.pointerEvents = 'auto';
         });
+        hydrateStackVideos(cardStack, { frontOnly: false });
         setTimeout(() => {
             AllStacks.style.maxWidth = '100vw';
             AllStacks.style.gap = '0px';
@@ -566,14 +678,6 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                     behavior: 'smooth'
                 });
             }, 300);
-            // lazyLoadCards();
-
-            // setTimeout(() => {
-            //     const expandedCardStack = CardStackLabelContainer.querySelector('.CardStack');
-            //     if (expandedCardStack) {
-            //         lazyLoadCards(expandedCardStack);
-            //     }
-            // }, 600);
 
         }, 0);
         // StackBar Setup
@@ -586,6 +690,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         StackBar.style.visibility = 'visible';
     } else {
         StackIsExpanded = false;
+        hydrateStackVideos(cardStack, { frontOnly: true });
         const appStore = document.querySelector('.appStore');
         if (appStore) {
             Object.assign(appStore.style, initialStyles.appStore);
