@@ -10,10 +10,12 @@ import {
   cardsForAnswer,
   FOLIO_GRID,
   folioFocusMetrics,
+  folioKeyboardOpen,
   folioSessionOpen,
   folioViewport,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
+  parkResultsForCompose,
   releaseFolioFocus,
   reorbitSession,
   revealSessionCards,
@@ -285,15 +287,21 @@ export function HomeDock() {
   const [answers, setAnswers] = useState<HTMLElement[] | null>(null)
   const [dockLaunch, setDockLaunch] = useState(false)
   const [markLanded, setMarkLanded] = useState(false)
+  const [composing, setComposing] = useState(false)
   const fadeGen = useRef(0)
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
   const logoFromRef = useRef<DOMRect | null>(null)
-  const waiting = !answers
-  const loading = waiting && !!userMessage
+  const parkedBlurb = useRef(false)
+  const answersRef = useRef(answers)
+  answersRef.current = answers
+  // Keyboard open → empty compose UI even when answers are stashed.
+  const browsing = !!answers && !composing
+  const waiting = !browsing
+  const loading = !answers && !!userMessage
 
   useLayoutEffect(() => {
-    if (!waiting || !column.current) return
+    if (!waiting || composing || !column.current) return
     const logo = column.current.querySelector<HTMLElement>('.chatResponseLogoContainer')
     if (!logo) return
     const rect = logo.getBoundingClientRect()
@@ -306,7 +314,7 @@ export function HomeDock() {
     if (!grid) return
     const frame = column.current
 
-    if (!answers) {
+    if (!browsing) {
       logoFromRef.current = null
       if (frame) {
         frame.classList.remove('is-answered', 'is-miss')
@@ -317,6 +325,11 @@ export function HomeDock() {
         frame.style.transform = ''
         frame.style.transition = ''
         frame.style.opacity = ''
+      }
+      if (composing && answers) {
+        parkResultsForCompose(grid)
+        setOrbitLoading(false)
+        return
       }
       setOrbitLoading(!!userMessage)
       if (skipBegin.current) {
@@ -329,7 +342,7 @@ export function HomeDock() {
       return
     }
 
-    if (!frame) return
+    if (!frame || !answers) return
     const { cardTop } = folioFocusMetrics()
     const from = logoFromRef.current
     logoFromRef.current = null
@@ -342,7 +355,9 @@ export function HomeDock() {
     const logo = frame.querySelector<HTMLElement>('.chatResponseLogoContainer')
     const mark = frame.querySelector<HTMLElement>('.chatResponseLogo')
     const landMs = reducedMotion() ? 0 : Math.min(ORBIT_TRAVEL_MS, 560)
-    if (from && logo && mark && landMs > 0) {
+    const replay = parkedBlurb.current
+    parkedBlurb.current = false
+    if (from && logo && mark && landMs > 0 && !replay) {
       const to = logo.getBoundingClientRect()
       if (to.width > 2 && to.height > 2) {
         const dx = from.left - to.left
@@ -375,26 +390,34 @@ export function HomeDock() {
     revealSessionCards(grid, answers, gatherTop, {
       onCull: () => {
         setMarkLanded(true)
+        if (replay) return
         void streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
       },
       gatherTop: () => folioFocusMetrics().cardTop,
     })
-  }, [chatMounted, userMessage, answers, emptyMiss])
+  }, [chatMounted, userMessage, answers, emptyMiss, composing, browsing])
 
   // Resize / visualViewport — blurb growth rides CSS `bottom`.
   useLayoutEffect(() => {
-    if (!chatMounted || !answers || !column.current) return
+    if (!chatMounted || !browsing || !column.current) return
     const frame = column.current
     if (!frame.classList.contains('is-answered')) return
     const onResize = () => {
       if (emptyMiss) placeMissColumn(frame)
       else placeReplyColumn(frame)
     }
+    onResize()
     return bindFolioVisualViewport(onResize)
-  }, [chatMounted, answers, emptyMiss])
+  }, [chatMounted, browsing, emptyMiss])
 
   useEffect(() => {
-    return bindFolioVisualViewport()
+    return bindFolioVisualViewport(() => {
+      const next = folioKeyboardOpen()
+      setComposing((prev) => {
+        if (prev && !next && answersRef.current) parkedBlurb.current = true
+        return next
+      })
+    })
   }, [])
 
   useEffect(() => {
@@ -477,6 +500,8 @@ export function HomeDock() {
   async function send(value: string) {
     if (busy.current) return
     busy.current = true
+    // Drop the software keyboard before loading/results reflow.
+    document.querySelector<HTMLInputElement>('.dockComposerField')?.blur()
     const id = ++turnId.current
     if (!folioSessionOpen()) {
       const restoring =
@@ -592,7 +617,7 @@ export function HomeDock() {
     <>
       {chatMounted ? (
         <div className="folio-focus-column is-session" ref={column}>
-          {userMessage ? (
+          {userMessage && !composing ? (
             <div className="folio-user-msg">
               <div className="chatQueryContainer">
                 <div className="chatQuery" style={dockLaunch ? { opacity: 0 } : undefined}>
@@ -628,9 +653,9 @@ export function HomeDock() {
                     What can I help you find?
                   </p>
                 ) : null}
-                {emptyMiss && assistantMessage !== null ? (
+                {browsing && emptyMiss && assistantMessage !== null ? (
                   <MissBlurb text={assistantMessage} />
-                ) : assistantMessage !== null ? (
+                ) : browsing && assistantMessage !== null ? (
                   <p>{assistantMessage}</p>
                 ) : null}
               </div>

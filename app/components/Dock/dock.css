@@ -61,6 +61,12 @@
   pointer-events: none;
 }
 
+/* Software keyboard: pin to the visual bottom, not the layout bottom. */
+.folio-page[data-folio-keyboard] .mx-dock .dockCluster {
+  bottom: auto;
+  top: calc(var(--folio-vv-bottom, 100dvh) - 64px - 24px);
+}
+
 .mx-dock .dockDynamicContainer {
   position: relative;
   z-index: 1;

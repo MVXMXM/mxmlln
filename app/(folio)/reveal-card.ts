@@ -97,6 +97,9 @@ export function folioViewport() {
   }
 }
 
+/** On-screen keyboard — not hardware focus. Desktop inset stays ~0. */
+export const FOLIO_KEYBOARD_INSET = 120
+
 /** Keep dock + session shell pinned to the visible band. */
 export function syncFolioVisualViewport() {
   const root = page()
@@ -104,10 +107,18 @@ export function syncFolioVisualViewport() {
   const vv = window.visualViewport
   const height = vv?.height ?? window.innerHeight
   const top = vv?.offsetTop ?? 0
-  const inset = Math.max(0, window.innerHeight - (height + top))
+  const bottom = top + height
+  const inset = Math.max(0, window.innerHeight - bottom)
   root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
   root.style.setProperty('--folio-vv-height', `${height}px`)
   root.style.setProperty('--folio-vv-top', `${top}px`)
+  root.style.setProperty('--folio-vv-bottom', `${bottom}px`)
+  if (inset >= FOLIO_KEYBOARD_INSET) root.dataset.folioKeyboard = 'true'
+  else delete root.dataset.folioKeyboard
+}
+
+export function folioKeyboardOpen() {
+  return Boolean(page()?.hasAttribute('data-folio-keyboard'))
 }
 
 export function bindFolioVisualViewport(onChange?: () => void) {
@@ -272,25 +283,34 @@ function clampRingRadius(count: number, radius: number, cardSize: number) {
 
 function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
-  const sizeWide = orbitThumbSize(count)
+  const keyboard = folioKeyboardOpen()
+  // Leave room for the dock while composing; shrink thumbs + ring into the band above it.
+  const dockClearance = keyboard ? 96 : 0
+  const band = Math.max(160, vh - dockClearance)
+  const sizeWide = keyboard
+    ? Math.min(56, Math.max(36, Math.min(vw, band) / 10))
+    : orbitThumbSize(count)
   // Wide empty ring may spill past the short sides; loading hugs the ~300px logo area.
-  const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
+  const wide = keyboard
+    ? Math.min(vw, band) / 2 - sizeWide * 0.35
+    : Math.max(vw, vh) / 2 - sizeWide * 0.2
   const ratio = sizeWide / Math.max(wide, 1)
   // Keep size/radius constant so arc gutters match empty-state spacing while tight.
-  const logoHalf = 150
+  const logoHalf = keyboard ? 72 : 150
   const tight = (logoHalf + 20) / Math.max(0.35, 1 - 0.55 * ratio)
-  const uncapped = wide + (tight - wide) * orbitTighten
+  const composeTighten = keyboard ? Math.max(orbitTighten, 0.85) : orbitTighten
+  const uncapped = wide + (tight - wide) * composeTighten
   // Size from the uncapped ring — clamping radius must not shrink cards or the
   // relative gap stays the same and the cap does nothing on large screens.
   const size = Math.max(28, uncapped * ratio)
-  const radius = clampRingRadius(count, uncapped, size)
+  const radius = clampRingRadius(count, Math.min(uncapped, band / 2 - size * 0.15), size)
   return {
     size,
     sizeWide,
     rx: Math.max(size, radius),
     ry: Math.max(size, radius),
     cx: left + vw / 2,
-    cy: top + vh / 2,
+    cy: top + band / 2,
   }
 }
 
@@ -444,6 +464,26 @@ function mountOrbitRing(grid: HTMLElement) {
     slot.appendChild(card)
   })
   return metrics
+}
+
+/** Snap results back to a spinning empty orbit while the keyboard is open. */
+export function parkResultsForCompose(grid: HTMLElement) {
+  if (grid.classList.contains('is-orbit') && !grid.classList.contains('is-result')) return
+  disposeCarousel()
+  stopOrbit()
+  ensureSession(grid)
+  syncFolioVisualViewport()
+  orbitTighten = folioKeyboardOpen() ? 0.85 : 0
+  orbitTightenTarget = orbitTighten
+  grid.classList.remove('is-carousel', 'is-result')
+  grid.classList.add('is-orbit')
+  for (const card of sessionCards) {
+    card.style.display = 'block'
+    card.style.opacity = '1'
+    card.style.filter = 'none'
+  }
+  mountOrbitRing(grid)
+  runOrbit()
 }
 
 export function beginFolioSession(grid: HTMLElement) {
