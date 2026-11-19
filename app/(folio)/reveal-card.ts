@@ -86,6 +86,47 @@ function page() {
   return document.querySelector('.folio-page')
 }
 
+/** Visible frame — visualViewport when it diverges (iOS keyboard / URL bar). */
+export function folioViewport() {
+  const vv = window.visualViewport
+  return {
+    width: vv?.width ?? window.innerWidth,
+    height: vv?.height ?? window.innerHeight,
+    top: vv?.offsetTop ?? 0,
+    left: vv?.offsetLeft ?? 0,
+  }
+}
+
+/** Keep dock + session shell pinned to the visible band. */
+export function syncFolioVisualViewport() {
+  const root = page()
+  if (!(root instanceof HTMLElement)) return
+  const vv = window.visualViewport
+  const height = vv?.height ?? window.innerHeight
+  const top = vv?.offsetTop ?? 0
+  const inset = Math.max(0, window.innerHeight - (height + top))
+  root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
+  root.style.setProperty('--folio-vv-height', `${height}px`)
+  root.style.setProperty('--folio-vv-top', `${top}px`)
+}
+
+export function bindFolioVisualViewport(onChange?: () => void) {
+  const run = () => {
+    syncFolioVisualViewport()
+    onChange?.()
+  }
+  run()
+  const vv = window.visualViewport
+  window.addEventListener('resize', run)
+  vv?.addEventListener('resize', run)
+  vv?.addEventListener('scroll', run)
+  return () => {
+    window.removeEventListener('resize', run)
+    vv?.removeEventListener('resize', run)
+    vv?.removeEventListener('scroll', run)
+  }
+}
+
 function savedStyles(nodes: HTMLElement[]): SavedStyle[] {
   return nodes.map((el) => ({ el, style: el.getAttribute('style') }))
 }
@@ -230,8 +271,7 @@ function clampRingRadius(count: number, radius: number, cardSize: number) {
 }
 
 function orbitMetrics(count: number) {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
+  const { width: vw, height: vh, top, left } = folioViewport()
   const sizeWide = orbitThumbSize(count)
   // Wide empty ring may spill past the short sides; loading hugs the ~300px logo area.
   const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
@@ -249,8 +289,8 @@ function orbitMetrics(count: number) {
     sizeWide,
     rx: Math.max(size, radius),
     ry: Math.max(size, radius),
-    cx: vw / 2,
-    cy: vh / 2,
+    cx: left + vw / 2,
+    cy: top + vh / 2,
   }
 }
 
@@ -409,6 +449,7 @@ function mountOrbitRing(grid: HTMLElement) {
 export function beginFolioSession(grid: HTMLElement) {
   const token = ++motionToken
   const duration = motion() ? '0.01s' : `${ORBIT_INTRO_MS}ms`
+  syncFolioVisualViewport()
   ensureSession(grid)
   grid.classList.remove('is-result')
   grid.classList.add('is-orbit')
@@ -668,13 +709,12 @@ export function snapFolioGrid(
  * keep relative gaps but snap their edges onto the same lattice.
  */
 export function folioFocusMetrics() {
-  const vw = window.innerWidth
-  const vh = window.innerHeight
+  const { width: vw, height: vh, top, left } = folioViewport()
   // Even grid units so size/2 stays on-lattice (edges + center share the grid).
   let size = snapFolioGrid(Math.min(336, Math.max(256, vw * 0.38)))
   if ((size / FOLIO_GRID) % 2 !== 0) size -= FOLIO_GRID
-  const cardTop = snapFolioGrid(vh / 2 - size / 2)
-  const cardLeft = snapFolioGrid(vw / 2 - size / 2)
+  const cardTop = snapFolioGrid(top + vh / 2 - size / 2)
+  const cardLeft = snapFolioGrid(left + vw / 2 - size / 2)
   return {
     size,
     focusX: cardLeft + size / 2,
@@ -686,11 +726,12 @@ export function folioFocusMetrics() {
 }
 
 function dockTopY() {
+  const { top, height } = folioViewport()
   return (
     document.querySelector<HTMLElement>('.mx-dock .dockDynamicContainer')?.getBoundingClientRect()
       .top ??
     document.querySelector<HTMLElement>('.mx-dock .dockCluster')?.getBoundingClientRect().top ??
-    window.innerHeight - 88
+    top + height - 88
   )
 }
 
@@ -712,7 +753,8 @@ function syncCarouselStepperPos() {
 
 /** Empty-orbit thumb size — shared so assortment and carousel keep one packing ratio. */
 function orbitThumbSize(count: number) {
-  const span = Math.min(window.innerWidth, window.innerHeight)
+  const { width, height } = folioViewport()
+  const span = Math.min(width, height)
   return Math.min(112, Math.max(72, span / Math.max(8, Math.sqrt(Math.max(count, 1)) * 2.2)))
 }
 
@@ -720,7 +762,8 @@ function carouselMetrics(count: number) {
   const { size, focusX, focusY } = folioFocusMetrics()
   const packCount = Math.max(sessionCards.length, count, 1)
   const thumb = orbitThumbSize(packCount)
-  const thumbRadius = Math.max(window.innerWidth, window.innerHeight) / 2 - thumb * 0.2
+  const { width, height } = folioViewport()
+  const thumbRadius = Math.max(width, height) / 2 - thumb * 0.2
   // Same size/radius as the full assortment at featured scale — then clamp gaps.
   const radius = clampRingRadius(
     packCount,
@@ -1109,6 +1152,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
 
   const onResize = () => {
     if (!carousel) return
+    syncFolioVisualViewport()
     const next = carouselMetrics(carousel.cards.length)
     const active = activeCarouselIndex()
     carousel.size = next.size
@@ -1130,6 +1174,9 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   window.addEventListener('pointermove', onPointerMove)
   window.addEventListener('pointerup', onPointerUp)
   window.addEventListener('resize', onResize)
+  const vv = window.visualViewport
+  vv?.addEventListener('resize', onResize)
+  vv?.addEventListener('scroll', onResize)
 
   carousel = {
     cards,
@@ -1158,6 +1205,8 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       window.removeEventListener('pointermove', onPointerMove)
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('resize', onResize)
+      vv?.removeEventListener('resize', onResize)
+      vv?.removeEventListener('scroll', onResize)
       grid.classList.remove('is-carousel')
     },
   }

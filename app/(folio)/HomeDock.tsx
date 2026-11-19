@@ -6,10 +6,12 @@ import { Dock, type DockItem } from '@/app/components/Dock/Dock'
 import {
   armOrbitHold,
   beginFolioSession,
+  bindFolioVisualViewport,
   cardsForAnswer,
   FOLIO_GRID,
   folioFocusMetrics,
   folioSessionOpen,
+  folioViewport,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   releaseFolioFocus,
@@ -163,9 +165,10 @@ const REPLY_CARD_GAP = 80
 
 /** `bottom` (not `top`) so the blurb can grow up without re-anchoring each chunk. */
 function placeReplyColumn(frame: HTMLElement) {
+  const { width: vw, left: vLeft } = folioViewport()
   const { cardTop } = folioFocusMetrics()
-  const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
-  const left = snapFolioGrid((window.innerWidth - width) / 2)
+  const width = snapFolioGrid(Math.min(600, vw - 40))
+  const left = snapFolioGrid((vw - width) / 2 + vLeft)
   const bottom = Math.max(0, window.innerHeight - (cardTop - REPLY_CARD_GAP))
   frame.style.width = `${width}px`
   frame.style.left = `${left}px`
@@ -176,12 +179,13 @@ function placeReplyColumn(frame: HTMLElement) {
 }
 
 function placeMissColumn(frame: HTMLElement) {
-  const width = snapFolioGrid(Math.min(600, window.innerWidth - 40))
-  const left = snapFolioGrid((window.innerWidth - width) / 2)
+  const { width: vw, height: vh, top, left: vLeft } = folioViewport()
+  const width = snapFolioGrid(Math.min(600, vw - 40))
+  const left = snapFolioGrid((vw - width) / 2 + vLeft)
   frame.style.width = `${width}px`
   frame.style.left = `${left}px`
   frame.style.right = 'auto'
-  frame.style.top = '50%'
+  frame.style.top = `${top + vh / 2}px`
   frame.style.bottom = 'auto'
   frame.style.transform = 'translateY(-50%)'
 }
@@ -377,7 +381,7 @@ export function HomeDock() {
     })
   }, [chatMounted, userMessage, answers, emptyMiss])
 
-  // Resize only — blurb growth rides CSS `bottom`.
+  // Resize / visualViewport — blurb growth rides CSS `bottom`.
   useLayoutEffect(() => {
     if (!chatMounted || !answers || !column.current) return
     const frame = column.current
@@ -386,9 +390,12 @@ export function HomeDock() {
       if (emptyMiss) placeMissColumn(frame)
       else placeReplyColumn(frame)
     }
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
+    return bindFolioVisualViewport(onResize)
   }, [chatMounted, answers, emptyMiss])
+
+  useEffect(() => {
+    return bindFolioVisualViewport()
+  }, [])
 
   useEffect(() => {
     return () => {

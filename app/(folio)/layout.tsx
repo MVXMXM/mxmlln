@@ -5,6 +5,7 @@ import './folio.css'
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 0.75,
+  maximumScale: 1,
   viewportFit: 'cover',
 }
 

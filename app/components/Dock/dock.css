@@ -50,7 +50,7 @@
 .mx-dock .dockCluster {
   position: fixed;
   z-index: 900;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-vv-inset-bottom, 0px));
   left: 0;
   right: 0;
   margin-inline: auto;
