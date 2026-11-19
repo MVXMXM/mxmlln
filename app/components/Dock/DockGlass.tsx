@@ -161,6 +161,9 @@ const PAGE_GLASS_OPTS = {
 /** Extra lenses (carousel pill / play) that share the dock’s photograph. */
 const pageGlassHosts = new Set<HTMLElement>();
 let pageGlassRefresh: (() => void) | null = null;
+// Glassworks raises the shared canvas to max(lens z) − 1. The carousel chrome
+// sits at 901, so addLens would park the canvas on top of the dock (900).
+let pageGlassLift: (() => void) | null = null;
 
 function fitHostRim(el: HTMLElement) {
   const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === el);
@@ -275,6 +278,7 @@ function attachPhotoLiquidGlass(el: HTMLElement) {
     el.dataset.dockGlass = 'live';
     el.style.backdropFilter = '';
     (el.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
+    pageGlassLift?.();
     pageGlassRefresh?.();
     return true;
   };
@@ -580,8 +584,10 @@ function mountPageGlass(dock: HTMLElement) {
     if (!canvas.isConnected) document.body.appendChild(canvas);
     const cluster = dock.closest('.dockCluster');
     const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 900;
+    // Keep under the dock even after extra lenses (carousel) tempt a higher z.
     canvas.style.zIndex = String(Number.isFinite(z) && z > 1 ? z - 1 : 899);
   };
+  pageGlassLift = liftCanvas;
 
   const fitRim = () => {
     const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === dock);
@@ -621,6 +627,7 @@ function mountPageGlass(dock: HTMLElement) {
       (dock.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
     }
     refreshedAt = performance.now();
+    liftCanvas();
     if (renderer.canvas && !dock.dataset.dockMoving && !dock.dataset.dockScrolling && !dock.dataset.dockPaging) {
       renderer.canvas.style.opacity = '1';
     }
@@ -1016,6 +1023,7 @@ function mountPageGlass(dock: HTMLElement) {
   return () => {
     cancelled = true;
     if (pageGlassRefresh) pageGlassRefresh = null;
+    if (pageGlassLift === liftCanvas) pageGlassLift = null;
     window.clearTimeout(settleWait);
     window.clearTimeout(resizeTimer);
     window.clearTimeout(settleTimer);
