@@ -498,16 +498,19 @@ function mountOrbitRing(grid: HTMLElement) {
   return metrics
 }
 
-/** Snap results back to a spinning empty orbit while the keyboard is open. */
+/** Snap results back to a full empty orbit while the keyboard is open. */
 export function parkResultsForCompose(grid: HTMLElement) {
   if (grid.classList.contains('is-orbit') && !grid.classList.contains('is-result')) return
+  motionToken += 1
   disposeCarousel()
   stopOrbit()
   ensureSession(grid)
   syncFolioVisualViewport()
-  // Compose packing ignores tighten — radius is viewport-driven.
+  // Fresh compose pose — full ring, spin at 0. Answers stay in React.
+  orbitSpin = 0
   orbitTighten = 0
   orbitTightenTarget = 0
+  orbitStartedAt = performance.now()
   grid.classList.remove('is-carousel', 'is-result')
   grid.classList.add('is-orbit')
   for (const card of sessionCards) {
@@ -516,6 +519,7 @@ export function parkResultsForCompose(grid: HTMLElement) {
     card.style.filter = 'none'
   }
   mountOrbitRing(grid)
+  for (const card of sessionCards) thumbCard(card)
   runOrbit()
 }
 
