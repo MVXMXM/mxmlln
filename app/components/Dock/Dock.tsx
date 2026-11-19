@@ -124,6 +124,12 @@ export function Dock({
   const openComposer = useCallback(() => {
     if (composerTimer.current) clearTimeout(composerTimer.current);
     setComposerClosing(false);
+    // Chat stays full-width — drop any idle-dock minify left over from page scroll.
+    const shell = clusterRef.current?.querySelector<HTMLElement>('.dockDynamicContainer');
+    if (shell) {
+      delete shell.dataset.dockScrolling;
+      delete shell.dataset.dockExpanding;
+    }
     // Commit before focus so `inert` clears in the same tap (iOS needs the gesture).
     flushSync(() => setComposer(true));
     inputRef.current?.focus({ preventScroll: true });

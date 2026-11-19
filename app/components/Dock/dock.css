@@ -869,7 +869,6 @@
 }
 
 .mx-dock .dockDynamicContainer[data-dock-scrolling='true'],
-.mx-dock[data-composer] .dockDynamicContainer[data-dock-scrolling='true'],
 .mx-dock[data-panel] .dockDynamicContainer[data-dock-scrolling='true'],
 .mx-dock[data-closing='true'] .dockDynamicContainer[data-dock-scrolling='true'] {
   width: 48px;
@@ -883,7 +882,6 @@
 }
 
 .mx-dock .dockDynamicContainer[data-dock-expanding='true'],
-.mx-dock[data-composer] .dockDynamicContainer[data-dock-expanding='true'],
 .mx-dock[data-panel] .dockDynamicContainer[data-dock-expanding='true'],
 .mx-dock[data-closing='true'] .dockDynamicContainer[data-dock-expanding='true'] {
   transition:
@@ -901,12 +899,6 @@
   padding-inline: 4px;
   justify-content: flex-start;
   overflow: hidden;
-}
-
-.mx-dock[data-composer] .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegController {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s;
 }
 
 .mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegController > button:first-child {

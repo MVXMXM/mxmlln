@@ -100,6 +100,9 @@ export function folioViewport() {
 /** On-screen keyboard — not hardware focus. Desktop inset stays ~0. */
 export const FOLIO_KEYBOARD_INSET = 120
 
+/** Largest recent visual height while the keyboard is down (URL-bar noise folds in). */
+let folioVvRestHeight = 0
+
 /** Keep dock + session shell pinned to the visible band. */
 export function syncFolioVisualViewport() {
   const root = page()
@@ -108,7 +111,11 @@ export function syncFolioVisualViewport() {
   const height = vv?.height ?? window.innerHeight
   const top = vv?.offsetTop ?? 0
   const bottom = top + height
-  const inset = Math.max(0, window.innerHeight - bottom)
+  // iOS often shrinks window.innerHeight with the keyboard, so
+  // innerHeight − vv.bottom stays ~0. Diff against a resting vv height instead.
+  if (height >= folioVvRestHeight - 1) folioVvRestHeight = height
+  else if (folioVvRestHeight - height < FOLIO_KEYBOARD_INSET) folioVvRestHeight = height
+  const inset = Math.max(0, folioVvRestHeight - height)
   root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
   root.style.setProperty('--folio-vv-height', `${height}px`)
   root.style.setProperty('--folio-vv-top', `${top}px`)
@@ -126,13 +133,19 @@ export function bindFolioVisualViewport(onChange?: () => void) {
     syncFolioVisualViewport()
     onChange?.()
   }
+  const onOrient = () => {
+    folioVvRestHeight = 0
+    run()
+  }
   run()
   const vv = window.visualViewport
   window.addEventListener('resize', run)
+  window.addEventListener('orientationchange', onOrient)
   vv?.addEventListener('resize', run)
   vv?.addEventListener('scroll', run)
   return () => {
     window.removeEventListener('resize', run)
+    window.removeEventListener('orientationchange', onOrient)
     vv?.removeEventListener('resize', run)
     vv?.removeEventListener('scroll', run)
   }
@@ -207,6 +220,7 @@ type RingPose = {
 /** Autoplay dwell — progress fill on the active pill is the clock. */
 const CAROUSEL_AUTOPLAY_MS = 4500
 const CAROUSEL_WHEEL_GAIN = 0.005
+/** Fallback px→rad when size isn’t ready; live drag uses step / (0.75 × card). */
 const CAROUSEL_DRAG_GAIN = 0.01
 /** Commit to the neighbor before halfway when the flick is decisive (px/ms). */
 const CAROUSEL_FLICK_VELOCITY = 0.55
@@ -1075,6 +1089,11 @@ function activeCarouselIndex() {
   return Math.min(cards.length - 1, Math.max(0, i))
 }
 
+function carouselDragGain() {
+  if (!carousel) return CAROUSEL_DRAG_GAIN
+  return carousel.step / Math.max(48, carousel.size * 0.75)
+}
+
 function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   disposeCarousel()
   const metrics = carouselMetrics(cards.length)
@@ -1110,10 +1129,10 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   }
 
   const onPointerDown = (event: PointerEvent) => {
-    if (!carousel) return
+    if (!carousel || event.button > 0) return
     if (!(event.target instanceof Element)) return
-    const card = event.target.closest('.Card') as HTMLElement | null
-    if (!card || !carousel.cards.includes(card)) return
+    // Stepper lives outside the grid; ignore anything that isn’t the ring surface.
+    if (!grid.contains(event.target)) return
     pauseCarouselAutoplay()
     carousel.gestureOrigin = activeCarouselIndex()
     carousel.velocity = 0
@@ -1128,7 +1147,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       lastT: now,
       velocity: 0,
     }
-    card.setPointerCapture?.(event.pointerId)
+    grid.setPointerCapture?.(event.pointerId)
     ensureCarouselSpring()
   }
 
@@ -1147,7 +1166,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     drag.lastT = now
     // Keep drag origin fixed for the press; ±1 only. Lift + press again to go further.
     carousel.offset = applyCarouselInput(
-      drag.offset + (dx + dy) * CAROUSEL_DRAG_GAIN,
+      drag.offset + (dx + dy) * carouselDragGain(),
       carousel.gestureOrigin,
     )
     syncCarouselRestFromOffset(drag.velocity)
@@ -1155,10 +1174,15 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     ensureCarouselSpring()
   }
 
-  const onPointerUp = (event: PointerEvent) => {
+  const endDrag = (event: PointerEvent) => {
     if (!carousel?.drag) return
     const drag = carousel.drag
     carousel.drag = null
+    try {
+      grid.releasePointerCapture?.(event.pointerId)
+    } catch {
+      /* already released */
+    }
     const card = event.target instanceof Element ? (event.target.closest('.Card') as HTMLElement | null) : null
     if (!drag.moved && card && carousel.cards.includes(card)) {
       const index = carousel.cards.indexOf(card)
@@ -1171,9 +1195,12 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       // Focused card — leave the click for FolioEngine’s real action.
       return
     }
-    syncCarouselRestFromOffset(drag.velocity)
-    carousel.inputUntil = 0
-    ensureCarouselSpring()
+    if (drag.moved) {
+      event.preventDefault()
+      syncCarouselRestFromOffset(drag.velocity)
+      carousel.inputUntil = 0
+      ensureCarouselSpring()
+    }
   }
 
   // Unfocused cards only scroll into focus; actions stay on the focused card.
@@ -1209,10 +1236,12 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   }
 
   grid.addEventListener('wheel', onWheel, { passive: false })
-  grid.addEventListener('pointerdown', onPointerDown)
+  grid.addEventListener('pointerdown', onPointerDown, { passive: false })
+  grid.addEventListener('pointermove', onPointerMove)
+  grid.addEventListener('pointerup', endDrag)
+  grid.addEventListener('pointercancel', endDrag)
+  grid.addEventListener('lostpointercapture', endDrag)
   grid.addEventListener('click', onClickCapture, true)
-  window.addEventListener('pointermove', onPointerMove)
-  window.addEventListener('pointerup', onPointerUp)
   window.addEventListener('resize', onResize)
   const vv = window.visualViewport
   vv?.addEventListener('resize', onResize)
@@ -1241,9 +1270,11 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       }
       grid.removeEventListener('wheel', onWheel)
       grid.removeEventListener('pointerdown', onPointerDown)
+      grid.removeEventListener('pointermove', onPointerMove)
+      grid.removeEventListener('pointerup', endDrag)
+      grid.removeEventListener('pointercancel', endDrag)
+      grid.removeEventListener('lostpointercapture', endDrag)
       grid.removeEventListener('click', onClickCapture, true)
-      window.removeEventListener('pointermove', onPointerMove)
-      window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('resize', onResize)
       vv?.removeEventListener('resize', onResize)
       vv?.removeEventListener('scroll', onResize)
@@ -1670,9 +1701,6 @@ export function revealSessionCards(
 
     kept.forEach((card) => {
       styleCarouselCard(card, endRing.size)
-      card.style.pointerEvents = 'none'
-    })
-    kept.forEach((card) => {
       const angle = endAngles.get(card)!
       const align = Math.cos(angle + Math.PI / 2)
       placeOnRing(card, endRing, angle, multi ? 0.9 + 0.1 * Math.max(0, align) : 1)

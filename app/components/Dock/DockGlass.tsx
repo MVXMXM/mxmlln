@@ -851,6 +851,11 @@ function mountPageGlass(dock: HTMLElement) {
   const onScroll = (event: Event) => {
     if (!started) return;
     if (event.target instanceof Node && dock.contains(event.target)) return;
+    // Chat composer stays full-width — minify is for the idle dock only.
+    if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
+      if (dock.dataset.dockScrolling) releaseScroll();
+      return;
+    }
     if (!dock.dataset.dockScrolling) {
       if (!home) home = dock.getBoundingClientRect();
       scrollShape = true;

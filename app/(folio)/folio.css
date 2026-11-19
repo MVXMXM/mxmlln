@@ -301,6 +301,14 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-masonry.is-result.is-carousel {
+  /* Above the reply column (850) so ring drags aren’t lost to pass-through quirks. */
+  z-index: 860;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.folio-masonry.is-result.is-carousel .Card {
+  touch-action: none;
   pointer-events: auto;
 }
 
