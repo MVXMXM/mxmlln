@@ -298,33 +298,34 @@ function clampRingRadius(count: number, radius: number, cardSize: number) {
 function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
   const keyboard = folioKeyboardOpen()
-  // Leave room for the dock while composing; shrink thumbs + ring into the band above it.
-  const dockClearance = keyboard ? 96 : 0
-  const band = Math.max(160, vh - dockClearance)
-  const sizeWide = keyboard
-    ? Math.min(56, Math.max(36, Math.min(vw, band) / 10))
-    : orbitThumbSize(count)
-  // Wide empty ring may spill past the short sides; loading hugs the ~300px logo area.
+  // Always the empty-state thumb — chrome (border/radius/shadow) scales from this.
+  const sizeWide = orbitThumbSize(count)
+  // Compose keeps a large ring so cards clip under the dock glass; empty spills past the short sides.
   const wide = keyboard
-    ? Math.min(vw, band) / 2 - sizeWide * 0.35
+    ? Math.max(vw, vh) / 2 - sizeWide * 0.1
     : Math.max(vw, vh) / 2 - sizeWide * 0.2
   const ratio = sizeWide / Math.max(wide, 1)
-  // Keep size/radius constant so arc gutters match empty-state spacing while tight.
-  const logoHalf = keyboard ? 72 : 150
+  // Waiting mark is 200; compose shrinks it 25% → 150 (half 75). Loading hugs ~300.
+  const logoHalf = keyboard ? 75 : 150
   const tight = (logoHalf + 20) / Math.max(0.35, 1 - 0.55 * ratio)
-  const composeTighten = keyboard ? Math.max(orbitTighten, 0.85) : orbitTighten
+  const composeTighten = keyboard ? Math.max(orbitTighten, 0.65) : orbitTighten
   const uncapped = wide + (tight - wide) * composeTighten
   // Size from the uncapped ring — clamping radius must not shrink cards or the
   // relative gap stays the same and the cap does nothing on large screens.
   const size = Math.max(28, uncapped * ratio)
-  const radius = clampRingRadius(count, Math.min(uncapped, band / 2 - size * 0.15), size)
+  // Compose: allow the ring past the short edge so cards pass under the input.
+  const radius = clampRingRadius(
+    count,
+    keyboard ? Math.min(uncapped, Math.min(vw, vh) / 2 + size * 0.2) : uncapped,
+    size,
+  )
   return {
     size,
     sizeWide,
     rx: Math.max(size, radius),
     ry: Math.max(size, radius),
     cx: left + vw / 2,
-    cy: top + band / 2,
+    cy: top + vh / 2,
   }
 }
 
@@ -487,7 +488,7 @@ export function parkResultsForCompose(grid: HTMLElement) {
   stopOrbit()
   ensureSession(grid)
   syncFolioVisualViewport()
-  orbitTighten = folioKeyboardOpen() ? 0.85 : 0
+  orbitTighten = folioKeyboardOpen() ? 0.65 : 0
   orbitTightenTarget = orbitTighten
   grid.classList.remove('is-carousel', 'is-result')
   grid.classList.add('is-orbit')
