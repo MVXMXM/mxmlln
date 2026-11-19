@@ -1178,14 +1178,15 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     if (Math.hypot(dx, dy) > 3) drag.moved = true
     const now = performance.now()
     const dt = Math.max(1, now - drag.lastT)
-    const instant = (event.clientX - drag.lastX + (event.clientY - drag.lastY)) / dt
+    // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
+    const instant = -(event.clientX - drag.lastX + (event.clientY - drag.lastY)) / dt
     drag.velocity = drag.velocity * 0.65 + instant * 0.35
     drag.lastX = event.clientX
     drag.lastY = event.clientY
     drag.lastT = now
     // Keep drag origin fixed for the press; ±1 only. Lift + press again to go further.
     carousel.offset = applyCarouselInput(
-      drag.offset + (dx + dy) * carouselDragGain(),
+      drag.offset - (dx + dy) * carouselDragGain(),
       carousel.gestureOrigin,
     )
     syncCarouselRestFromOffset(drag.velocity)
