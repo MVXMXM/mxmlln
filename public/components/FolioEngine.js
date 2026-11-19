@@ -818,13 +818,19 @@ function skipIntroAnimation() {
 
   const content = document.querySelector('.ContentContainer');
   if (content) {
-    content.style.top = '0px';
     content.style.display = 'flex';
+    content.style.top = '0px';
+    content.style.visibility = 'visible';
+    content.style.transform = 'none';
+    content.style.transition = '';
   }
 
   const nav = document.querySelector('.navDynamicContainer');
   if (nav) {
-    nav.style.display = '';
+    nav.style.opacity = '1';
+    nav.style.transform = 'none';
+    nav.style.pointerEvents = '';
+    nav.style.transition = '';
     nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
   }
 
@@ -841,20 +847,36 @@ function initIntroAnimation() {
   $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
     .delay(1250)
     .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+
   setTimeout(function() {
-    $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
-      $('.ContentContainer').animate({top: '0px'}, 1000, function() {
-        document.body.classList.add('folio-in');
-      });
-    });
+    const content = document.querySelector('.ContentContainer');
+    if (!content) return;
+    content.style.visibility = 'visible';
+    content.style.transition = 'transform 1000ms ease';
+    content.getBoundingClientRect();
+    content.style.transform = 'translateY(0)';
+    setTimeout(function() {
+      content.style.transition = '';
+      document.body.classList.add('folio-in');
+    }, 1000);
   }, 1000);
 
   setTimeout(function() {
-    $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
-      $('.navDynamicContainer').animate({bottom: '24px'}, 250, function() {
-        this.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
-      });
-    });
+    const nav = document.querySelector('.navDynamicContainer');
+    if (!nav) return;
+    nav.style.transition = 'opacity 250ms ease';
+    nav.getBoundingClientRect();
+    nav.style.opacity = '1';
+    setTimeout(function() {
+      nav.style.transition = 'transform 250ms ease';
+      nav.getBoundingClientRect();
+      nav.style.transform = 'translateY(0)';
+      setTimeout(function() {
+        nav.style.transition = '';
+        nav.style.pointerEvents = '';
+        nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+      }, 250);
+    }, 250);
   }, 1250);
 
   $('body').css('overflow-y', 'hidden');
