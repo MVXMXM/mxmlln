@@ -374,7 +374,7 @@ h3 {
 	border: #ffffff 8px solid;
 	box-shadow: 0 4px 12px oklch(0.25 0.04 260 / 0.12);
 	width: 35%;
-	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
+	cursor: url('../js/IntenseImages/plus_cursor-48.png') 24 24, pointer;
 	transition: box-shadow 0.25s ease;
 }
 
@@ -382,16 +382,20 @@ h3 {
 	box-shadow: 0 14px 36px oklch(0.25 0.04 260 / 0.18);
 }
 
-#cardZoom {
-	cursor: url('../js/IntenseImages/plus_cursor.png') 25 25, pointer;
+/* Safari won't inherit cursor:url(); hover hits .CardInnerContainer / .card-cursor-hit. */
+#cardZoom,
+#cardZoom * {
+	cursor: url('../js/IntenseImages/plus_cursor-48.png') 24 24, pointer;
 }
 
-#cardPlay {
-	cursor: url('../assets/icons/PlayFill50.png') 25 25, pointer;
+#cardPlay,
+#cardPlay * {
+	cursor: url('../assets/icons/PlayFill50-48.png') 24 24, pointer;
 }
 
-#cardLinkOut {
-	cursor: url('../assets/icons/LinkOutFill50.png') 25 25, pointer;
+#cardLinkOut,
+#cardLinkOut * {
+	cursor: url('../assets/icons/LinkOutFill50-48.png') 24 24, pointer;
 }
 
 .card-blog-link {
