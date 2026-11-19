@@ -139,8 +139,29 @@ type CapturedRenderer = Omit<NonNullable<Window['__liquidGLRenderer__']>, 'captu
   captureSnapshot?: () => void;
   _uploadTexture?: (source: HTMLCanvasElement) => void;
   _renderLens?: (lens: unknown) => void;
+  render?: () => void;
   addLens?: (element: HTMLElement, options: Record<string, unknown>) => { el: HTMLElement; options: { bevelWidth?: number } };
 };
+
+type FolioLens = {
+  el: HTMLElement;
+  updateMetrics?: () => void;
+  _handleOverscrollCompensation?: () => void;
+};
+
+function asFolioLens(lens: unknown): FolioLens | null {
+  if (!lens || typeof lens !== 'object') return null;
+  if (!('el' in lens) || !((lens as FolioLens).el instanceof HTMLElement)) return null;
+  return lens as FolioLens;
+}
+
+function isFolioGlassLens(lens: unknown) {
+  const item = asFolioLens(lens);
+  if (!item) return false;
+  // Dock pill + carousel chrome that share the folio photograph.
+  if (pageGlassHosts.has(item.el)) return true;
+  return Boolean(item.el.closest('.folio-page .mx-dock'));
+}
 
 // The bevel reads past the rim, so the photo is the pill plus this margin.
 const PAGE_PAD = 48;
@@ -552,6 +573,8 @@ function mountPageGlass(dock: HTMLElement) {
   let lastSize = '';
   let masonryObserver: MutationObserver | null = null;
   let capture: () => void = () => {};
+  let undoRenderLens: (() => void) | null = null;
+  let undoOverscroll: (() => void) | null = null;
   // Glassworks snapshots whatever carries this attribute, using that node's
   // scroll height, and parks its canvas at z-index 0. An empty plate the size
   // of the pill keeps the first snapshot off the page; the canvas is lifted
@@ -586,8 +609,70 @@ function mountPageGlass(dock: HTMLElement) {
     const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 900;
     // Keep under the dock even after extra lenses (carousel) tempt a higher z.
     canvas.style.zIndex = String(Number.isFinite(z) && z > 1 ? z - 1 : 899);
+    // Match the visible frame — layout innerHeight lags URL-bar / keyboard churn.
+    const vv = window.visualViewport;
+    if (vv) {
+      canvas.style.top = `${vv.offsetTop}px`;
+      canvas.style.left = `${vv.offsetLeft}px`;
+      canvas.style.width = `${vv.width}px`;
+      canvas.style.height = `${vv.height}px`;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const width = Math.max(1, Math.round(vv.width * dpr));
+      const height = Math.max(1, Math.round(vv.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    }
   };
   pageGlassLift = liftCanvas;
+
+  /** Our CSS already pins the dock to vv — liquidGL must not add offsetTop again. */
+  const bindFolioLensPose = (renderer: CapturedRenderer) => {
+    if (!renderer._renderLens || undoRenderLens) return;
+    const original = renderer._renderLens.bind(renderer);
+    renderer._renderLens = (lens) => {
+      if (!isFolioGlassLens(lens) || !window.visualViewport) {
+        original(lens);
+        return;
+      }
+      const vv = window.visualViewport;
+      Object.defineProperty(vv, 'offsetTop', { configurable: true, get: () => 0 });
+      Object.defineProperty(vv, 'offsetLeft', { configurable: true, get: () => 0 });
+      try {
+        original(lens);
+      } finally {
+        Reflect.deleteProperty(vv, 'offsetTop');
+        Reflect.deleteProperty(vv, 'offsetLeft');
+      }
+    };
+    undoRenderLens = () => {
+      renderer._renderLens = original;
+      undoRenderLens = null;
+    };
+
+    const lens = asFolioLens(renderer.lenses.find((item) => item.el === dock));
+    if (lens?._handleOverscrollCompensation && !undoOverscroll) {
+      const prior = lens._handleOverscrollCompensation.bind(lens);
+      lens._handleOverscrollCompensation = () => {};
+      undoOverscroll = () => {
+        lens._handleOverscrollCompensation = prior;
+        undoOverscroll = null;
+      };
+    }
+  };
+
+  const syncLensPose = () => {
+    if (cancelled || !started) return;
+    liftCanvas();
+    const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
+    if (!renderer) return;
+    for (const lens of renderer.lenses) {
+      if (!isFolioGlassLens(lens)) continue;
+      asFolioLens(lens)?.updateMetrics?.();
+    }
+    renderer.render?.();
+  };
 
   const fitRim = () => {
     const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === dock);
@@ -988,6 +1073,7 @@ function mountPageGlass(dock: HTMLElement) {
         if (renderer) {
           renderer.snapshotTarget = plate;
           renderer.captureSnapshot = capture;
+          bindFolioLensPose(renderer);
           liftCanvas();
         }
         capture();
@@ -1025,6 +1111,11 @@ function mountPageGlass(dock: HTMLElement) {
   introObserver?.observe(folioDock!, { attributes: true, attributeFilter: ['class'] });
   if (!folioDock || folioDock.classList.contains('is-in')) queueBegin();
 
+  // Pose tracks the URL bar / keyboard; capture cadence stays separate.
+  const vv = window.visualViewport;
+  vv?.addEventListener('resize', syncLensPose);
+  vv?.addEventListener('scroll', syncLensPose);
+
   return () => {
     cancelled = true;
     if (pageGlassRefresh) pageGlassRefresh = null;
@@ -1045,10 +1136,21 @@ function mountPageGlass(dock: HTMLElement) {
     pageObserver?.disconnect();
     masonryObserver?.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
+    vv?.removeEventListener('resize', syncLensPose);
+    vv?.removeEventListener('scroll', syncLensPose);
+    undoRenderLens?.();
+    undoOverscroll?.();
     plate.remove();
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
     if (renderer?.captureSnapshot === capture) renderer.captureSnapshot = () => {};
     if (renderer) renderer.lenses = renderer.lenses.filter((lens) => lens.el !== dock);
+    const canvas = renderer?.canvas;
+    if (canvas) {
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+    }
     delete dock.dataset.dockCapture;
     delete dock.dataset.dockGlass;
     delete dock.dataset.dockMoving;
