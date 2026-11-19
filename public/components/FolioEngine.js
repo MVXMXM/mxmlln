@@ -117,7 +117,7 @@ const initialStyles = {
         height: '300px',
         width: '300px',
         border: '10px solid #ffffff',
-        backgroundColor: '#000000',
+        backgroundColor: '#314158',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         overflow: 'hidden',
@@ -384,47 +384,161 @@ function resetCardStyles(cardStack, cardIndexInStack, totalCards) {
     cardStack.style.zIndex = '100';
 }
 
-function loadCards(cardStack = document.querySelector('.CardStack')) {
-    const cards = cardStack.querySelectorAll('.Card');
-    cards.forEach(function(card) {
-        const imageSrc = card.dataset.src;
-        const videoSrc = card.dataset.videoSrc;
-        
-        if (videoSrc) {
-            const video = document.createElement('video');
-            video.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                z-index: 0;
-            `;
-            video.muted = true;
-            video.autoplay = true;
-            video.loop = true;
-            video.playsInline = true;
-            video.controls = false;
+const isSafariVideo = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-            // Handle Safari video format
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            const videoSource = isSafari ? videoSrc.replace('.webm', '.mp4') : videoSrc;
-            video.src = videoSource;
-            
-            card.style.overflow = 'hidden';
-            card.style.position = 'relative';
-            card.appendChild(video);
-            
-            video.play().catch(error => {
-                console.warn('Video autoplay failed:', error);
-            });
-        } else if (imageSrc) {
+function posterSrcForVideo(videoSrc) {
+    return videoSrc.replace(/\.webm$/i, '.poster.webp');
+}
+
+function resolvedVideoSrc(videoSrc) {
+    return isSafariVideo ? videoSrc.replace(/\.webm$/i, '.mp4') : videoSrc;
+}
+
+function applyCardPoster(card, videoSrc) {
+    const poster = card.dataset.poster || posterSrcForVideo(videoSrc);
+    card.style.backgroundImage = `url('${poster}')`;
+    card.style.backgroundSize = 'cover';
+    card.style.backgroundPosition = 'center';
+    card.style.overflow = 'hidden';
+    card.style.position = 'relative';
+}
+
+function ensureCardCursorHit(card) {
+    if (card.querySelector(':scope > .card-cursor-hit')) return;
+    // Transparent hit target above <video>; Safari's media layer otherwise eats cursor:url().
+    const hit = document.createElement('div');
+    hit.className = 'card-cursor-hit';
+    hit.style.cssText = 'position:absolute;inset:0;z-index:250;background:transparent;';
+    card.appendChild(hit);
+}
+
+function unmountCardVideo(card) {
+    const wrap = card.querySelector(':scope > .card-media-wrap');
+    const video = wrap?.querySelector('video.card-media') || card.querySelector(':scope > video.card-media');
+    if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    }
+    wrap?.remove();
+    if (video && !wrap) video.remove();
+    card.querySelector(':scope > .card-cursor-hit')?.remove();
+    if (card.dataset.videoSrc) {
+        applyCardPoster(card, card.dataset.videoSrc);
+    }
+}
+
+function mountCardVideo(card) {
+    const videoSrc = card.dataset.videoSrc;
+    if (!videoSrc) return;
+    if (card.querySelector('.card-media-wrap video.card-media, :scope > video.card-media')) {
+        ensureCardCursorHit(card);
+        return;
+    }
+
+    applyCardPoster(card, videoSrc);
+
+    // Contain <video> in the page layer tree — Safari otherwise punches through and kills cursor:url().
+    const wrap = document.createElement('div');
+    wrap.className = 'card-media-wrap';
+    wrap.style.cssText = `
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+        transform: translateZ(0);
+        isolation: isolate;
+    `;
+
+    const video = document.createElement('video');
+    video.className = 'card-media';
+    video.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+        opacity: 0.999;
+        transform: translateZ(0);
+    `;
+    video.muted = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.src = resolvedVideoSrc(videoSrc);
+
+    wrap.appendChild(video);
+    card.appendChild(wrap);
+    ensureCardCursorHit(card);
+    video.play().catch(error => {
+        console.warn('Video autoplay failed:', error);
+    });
+}
+
+function dehydrateStackMedia(cardStack) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+}
+
+function hydrateStackMedia(cardStack, { frontOnly = false } = {}) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card').forEach((card, index) => {
+        if (!card.dataset.videoSrc) return;
+        const buried = frontOnly && index > 0;
+        if (buried) unmountCardVideo(card);
+        else mountCardVideo(card);
+    });
+}
+
+function loadCards(cardStack = document.querySelector('.CardStack')) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card').forEach(function(card) {
+        if (card.dataset.videoSrc) {
+            applyCardPoster(card, card.dataset.videoSrc);
+            return;
+        }
+        const imageSrc = card.dataset.src;
+        if (imageSrc) {
             card.style.backgroundImage = `url('${imageSrc}')`;
+            card.style.backgroundSize = 'cover';
+            card.style.backgroundPosition = 'center';
         }
     });
 }
 
+function observeCardStackMedia() {
+    const stacks = document.querySelectorAll('.CardStack');
+    if (!('IntersectionObserver' in window)) {
+        stacks.forEach(stack => hydrateStackMedia(stack, { frontOnly: true }));
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            const stack = entry.target;
+            const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded');
+            if (StackIsExpanded) {
+                if (!expanded) dehydrateStackMedia(stack);
+                return;
+            }
+            if (entry.isIntersecting) {
+                hydrateStackMedia(stack, { frontOnly: true });
+            } else {
+                dehydrateStackMedia(stack);
+            }
+        });
+    }, { rootMargin: '120px 0px', threshold: 0.05 });
+
+    stacks.forEach(stack => {
+        observer.observe(stack);
+        const rect = stack.getBoundingClientRect();
+        if (rect.bottom > -120 && rect.top < window.innerHeight + 120) {
+            hydrateStackMedia(stack, { frontOnly: true });
+        }
+    });
+}
 
 function collapseExpandedStack() {
     if (StackIsExpanded) {
@@ -503,8 +617,11 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                 stack.style.transition = 'width 0.05s ease, height 0.05s ease';
                 stack.style.width = '0px';
                 stack.style.height = '0px';
+                stack.style.cursor = 'default';
+                dehydrateStackMedia(stack);
+            } else {
+                stack.style.cursor = '';
             }
-            stack.style.cursor = 'default';
         });
         allCards.forEach(card => {
             if (card.parentNode !== cardStack) {
@@ -516,6 +633,9 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
             }
             card.style.pointerEvents = 'auto';
         });
+        // Remount so Safari does not keep a stale video layer that eats cursor:url().
+        dehydrateStackMedia(cardStack);
+        hydrateStackMedia(cardStack, { frontOnly: false });
         setTimeout(() => {
             AllStacks.style.maxWidth = '100vw';
             AllStacks.style.gap = '0px';
@@ -556,14 +676,6 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                     behavior: 'smooth'
                 });
             }, 300);
-            // lazyLoadCards();
-
-            // setTimeout(() => {
-            //     const expandedCardStack = CardStackLabelContainer.querySelector('.CardStack');
-            //     if (expandedCardStack) {
-            //         lazyLoadCards(expandedCardStack);
-            //     }
-            // }, 600);
 
         }, 0);
         // StackBar Setup
@@ -576,6 +688,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         StackBar.style.visibility = 'visible';
     } else {
         StackIsExpanded = false;
+        hydrateStackMedia(cardStack, { frontOnly: true });
         const appStore = document.querySelector('.appStore');
         if (appStore) {
             Object.assign(appStore.style, initialStyles.appStore);
@@ -923,6 +1036,7 @@ function bootFolioDocument() {
     document.querySelectorAll('.CardStack').forEach(stack => {
         loadCards(stack);
     });
+    observeCardStackMedia();
     bindFolioCards();
     window.__folioReady = true;
 }
