@@ -117,7 +117,7 @@ const initialStyles = {
         height: '300px',
         width: '300px',
         border: '10px solid #ffffff',
-        backgroundColor: '#000000',
+        backgroundColor: '#314158',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         overflow: 'hidden',
@@ -430,7 +430,11 @@ function unmountCardVideo(card) {
 
 function mountCardVideo(card) {
     const videoSrc = card.dataset.videoSrc;
-    if (!videoSrc || card.querySelector('.card-media-wrap video.card-media, :scope > video.card-media')) return;
+    if (!videoSrc) return;
+    if (card.querySelector('.card-media-wrap video.card-media, :scope > video.card-media')) {
+        ensureCardCursorHit(card);
+        return;
+    }
 
     applyCardPoster(card, videoSrc);
 
@@ -473,28 +477,33 @@ function mountCardVideo(card) {
     });
 }
 
-function hydrateStackVideos(cardStack, { frontOnly = false } = {}) {
+function dehydrateStackMedia(cardStack) {
+    if (!cardStack) return;
+    cardStack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+}
+
+function hydrateStackMedia(cardStack, { frontOnly = false } = {}) {
     if (!cardStack) return;
     cardStack.querySelectorAll('.Card').forEach((card, index) => {
         if (!card.dataset.videoSrc) return;
-        if (frontOnly && index > 0) {
-            unmountCardVideo(card);
-            return;
-        }
-        mountCardVideo(card);
+        const buried = frontOnly && index > 0;
+        if (buried) unmountCardVideo(card);
+        else mountCardVideo(card);
     });
 }
 
 function loadCards(cardStack = document.querySelector('.CardStack')) {
     if (!cardStack) return;
     cardStack.querySelectorAll('.Card').forEach(function(card) {
+        if (card.dataset.videoSrc) {
+            applyCardPoster(card, card.dataset.videoSrc);
+            return;
+        }
         const imageSrc = card.dataset.src;
-        const videoSrc = card.dataset.videoSrc;
-
-        if (videoSrc) {
-            applyCardPoster(card, videoSrc);
-        } else if (imageSrc) {
+        if (imageSrc) {
             card.style.backgroundImage = `url('${imageSrc}')`;
+            card.style.backgroundSize = 'cover';
+            card.style.backgroundPosition = 'center';
         }
     });
 }
@@ -502,7 +511,7 @@ function loadCards(cardStack = document.querySelector('.CardStack')) {
 function observeCardStackMedia() {
     const stacks = document.querySelectorAll('.CardStack');
     if (!('IntersectionObserver' in window)) {
-        stacks.forEach(stack => hydrateStackVideos(stack, { frontOnly: true }));
+        stacks.forEach(stack => hydrateStackMedia(stack, { frontOnly: true }));
         return;
     }
 
@@ -511,15 +520,13 @@ function observeCardStackMedia() {
             const stack = entry.target;
             const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded');
             if (StackIsExpanded) {
-                if (!expanded) {
-                    stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
-                }
+                if (!expanded) dehydrateStackMedia(stack);
                 return;
             }
             if (entry.isIntersecting) {
-                hydrateStackVideos(stack, { frontOnly: true });
+                hydrateStackMedia(stack, { frontOnly: true });
             } else {
-                stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+                dehydrateStackMedia(stack);
             }
         });
     }, { rootMargin: '120px 0px', threshold: 0.05 });
@@ -528,7 +535,7 @@ function observeCardStackMedia() {
         observer.observe(stack);
         const rect = stack.getBoundingClientRect();
         if (rect.bottom > -120 && rect.top < window.innerHeight + 120) {
-            hydrateStackVideos(stack, { frontOnly: true });
+            hydrateStackMedia(stack, { frontOnly: true });
         }
     });
 }
@@ -622,7 +629,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
                 stack.style.width = '0px';
                 stack.style.height = '0px';
                 stack.style.cursor = 'default';
-                stack.querySelectorAll('.Card[data-video-src]').forEach(unmountCardVideo);
+                dehydrateStackMedia(stack);
             } else {
                 stack.style.cursor = '';
             }
@@ -637,7 +644,9 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
             }
             card.style.pointerEvents = 'auto';
         });
-        hydrateStackVideos(cardStack, { frontOnly: false });
+        // Remount so Safari does not keep a stale video layer that eats cursor:url().
+        dehydrateStackMedia(cardStack);
+        hydrateStackMedia(cardStack, { frontOnly: false });
         setTimeout(() => {
             AllStacks.style.maxWidth = '100vw';
             AllStacks.style.gap = '0px';
@@ -690,7 +699,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         StackBar.style.visibility = 'visible';
     } else {
         StackIsExpanded = false;
-        hydrateStackVideos(cardStack, { frontOnly: true });
+        hydrateStackMedia(cardStack, { frontOnly: true });
         const appStore = document.querySelector('.appStore');
         if (appStore) {
             Object.assign(appStore.style, initialStyles.appStore);
