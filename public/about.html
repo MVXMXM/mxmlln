@@ -2,15 +2,6 @@
 <html class="overlayScroll">
 <head>
 
-  <!-- Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-36917341-6"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-36917341-6');
-  </script>
-	
   <!-- Metadata -->
   <meta charset="UTF-8">
   <meta name="description" content="The design portfolio of Maximillian Piras: product design for tech startups (user experience & user interfaces) focused on AI, branding, animation, & illustration.">
@@ -27,11 +18,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.75, viewport-fit=cover" />
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
 
-  <!-- Preload critical assets -->
-  <link rel="preload" href="assets/WebIntro.gif" as="image" fetchpriority="high">
-  <link rel="preload" href="assets/Contact_black.png" as="image" fetchpriority="high">
-	
-  <!-- Style Sheets ETC. -->
   <link rel="stylesheet" href="css/StyleMatters.2024.css">
   <link rel="stylesheet" href="./components/NavBar.css">
   <link rel="stylesheet" href="css/ProgressiveBlur.css">
@@ -76,25 +62,23 @@
 <body>
   
   <!-- Intro Graphic -->
-  <div id="introLoader" class="IntroLoader">
-    <img src="assets/WebIntro.gif" id="introLoaderFallback" alt="Loading animation">
-  </div>
+  <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
   <!-- Nav Bar -->
   <div id="navDynamicContainer" class="navDynamicContainer" style="display:none;">
     <div class="navBar" id="navBar">
         <div class="navBarSegController" id="navBarSegController">
             <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;">
-                <img src="./assets/LogoSpin2024.SML.gif" id="navLogoSpinFallback" height="40px" width="40px" alt="Open info menu">
+                <img src="./assets/LogoMark.fallback.png" id="navLogoSpinFallback" height="40" width="40" alt="Open info menu">
             </div>
-            <a href="about.html" onclick="gtag('event', 'About', {'event_category' : 'Nav Item', 'event_label' : 'View About Page'});">
+            <a href="about.html">
                 <font class="navBarItem_OnState">👋 ABOUT</font>
               </a>
-            <a href="index.html" onclick="gtag('event', 'Product Design', {'event_category' : 'Nav Item', 'event_label' : 'View Product Design Portfolio'});">
+            <a href="index.html">
                 <font class="navBarItem">📐 WORK</font>
             </a>
             <font class="navBarItem" onclick="openNavChatView()" id="openChatView" class="openChatView">💬 CHAT</font>
-            <img src="./assets/Contact_black.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu" fetchpriority="high">
+            <img src="./assets/Contact_black.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu">
         </div>
     </div>
     <div class="infoViewContent" id="infoViewContent">
@@ -104,7 +88,7 @@
         </div>
         <div style="padding-bottom:32px;">
             <div id="sigLogo" style="width:200px;height:200px;">
-                <img src="./assets/Sig2026.gif" id="sigLogoFallback" height="200px" width="200px" decoding="async" alt="MXMLLN logo">
+                <img src="./assets/LogoMark.fallback.png" id="sigLogoFallback" height="200" width="200" decoding="async" alt="MXMLLN logo">
             </div>
         </div>
         <div class="navInfoActions">
@@ -132,7 +116,7 @@
         <div class="chatEmptyState" id="chatEmptyState">
             <div class="chatEmptyStateLogo">
                 <div id="chatEmptyLogo" style="width:150px;height:150px;">
-                    <img src="./assets/LogoSpin2024.MED.MEZZO.gif" id="chatEmptyLogoFallback" height="150px" width="150px" alt="MXMLLN logo">
+                    <img src="./assets/LogoMark.fallback.png" id="chatEmptyLogoFallback" height="150" width="150" alt="MXMLLN logo">
                 </div>
             </div>
             <div class="chatEmptyStateText">
@@ -164,7 +148,7 @@
                 <div class="chatBlurb">
                     <div class="chatResponseLogoContainer">
                         <div id="chatResponseLogo" class="chatResponseLogo">
-                            <img src="./assets/LogoSpin2024.SML.gif" id="chatResponseLogoFallback" alt="MXMLLN logo">
+                            <img src="./assets/LogoMark.fallback.png" id="chatResponseLogoFallback" height="40" width="40" alt="MXMLLN logo">
                         </div>
                     </div>
                     <p style="margin:0px;padding:0px;text-align:left;"></p>
@@ -203,7 +187,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="mailto:max@mxmlln.com" onclick="gtag('event', 'Click Email Button', { 'event_category' : 'Contact', 'event_label' : 'MAX@MXMLLN.COM'});">
+                <a href="mailto:max@mxmlln.com">
                     <img src="./assets/contact/EmailButton.svg" class="CircleButton" alt="Email" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -215,7 +199,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://x.com/MVXMXM" target="_blank" onclick="gtag('event', 'Click Twitter Button', { 'event_category' : 'Contact', 'event_label' : 'TWITTER'});">
+                <a href="https://x.com/MVXMXM" target="_blank">
                     <img src="./assets/contact/TwitterButton.svg" class="CircleButton" alt="Twitter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -227,7 +211,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://www.linkedin.com/in/maximilliannyc/" target="_blank" onclick="gtag('event', 'Click LinkedIn Button', { 'event_category' : 'Contact', 'event_label' : 'LinkedIn'});">
+                <a href="https://www.linkedin.com/in/maximilliannyc/" target="_blank">
                     <img src="./assets/contact/LinkedInButton.svg" class="CircleButton" alt="LinkedIn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -241,7 +225,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://medium.com/@MaximillianNYC"  target="_blank" onclick="gtag('event', 'Click Medium Button', { 'event_category' : 'Contact', 'event_label' : 'Medium'});">
+                <a href="https://medium.com/@MaximillianNYC"  target="_blank">
                     <img src="./assets/contact/MediumButton.svg" class="CircleButton" alt="Medium" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -253,7 +237,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://www.instagram.com/maximillian.nyc" target="_blank" onclick="gtag('event', 'Click Instagram Button', { 'event_category' : 'Contact', 'event_label' : 'Insta'});">
+                <a href="https://www.instagram.com/maximillian.nyc" target="_blank">
                     <img src="./assets/contact/InstaButton.svg" class="CircleButton" alt="Twitter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -265,7 +249,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="https://dribbble.com/MaximillianNYC" target="_blank" onclick="gtag('event', 'Click Dribbble Button', { 'event_category' : 'Contact', 'event_label' : 'Dribbble'});">
+                <a href="https://dribbble.com/MaximillianNYC" target="_blank">
                     <img src="./assets/contact/DribbbleButton.svg" class="CircleButton" alt="LinkedIn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
                 </a>
             </div>
@@ -516,17 +500,37 @@
     }
 </script>	
 
-<!-- Intro Animation -->
 <script>
-  jQuery(document).ready(function() {
+  function skipIntroAnimation() {
+    var loader = document.querySelector('.IntroLoader');
+    if (loader) loader.style.display = 'none';
+    var gradeFront = document.querySelector('.gradeFront');
+    if (gradeFront) {
+      gradeFront.style.width = '100%';
+      gradeFront.style.height = '100%';
+      gradeFront.style.borderRadius = '0px';
+      gradeFront.style.opacity = '1';
+    }
+    var content = document.querySelector('.ContentContainer');
+    if (content) {
+      content.style.top = '0px';
+      content.style.display = 'flex';
+    }
+    var nav = document.querySelector('.navDynamicContainer');
+    if (nav) {
+      nav.style.display = '';
+      nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+    }
+    document.body.style.overflowY = 'auto';
+  }
+
+  function initIntroAnimation() {
     $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
-      $('.IntroLoader')
-      .delay(1000)
-      .animate({top:'-100%'}, 250);
+      $('.IntroLoader').delay(1000).animate({top:'-100%'}, 250);
     });
-   $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-    .delay(1250)
-    .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+    $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
+      .delay(1250)
+      .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
     setTimeout(function() {
       $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
         $('.ContentContainer').animate({top: '0px'}, 1000);
@@ -541,41 +545,58 @@
     setTimeout(function() {
       $('body').css('overflow-y', 'auto');
     }, 2500);
-  });
-</script>
+  }
 
-<!-- Lottie initialization (runs after deferred script loads) -->
-<script>
-  function initLottieAnimations() {
-    if (typeof lottie === 'undefined') return;
-    
-    var animations = [
-      { container: 'introLoader', fallback: 'introLoaderFallback', path: 'assets/WebIntro.json' },
-      { container: 'navLogoSpin', fallback: 'navLogoSpinFallback', path: './assets/LogoSpin2026.json' },
-      { container: 'sigLogo', fallback: 'sigLogoFallback', path: './assets/Sig2026.json' },
-      { container: 'chatEmptyLogo', fallback: 'chatEmptyLogoFallback', path: './assets/LogoSpin2026.json' },
-      { container: 'chatResponseLogo', fallback: 'chatResponseLogoFallback', path: './assets/LogoSpin2026.json' }
-    ];
-    
-    animations.forEach(function(config) {
-      var container = document.getElementById(config.container);
-      var fallback = document.getElementById(config.fallback);
-      if (!container) return;
-      
+  function loadLottie(containerId, path, fallbackId) {
+    return new Promise(function(resolve, reject) {
+      var container = document.getElementById(containerId);
+      if (!container || typeof lottie === 'undefined') {
+        reject(new Error('lottie unavailable'));
+        return;
+      }
       var anim = lottie.loadAnimation({
         container: container,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: config.path
+        path: path
       });
       anim.addEventListener('DOMLoaded', function() {
+        var fallback = fallbackId && document.getElementById(fallbackId);
         if (fallback) fallback.style.display = 'none';
+        resolve(anim);
       });
+      anim.addEventListener('data_failed', function() { reject(new Error('data_failed')); });
     });
   }
-  
-  // Run when lottie script has loaded
+
+  function startSecondaryLotties() {
+    [
+      { id: 'navLogoSpin', path: './assets/LogoSpin2026.json', fallback: 'navLogoSpinFallback' },
+      { id: 'sigLogo', path: './assets/Sig2026.json', fallback: 'sigLogoFallback' },
+      { id: 'chatEmptyLogo', path: './assets/LogoSpin2026.json', fallback: 'chatEmptyLogoFallback' },
+      { id: 'chatResponseLogo', path: './assets/LogoSpin2026.json', fallback: 'chatResponseLogoFallback' }
+    ].forEach(function(config) {
+      loadLottie(config.id, config.path, config.fallback).catch(function() {});
+    });
+  }
+
+  function initLottieAnimations() {
+    if (typeof lottie === 'undefined') {
+      skipIntroAnimation();
+      return;
+    }
+    loadLottie('introLoader', 'assets/WebIntro.json')
+      .then(function() {
+        initIntroAnimation();
+        startSecondaryLotties();
+      })
+      .catch(function() {
+        skipIntroAnimation();
+        startSecondaryLotties();
+      });
+  }
+
   if (document.readyState === 'complete') {
     initLottieAnimations();
   } else {
