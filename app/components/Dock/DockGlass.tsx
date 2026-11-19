@@ -575,6 +575,8 @@ function mountPageGlass(dock: HTMLElement) {
   let capture: () => void = () => {};
   let undoRenderLens: (() => void) | null = null;
   let undoOverscroll: (() => void) | null = null;
+  let poseFrame = 0;
+  let canvasGeom = '';
   // Glassworks snapshots whatever carries this attribute, using that node's
   // scroll height, and parks its canvas at z-index 0. An empty plate the size
   // of the pill keeps the first snapshot off the page; the canvas is lifted
@@ -612,16 +614,20 @@ function mountPageGlass(dock: HTMLElement) {
     // Match the visible frame — layout innerHeight lags URL-bar / keyboard churn.
     const vv = window.visualViewport;
     if (vv) {
-      canvas.style.top = `${vv.offsetTop}px`;
-      canvas.style.left = `${vv.offsetLeft}px`;
-      canvas.style.width = `${vv.width}px`;
-      canvas.style.height = `${vv.height}px`;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       const width = Math.max(1, Math.round(vv.width * dpr));
       const height = Math.max(1, Math.round(vv.height * dpr));
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
+      const geom = `${vv.offsetLeft}|${vv.offsetTop}|${vv.width}|${vv.height}|${width}x${height}`;
+      if (geom !== canvasGeom) {
+        canvasGeom = geom;
+        canvas.style.top = `${vv.offsetTop}px`;
+        canvas.style.left = `${vv.offsetLeft}px`;
+        canvas.style.width = `${vv.width}px`;
+        canvas.style.height = `${vv.height}px`;
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
       }
     }
   };
@@ -664,6 +670,8 @@ function mountPageGlass(dock: HTMLElement) {
 
   const syncLensPose = () => {
     if (cancelled || !started) return;
+    // Minify animates width/height on the main thread — skip GL work so it doesn’t hitch mid-pill.
+    if (scrollShape || dock.dataset.dockScrolling) return;
     liftCanvas();
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
     if (!renderer) return;
@@ -672,6 +680,14 @@ function mountPageGlass(dock: HTMLElement) {
       asFolioLens(lens)?.updateMetrics?.();
     }
     renderer.render?.();
+  };
+
+  const scheduleLensPose = () => {
+    if (poseFrame) return;
+    poseFrame = requestAnimationFrame(() => {
+      poseFrame = 0;
+      syncLensPose();
+    });
   };
 
   const fitRim = () => {
@@ -930,6 +946,7 @@ function mountPageGlass(dock: HTMLElement) {
       home = null;
       scrollTimer = 0;
       if (started) refresh();
+      scheduleLensPose();
     }, 600);
   };
 
@@ -979,7 +996,6 @@ function mountPageGlass(dock: HTMLElement) {
   };
 
   const onResize = () => {
-    fitRim();
     const size = `${Math.round(dock.offsetWidth)}x${Math.round(dock.offsetHeight)}`;
     if (!lastSize) {
       lastSize = size;
@@ -987,7 +1003,9 @@ function mountPageGlass(dock: HTMLElement) {
     }
     if (size === lastSize) return;
     lastSize = size;
-    if (scrollShape) return;
+    // Size is animating to the scroll mark — don’t touch transition / rim mid-flight.
+    if (scrollShape || dock.dataset.dockScrolling) return;
+    fitRim();
     dock.dataset.dockMoving = 'true';
     const canvas = window.__liquidGLRenderer__?.canvas;
     if (canvas) {
@@ -1113,8 +1131,8 @@ function mountPageGlass(dock: HTMLElement) {
 
   // Pose tracks the URL bar / keyboard; capture cadence stays separate.
   const vv = window.visualViewport;
-  vv?.addEventListener('resize', syncLensPose);
-  vv?.addEventListener('scroll', syncLensPose);
+  vv?.addEventListener('resize', scheduleLensPose);
+  vv?.addEventListener('scroll', scheduleLensPose);
 
   return () => {
     cancelled = true;
@@ -1127,6 +1145,7 @@ function mountPageGlass(dock: HTMLElement) {
     if (motionFrame) cancelAnimationFrame(motionFrame);
     if (mediaFrame) cancelAnimationFrame(mediaFrame);
     if (orbitFrame) cancelAnimationFrame(orbitFrame);
+    if (poseFrame) cancelAnimationFrame(poseFrame);
     document.removeEventListener('transitionrun', onTransitionRun, true);
     document.removeEventListener('playing', onPlaying, true);
     cluster?.removeEventListener('animationend', onIntroEnd);
@@ -1136,8 +1155,8 @@ function mountPageGlass(dock: HTMLElement) {
     pageObserver?.disconnect();
     masonryObserver?.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
-    vv?.removeEventListener('resize', syncLensPose);
-    vv?.removeEventListener('scroll', syncLensPose);
+    vv?.removeEventListener('resize', scheduleLensPose);
+    vv?.removeEventListener('scroll', scheduleLensPose);
     undoRenderLens?.();
     undoOverscroll?.();
     plate.remove();
