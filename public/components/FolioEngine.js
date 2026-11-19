@@ -779,7 +779,34 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
     }
 }
 
-// Intro Animation
+function skipIntroAnimation() {
+  const loader = document.querySelector('.IntroLoader');
+  if (loader) loader.style.display = 'none';
+
+  const gradeFront = document.querySelector('.gradeFront');
+  if (gradeFront) {
+    gradeFront.style.width = '100%';
+    gradeFront.style.height = '100%';
+    gradeFront.style.borderRadius = '0px';
+    gradeFront.style.opacity = '1';
+  }
+
+  const content = document.querySelector('.ContentContainer');
+  if (content) {
+    content.style.top = '0px';
+    content.style.display = 'flex';
+  }
+
+  const nav = document.querySelector('.navDynamicContainer');
+  if (nav) {
+    nav.style.display = '';
+    nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+  }
+
+  document.body.classList.add('folio-in');
+  document.body.style.overflowY = 'auto';
+}
+
 function initIntroAnimation() {
   $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
     $('.IntroLoader')
@@ -814,8 +841,8 @@ function initIntroAnimation() {
   }, 2500);
 }
 
-// Initialize intro animation
-$(document).ready(initIntroAnimation);
+window.initIntroAnimation = initIntroAnimation;
+window.skipIntroAnimation = skipIntroAnimation;
 
 function youtubeVideoId(href) {
     const match = String(href || '').match(
