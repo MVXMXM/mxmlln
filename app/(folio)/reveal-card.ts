@@ -287,12 +287,21 @@ const ORBIT_THUMB_RADIUS = 16
 const ORBIT_THUMB_SHADOW_Y = 8
 const ORBIT_THUMB_SHADOW_BLUR = 18
 
+/** Edge-to-edge along the arc — 1.25 ⇒ a 0.25-card gutter between neighbors. */
+const ORBIT_PACK = 1.25
+
 /** Prefer a smaller ring over sparse cards — edge gap stays under 0.25 card (orbit + carousel). */
 function clampRingRadius(count: number, radius: number, cardSize: number) {
   const n = Math.max(count, 2)
-  const maxSpacing = cardSize * 1.25
+  const maxSpacing = cardSize * ORBIT_PACK
   const maxRadius = maxSpacing / (2 * Math.sin(Math.PI / n))
   return Math.min(radius, maxRadius)
+}
+
+/** Thumb that keeps the 0.25-card gutter on a given ring (shrinks when the ring is tight). */
+function packOrbitSize(count: number, radius: number) {
+  const n = Math.max(count, 2)
+  return (2 * radius * Math.sin(Math.PI / n)) / ORBIT_PACK
 }
 
 function orbitMetrics(count: number) {
@@ -300,25 +309,33 @@ function orbitMetrics(count: number) {
   const keyboard = folioKeyboardOpen()
   // Always the empty-state thumb — chrome (border/radius/shadow) scales from this.
   const sizeWide = orbitThumbSize(count)
-  // Compose keeps a large ring so cards clip under the dock glass; empty spills past the short sides.
-  const wide = keyboard
-    ? Math.max(vw, vh) / 2 - sizeWide * 0.1
-    : Math.max(vw, vh) / 2 - sizeWide * 0.2
+
+  if (keyboard) {
+    // Fill the short visual axis and spill under the dock glass; size follows the gap rule.
+    const radius = Math.min(vw, vh) / 2 + sizeWide * 0.2
+    const size = Math.min(sizeWide, Math.max(18, packOrbitSize(count, radius)))
+    return {
+      size,
+      sizeWide,
+      rx: Math.max(size, radius),
+      ry: Math.max(size, radius),
+      cx: left + vw / 2,
+      cy: top + vh / 2,
+    }
+  }
+
+  // Wide empty ring may spill past the short sides; loading hugs the ~300px logo area.
+  const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
   const ratio = sizeWide / Math.max(wide, 1)
-  // Waiting mark is 200; compose shrinks it 25% → 150 (half 75). Loading hugs ~300.
-  const logoHalf = keyboard ? 75 : 150
+  const logoHalf = 150
   const tight = (logoHalf + 20) / Math.max(0.35, 1 - 0.55 * ratio)
-  const composeTighten = keyboard ? Math.max(orbitTighten, 0.65) : orbitTighten
-  const uncapped = wide + (tight - wide) * composeTighten
+  const uncapped = wide + (tight - wide) * orbitTighten
   // Size from the uncapped ring — clamping radius must not shrink cards or the
   // relative gap stays the same and the cap does nothing on large screens.
-  const size = Math.max(28, uncapped * ratio)
-  // Compose: allow the ring past the short edge so cards pass under the input.
-  const radius = clampRingRadius(
-    count,
-    keyboard ? Math.min(uncapped, Math.min(vw, vh) / 2 + size * 0.2) : uncapped,
-    size,
-  )
+  let size = Math.max(28, uncapped * ratio)
+  const radius = clampRingRadius(count, uncapped, size)
+  // When the ring tightens faster than the thumbs, shrink thumbs so they don’t overlap.
+  size = Math.min(size, Math.max(18, packOrbitSize(count, radius)))
   return {
     size,
     sizeWide,
@@ -488,8 +505,9 @@ export function parkResultsForCompose(grid: HTMLElement) {
   stopOrbit()
   ensureSession(grid)
   syncFolioVisualViewport()
-  orbitTighten = folioKeyboardOpen() ? 0.65 : 0
-  orbitTightenTarget = orbitTighten
+  // Compose packing ignores tighten — radius is viewport-driven.
+  orbitTighten = 0
+  orbitTightenTarget = 0
   grid.classList.remove('is-carousel', 'is-result')
   grid.classList.add('is-orbit')
   for (const card of sessionCards) {
