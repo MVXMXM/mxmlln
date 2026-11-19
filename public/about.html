@@ -72,7 +72,9 @@
   <div id="navDynamicContainer" class="navDynamicContainer" style="display:none;">
     <div class="navBar" id="navBar">
         <div class="navBarSegController" id="navBarSegController">
-            <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;" role="button" aria-label="Open info menu"></div>
+            <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;">
+                <img src="./assets/LogoSpin2026.fallback.png" id="navLogoSpinFallback" height="40" width="40" alt="Open info menu">
+            </div>
             <a href="about.html">
                 <font class="navBarItem_OnState">👋 ABOUT</font>
               </a>
@@ -89,7 +91,9 @@
             <img src="./assets/Close.png" onclick="closeNavInfoView()" class="closeButton">
         </div>
         <div style="padding-bottom:32px;">
-            <div id="sigLogo" style="width:200px;height:200px;" aria-label="MXMLLN logo"></div>
+            <div id="sigLogo" style="width:200px;height:200px;">
+                <img src="./assets/Sig2026.fallback.png" id="sigLogoFallback" height="200" width="200" decoding="async" alt="MXMLLN logo">
+            </div>
         </div>
         <div class="navInfoActions">
             <a class="navInfoAction" href="https://github.com/MVXMXM/mxmlln" target="_blank">
@@ -115,7 +119,9 @@
         <!--empty state-->
         <div class="chatEmptyState" id="chatEmptyState">
             <div class="chatEmptyStateLogo">
-                <div id="chatEmptyLogo" style="width:150px;height:150px;" aria-label="MXMLLN logo"></div>
+                <div id="chatEmptyLogo" style="width:150px;height:150px;">
+                    <img src="./assets/LogoSpin2026.fallback.png" id="chatEmptyLogoFallback" height="150" width="150" alt="MXMLLN logo">
+                </div>
             </div>
             <div class="chatEmptyStateText">
                 <h1 style="line-height:0%;font-weight:900;">Maximillian AI</h1>
@@ -145,7 +151,9 @@
             <div class="chatResponseContainer">
                 <div class="chatBlurb">
                     <div class="chatResponseLogoContainer">
-                        <div id="chatResponseLogo" class="chatResponseLogo" aria-label="MXMLLN logo"></div>
+                        <div id="chatResponseLogo" class="chatResponseLogo">
+                            <img src="./assets/LogoSpin2026.fallback.png" id="chatResponseLogoFallback" height="40" width="40" alt="MXMLLN logo">
+                        </div>
                     </div>
                     <p style="margin:0px;padding:0px;text-align:left;"></p>
                 </div>
@@ -543,7 +551,7 @@
     }, 2500);
   }
 
-  function loadLottie(containerId, path) {
+  function loadLottie(containerId, path, fallbackId) {
     return new Promise(function(resolve, reject) {
       var container = document.getElementById(containerId);
       if (!container || typeof lottie === 'undefined') {
@@ -557,19 +565,23 @@
         autoplay: true,
         path: path
       });
-      anim.addEventListener('DOMLoaded', function() { resolve(anim); });
+      anim.addEventListener('DOMLoaded', function() {
+        var fallback = fallbackId && document.getElementById(fallbackId);
+        if (fallback) fallback.style.display = 'none';
+        resolve(anim);
+      });
       anim.addEventListener('data_failed', function() { reject(new Error('data_failed')); });
     });
   }
 
   function startSecondaryLotties() {
     [
-      { id: 'navLogoSpin', path: './assets/LogoSpin2026.json' },
-      { id: 'sigLogo', path: './assets/Sig2026.json' },
-      { id: 'chatEmptyLogo', path: './assets/LogoSpin2026.json' },
-      { id: 'chatResponseLogo', path: './assets/LogoSpin2026.json' }
+      { id: 'navLogoSpin', path: './assets/LogoSpin2026.json', fallback: 'navLogoSpinFallback' },
+      { id: 'sigLogo', path: './assets/Sig2026.json', fallback: 'sigLogoFallback' },
+      { id: 'chatEmptyLogo', path: './assets/LogoSpin2026.json', fallback: 'chatEmptyLogoFallback' },
+      { id: 'chatResponseLogo', path: './assets/LogoSpin2026.json', fallback: 'chatResponseLogoFallback' }
     ].forEach(function(config) {
-      loadLottie(config.id, config.path).catch(function() {});
+      loadLottie(config.id, config.path, config.fallback).catch(function() {});
     });
   }
 
