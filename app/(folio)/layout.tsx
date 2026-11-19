@@ -5,7 +5,9 @@ import './folio.css'
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 0.75,
-  maximumScale: 1,
+  // Match initial — maximumScale: 1 still allowed Safari to zoom 0.75 → 1 on focus.
+  maximumScale: 0.75,
+  userScalable: false,
   viewportFit: 'cover',
 }
 

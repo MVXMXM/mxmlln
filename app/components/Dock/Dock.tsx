@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
@@ -123,7 +124,9 @@ export function Dock({
   const openComposer = useCallback(() => {
     if (composerTimer.current) clearTimeout(composerTimer.current);
     setComposerClosing(false);
-    setComposer(true);
+    // Commit before focus so `inert` clears in the same tap (iOS needs the gesture).
+    flushSync(() => setComposer(true));
+    inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
@@ -209,17 +212,11 @@ export function Dock({
 
   useEffect(() => {
     if (!composer) return;
-    const frame = window.setTimeout(() => {
-      inputRef.current?.focus({ preventScroll: true });
-    }, 80);
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') closeComposer();
     }
     document.addEventListener('keydown', onKey);
-    return () => {
-      window.clearTimeout(frame);
-      document.removeEventListener('keydown', onKey);
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [composer, closeComposer]);
 
   useEffect(() => {
