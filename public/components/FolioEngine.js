@@ -508,6 +508,20 @@ function loadCards(cardStack = document.querySelector('.CardStack')) {
     });
 }
 
+function whenFolioIn(callback) {
+    if (document.body.classList.contains('folio-in') || !document.getElementById('introLoader')) {
+        callback();
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        if (document.body.classList.contains('folio-in')) {
+            observer.disconnect();
+            callback();
+        }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+}
+
 function observeCardStackMedia() {
     const stacks = document.querySelectorAll('.CardStack');
     if (!('IntersectionObserver' in window)) {
@@ -548,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
     cardStacks.forEach(stack => {
         loadCards(stack);
     });
-    observeCardStackMedia();
+    whenFolioIn(observeCardStackMedia);
 });
 
 function collapseExpandedStack() {
