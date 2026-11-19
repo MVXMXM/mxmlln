@@ -950,9 +950,7 @@ function mountPageGlass(dock: HTMLElement) {
     }, 600);
   };
 
-  const onScroll = (event: Event) => {
-    if (!started) return;
-    if (event.target instanceof Node && dock.contains(event.target)) return;
+  const armScrollMinify = () => {
     // Chat composer stays full-width — minify is for the idle dock only.
     if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
       if (dock.dataset.dockScrolling) releaseScroll();
@@ -963,15 +961,34 @@ function mountPageGlass(dock: HTMLElement) {
       scrollShape = true;
       delete dock.dataset.dockExpanding;
       dock.dataset.dockScrolling = 'true';
-      const canvas = window.__liquidGLRenderer__?.canvas;
-      if (canvas) {
-        canvas.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
-        canvas.style.opacity = '0';
+      // Glass fade is optional — CSS minify should not wait on first capture.
+      if (started) {
+        const canvas = window.__liquidGLRenderer__?.canvas;
+        if (canvas) {
+          canvas.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+          canvas.style.opacity = '0';
+        }
+        if (!mediaFrame) followMedia(syncPlate());
       }
-      if (!mediaFrame) followMedia(syncPlate());
     }
     window.clearTimeout(scrollTimer);
     scrollTimer = window.setTimeout(releaseScroll, 400);
+  };
+
+  const scrollFromDock = (target: EventTarget | null) => {
+    const root = dock.closest('.mx-dock');
+    return Boolean(target instanceof Node && root?.contains(target));
+  };
+
+  const onScroll = (event: Event) => {
+    if (scrollFromDock(event.target)) return;
+    armScrollMinify();
+  };
+
+  // Touch scroll delivers `scroll` late on mobile — arm as soon as the finger moves on the page.
+  const onTouchMove = (event: TouchEvent) => {
+    if (scrollFromDock(event.target)) return;
+    armScrollMinify();
   };
 
   // A hover writes the destination style once. The cards keep moving for the
@@ -1053,6 +1070,7 @@ function mountPageGlass(dock: HTMLElement) {
   if (page) pageObserver?.observe(page, { attributes: true, attributeFilter: ['class', 'data-folio-view'], childList: true });
   watchMasonry();
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+  document.addEventListener('touchmove', onTouchMove, { passive: true, capture: true });
   document.addEventListener('transitionrun', onTransitionRun, true);
   const onPlaying = (event: Event) => {
     if (!started || mediaFrame || !(event.target instanceof HTMLVideoElement)) return;
@@ -1155,6 +1173,7 @@ function mountPageGlass(dock: HTMLElement) {
     pageObserver?.disconnect();
     masonryObserver?.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
+    document.removeEventListener('touchmove', onTouchMove, { capture: true });
     vv?.removeEventListener('resize', scheduleLensPose);
     vv?.removeEventListener('scroll', scheduleLensPose);
     undoRenderLens?.();
