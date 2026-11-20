@@ -19,14 +19,48 @@
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
 
   <style>
-    /* Canvas + edge fades before stylesheets — keep in sync with
-       StyleMatters.2024.css (html) and NavBar.css (.topFade / .bottomFade). */
+    /* Canvas before sheets — keep in sync with StyleMatters.2024.css
+       (.gradeBG lean, body::before) and NavBar.css fades. No noise filter. */
     html {
       background-color: oklch(0.86 0.04 260);
     }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradeBG {
+      position: fixed;
+      z-index: 1;
+      inset: 0;
+      overflow: hidden;
+      background: linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285));
+      background-size: 400% 400%;
+      animation: gradient 5s ease infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: 3;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle at center, #0f172b 0.85px, transparent 1px);
+      background-size: 16px 16px;
+      background-position: center var(--dot-shift, -8px);
+      mix-blend-mode: multiply;
+      opacity: 0.2;
+    }
+    body.folio-in::before {
+      opacity: 0;
+    }
     /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
     @media (max-width: 768px) {
-      .gradeFront {
+      /* Match bottomFade opaque stop — Safari URL bar samples html canvas. */
+      html,
+      body {
+        background-color: oklch(0.93 0.034 285);
+      }
+      body > .gradeFront {
         position: fixed;
         z-index: 2;
         top: 50%;
@@ -36,7 +70,7 @@
         height: 100%;
         border-radius: 0;
         opacity: 1;
-        background-color: rgba(255, 255, 255, 0.75);
+        background-color: rgba(255, 255, 255, 0.85);
         filter: blur(150px);
         overflow: hidden;
         pointer-events: none;
@@ -80,8 +114,6 @@
       }
     }
 
-    /* Note: .IntroLoader base styles come from StyleMatters.2024.css */
-    /* jQuery animates it to 300x300, so we don't set size here */
     .IntroLoader svg, .IntroLoader img {
       width: 100%;
       height: 100%;
