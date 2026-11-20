@@ -181,11 +181,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" onload="this.rel='stylesheet'">
   
   <!-- Defer jQuery and other scripts -->
-  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script defer src="./js/IntenseImages/intense.js"></script>
   
   <!-- Lottie player (light version - 40% smaller) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
 </head>
 
 <body>
@@ -739,72 +736,6 @@
         <span id="stackBarSectionName" style="margin-left:10px;margin-top:6px;"> </span>
         <img src="assets/CloseSML.png" height="32px" width="32px" onclick="collapseExpandedStack()" style="cursor:pointer;" alt="Close expanded stack">
     </div>
-
-<!-- Components -->
-<script defer src="./components/FolioEngine.js"></script>
-<script defer src="./components/ScrollThumb.js"></script>
-
-<!-- Defer non-critical scripts -->
-<script defer src="./js/IntenseImages/intense.js"></script>
-
-<script>
-  function loadLottie(containerId, path, fallbackId) {
-    return new Promise(function(resolve, reject) {
-      var container = document.getElementById(containerId);
-      if (!container || typeof lottie === 'undefined') {
-        reject(new Error('lottie unavailable'));
-        return;
-      }
-      var anim = lottie.loadAnimation({
-        container: container,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: path
-      });
-      anim.addEventListener('DOMLoaded', function() {
-        var fallback = fallbackId && document.getElementById(fallbackId);
-        if (fallback) fallback.style.display = 'none';
-        resolve(anim);
-      });
-      anim.addEventListener('data_failed', function() { reject(new Error('data_failed')); });
-    });
-  }
-
-  function startSecondaryLotties() {
-    [
-      { id: 'navLogoSpin', path: './assets/LogoSpin2026.json', fallback: 'navLogoSpinFallback' },
-      { id: 'sigLogo', path: './assets/Sig2026.json', fallback: 'sigLogoFallback' },
-      { id: 'chatEmptyLogo', path: './assets/LogoSpin2026.json', fallback: 'chatEmptyLogoFallback' },
-      { id: 'chatResponseLogo', path: './assets/LogoSpin2026.json', fallback: 'chatResponseLogoFallback' }
-    ].forEach(function(config) {
-      loadLottie(config.id, config.path, config.fallback).catch(function() {});
-    });
-  }
-
-  function initLottieAnimations() {
-    if (typeof lottie === 'undefined') {
-      if (typeof skipIntroAnimation === 'function') skipIntroAnimation();
-      return;
-    }
-
-    loadLottie('introLoader', 'assets/WebIntro.json')
-      .then(function() {
-        if (typeof initIntroAnimation === 'function') initIntroAnimation();
-        startSecondaryLotties();
-      })
-      .catch(function() {
-        if (typeof skipIntroAnimation === 'function') skipIntroAnimation();
-        startSecondaryLotties();
-      });
-  }
-
-  if (document.readyState === 'complete') {
-    initLottieAnimations();
-  } else {
-    window.addEventListener('load', initLottieAnimations);
-  }
-</script>
 
 </body>
 </html>

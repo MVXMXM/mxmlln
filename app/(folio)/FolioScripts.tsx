@@ -70,7 +70,7 @@ function failOpen() {
 
 export function FolioScripts() {
   useEffect(() => {
-    // Folio source sets this on <html>. The root layout owns that element here.
+    // overlayScroll belongs on <html>; the root layout owns that element here.
     mountOverlayScroll()
 
     const releaseScroll = () => {

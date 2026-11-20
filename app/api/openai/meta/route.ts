@@ -9,9 +9,8 @@ const cardSchema = z.object({
   cardImage: z.string(),
   cardHeader: z.string(),
   cardDescription: z.string(),
-  // cardURL is the primary pick; cardURLs is the full list HomeDock maps to cards.
   cardURL: z.string(),
-  // The model sometimes over-lists a theme. Keep the first six instead of failing.
+  // Model sometimes over-lists a theme — keep six instead of failing the parse.
   cardURLs: z
     .array(z.string())
     .min(1)
@@ -29,13 +28,13 @@ export async function POST(req: NextRequest) {
       schema: cardSchema,
       system: folioMetaPrompt,
       prompt: defineProblem,
-      // This is a case-study lookup. Reasoning effort holds the card for seconds.
+      // Reasoning effort holds the card for seconds on this lookup.
       providerOptions: {
         openai: { reasoningEffort: "none" },
       },
     });
 
-    // HomeDock JSON.parses this string. Keep the legacy { AiResponse } shape.
+    // HomeDock still JSON.parses AiResponse as a string.
     return NextResponse.json({ AiResponse: JSON.stringify(object) });
   } catch (error) {
     console.error(error);

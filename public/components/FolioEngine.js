@@ -34,7 +34,6 @@ const initialStyles = {
         alignItems: 'center',
         gap: '80px',
         margin: '76px 0 200px',
-        //backgroundColor: 'green',
         transition: 'all 0.15s ease'
     },
     CardStackLabelContainer: {
@@ -46,7 +45,6 @@ const initialStyles = {
         height: '464px',
         minHeight: '464px',
         overflow: 'visible',
-        //backgroundColor: 'blue',
         margin: '0px',
         transition: 'all 0.25s ease'
     },
@@ -107,7 +105,6 @@ const initialStyles = {
         gap: '0px',
         cursor: 'pointer',
         margin: '0px',
-        //backgroundColor: 'red',
         transition: 'all 0.25s ease'
     },
     card: {
@@ -156,8 +153,6 @@ const initialStyles = {
         marginBottom: '10px',
         borderRadius: '10px',
         color: '#FFFFFF',
-        // backdropFilter: 'blur(10px)',
-        // webkitBackdropFilter: 'blur(10px)',
         backgroundColor: 'rgba(0, 0, 0, 0.35)'
     },
     BadgeText: {
@@ -257,27 +252,22 @@ function setDefaultCardStackStyles() {
     const titleCenter = parseFloat(initialStyles.TitleBlock3.marginTop) + parseFloat(initialStyles.TitleBlock3.height) / 2;
     document.documentElement.style.setProperty('--dot-shift', `${titleCenter - grid / 2}px`);
 }
-// Card controls
 const cards = document.querySelectorAll('.Card');
 cards.forEach((card, index) => {
     Object.assign(card.style, initialStyles.card);
-    // Card child styles
     const cardStack = card.parentNode;
     const cardsInStack = cardStack.children;
     const cardIndexInStack = Array.prototype.indexOf.call(cardsInStack, card);
     setCardPosition(card, cardIndexInStack, cardsInStack.length, cardStack.id || `stack-${Math.random().toString(36).substr(2, 9)}`);
-    
-    // Card stack hover styles
+
     cardStack.addEventListener('mouseover', function(e) {
         handleCardStackHover(e, cardStack);
     });
-    
-    // Card stack mouse out styles
+
     cardStack.addEventListener('mouseout', function() {
         handleCardStackMouseOut(cardStack);
     });
 
-    // Existing card hover styles
     cardStack.addEventListener('mouseover', function() {
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
@@ -285,7 +275,6 @@ cards.forEach((card, index) => {
         }
     });
 
-    // Existing card mouse out styles
     cardStack.addEventListener('mouseout', function() {
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
@@ -482,7 +471,7 @@ function mountCardVideo(card) {
     card.appendChild(wrap);
     ensureCardCursorHit(card);
     video.play().then(reveal).catch(() => {
-        // Keep the poster — no native play control over a paused layer.
+        // Paused <video> still paints Safari’s native play control.
         unmountCardVideo(card);
     });
 }
@@ -533,31 +522,9 @@ function whenFolioIn(callback) {
 }
 
 function observeCardStackMedia() {
-    // Collapsed stacks stay on posters — Safari blocks muted autoplay until a
-    // gesture, which otherwise leaves a large native play control on the card.
-    // Videos mount on expand (user gesture) via expandCardStackLabelContainer.
-    const stacks = document.querySelectorAll('.CardStack');
-    if (!('IntersectionObserver' in window)) {
-        stacks.forEach(dehydrateStackMedia);
-        return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            const stack = entry.target;
-            const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded');
-            if (StackIsExpanded) {
-                if (!expanded) dehydrateStackMedia(stack);
-                return;
-            }
-            dehydrateStackMedia(stack);
-        });
-    }, { rootMargin: '120px 0px', threshold: 0.05 });
-
-    stacks.forEach((stack) => {
-        observer.observe(stack);
-        dehydrateStackMedia(stack);
-    });
+    // Collapsed stacks stay on posters; muted autoplay is blocked until a gesture
+    // and a paused <video> leaves Safari’s play control on the card.
+    document.querySelectorAll('.CardStack').forEach(dehydrateStackMedia);
 }
 
 function collapseExpandedStack() {
@@ -570,14 +537,12 @@ function collapseExpandedStack() {
     }
 }
 
-// Collapse keyboard shortcut
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         collapseExpandedStack();
     }
 });
 
-// Expand stack trigger
 let StackIsExpanded = false;
 const CardStackLabelContainers = document.querySelectorAll('.CardStackLabelContainer');
 CardStackLabelContainers.forEach(CardStackLabelContainer => {
@@ -590,7 +555,6 @@ CardStackLabelContainers.forEach(CardStackLabelContainer => {
     });
 });
 
-// Expand stack controls
 function expandCardStackLabelContainer(CardStackLabelContainer) {
     const AllStacks = document.querySelector('.AllStacks');
     CardStackLabelContainer.classList.toggle('expanded');
@@ -698,7 +662,6 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
             }, 300);
 
         }, 0);
-        // StackBar Setup
         const sectionName = CardStackLabelContainer.querySelector('.CardStackLabelContainerValue').textContent.trim();
         document.getElementById('stackBarSectionName').textContent = sectionName;
         const StackBar = document.getElementById('StackBar');
@@ -890,7 +853,7 @@ function initIntroAnimation() {
   }, 1000);
 
   setTimeout(function() {
-    // Next strips the vanilla nav; arm the React dock before that early return.
+    // Next has no .navDynamicContainer — arm the React dock before that early return.
     document.querySelector('.folio-dock')?.classList.add('is-in');
     const nav = document.querySelector('.navDynamicContainer');
     if (!nav) return;
@@ -1055,7 +1018,6 @@ function openYouTubeLightbox(href, source) {
 }
 
 function bindFolioCards() {
-    // Handle card links
     document.querySelectorAll('.Card[data-href]').forEach(card => {
         card.addEventListener('click', function() {
             const container = this.closest('.CardStackLabelContainer');
@@ -1083,13 +1045,11 @@ function bindFolioCards() {
         }
     });
 
-    // Handle card zooms
     document.querySelectorAll('.Card#cardZoom').forEach(card => {
         card.addEventListener('click', function(event) {
             event.stopPropagation();
             const video = card.querySelector('video');
             if (video) {
-                // Handle video zoom
                 const videoModal = document.createElement('div');
                 videoModal.style.cssText = `
                     position: fixed;
@@ -1117,7 +1077,6 @@ function bindFolioCards() {
                 
                 document.body.appendChild(videoModal);
             } else {
-                // Existing image zoom functionality
                 const bgImage = window.getComputedStyle(this).backgroundImage;
                 const imageSrc = bgImage.slice(5, -2);
                 if (imageSrc && imageSrc !== 'none') {

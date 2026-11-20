@@ -50,6 +50,10 @@ const MAP: { url: string; target: FolioTarget }[] = [
     target: { pile: 'animating', title: 'ryuichi sakamoto music video' },
   },
   {
+    url: './assets/img/consabn.webm',
+    target: { pile: 'animating', title: 'consequence ft. royce da 5\'9" cover' },
+  },
+  {
     url: './assets/img/consabn_v4.gif',
     target: { pile: 'animating', title: 'consequence ft. royce da 5\'9" cover' },
   },
