@@ -24,12 +24,12 @@
   <!-- Preconnect to external domains early -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://ajax.googleapis.com">
   
+
   <!-- Load critical CSS first -->
   <style>
     /* Keep in sync with StyleMatters.2024.css (html, .gradeBG lean / no noise
-       filter, body::before, .IntroLoader, .ContentContainer) and NavBar.css
+       filter, body::before, .IntroLoader, .ContentContainer) and folio.css
        (.topFade / .bottomFade). */
     html {
       background-color: oklch(0.86 0.04 260);
@@ -179,10 +179,6 @@
 
   <!-- Load fonts asynchronously -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" onload="this.rel='stylesheet'">
-  
-  <!-- Defer jQuery and other scripts -->
-  
-  <!-- Lottie player (light version - 40% smaller) -->
 </head>
 
 <body>

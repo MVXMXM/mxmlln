@@ -893,8 +893,7 @@
 }
 
 /* ─── Chat bubbles ───────────────────────────────────────── */
-/* Mirrors folio chat bubble classes in public/components/NavBar.css.
-   .chat-demo-thread is the specimen wrapper; keep in sync with NavBar.css. */
+/* Specimen mirror of folio chat classes in app/(folio)/folio.css. */
 .chat-demo-thread {
   display: flex;
   flex-direction: column;

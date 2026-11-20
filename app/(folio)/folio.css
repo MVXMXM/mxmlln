@@ -54,6 +54,49 @@ html:has(.folio-page.is-folio-session) body {
   max-width: none;
 }
 
+/* Also inlined in content/folio/portfolio.html for first paint. */
+.folio-page .bottomFade,
+.folio-page .topFade {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .folio-page .bottomFade,
+  .folio-page .topFade {
+    display: block;
+    position: fixed;
+    z-index: 898;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+  }
+
+  .folio-page .bottomFade {
+    /* -2px: iOS can leave a 1px seam at bottom:0 while the URL bar animates. */
+    bottom: -2px;
+    height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+    background-image: linear-gradient(
+      to bottom,
+      oklch(0.93 0.034 285 / 0) 0%,
+      oklch(0.93 0.034 285 / 0.75) 50%,
+      oklch(0.93 0.034 285 / 0.9) 75%,
+      oklch(0.93 0.034 285 / 1) 100%
+    );
+  }
+
+  .folio-page .topFade {
+    top: -2px;
+    height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+    background-image: linear-gradient(
+      to top,
+      oklch(0.96 0.024 345 / 0) 0%,
+      oklch(0.96 0.024 345 / 0.5) 50%,
+      oklch(0.96 0.024 345 / 0.75) 75%,
+      oklch(0.96 0.024 345 / 1) 100%
+    );
+  }
+}
+
 .folio-stage {
   position: relative;
   display: grid;
@@ -170,6 +213,10 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-user-msg .chatQueryContainer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  max-width: 600px;
   width: auto;
   margin-bottom: 0;
 }
@@ -713,6 +760,12 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-assistant-msg .chatBlurb {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
   width: auto;
   padding: 0;
   background: none;
@@ -721,11 +774,17 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-assistant-msg .chatResponseLogoContainer {
-  border-width: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 100%;
+  background-color: #f5f5f5;
   width: 60px;
   height: 60px;
   min-width: 60px;
   min-height: 60px;
+  margin: 0;
   overflow: hidden;
   transition:
     width var(--folio-travel, 1.5s) cubic-bezier(0.22, 1, 0.36, 1),

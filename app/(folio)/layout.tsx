@@ -15,7 +15,6 @@ export default function FolioLayout({ children }: { children: ReactNode }) {
   return (
     <div className="folio-page">
       <link rel="stylesheet" href="/css/StyleMatters.2024.css" />
-      <link rel="stylesheet" href="/components/NavBar.css" />
       <link rel="stylesheet" href="/css/ProgressiveBlur.css" />
       <link
         rel="stylesheet"

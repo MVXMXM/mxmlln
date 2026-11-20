@@ -10,7 +10,7 @@ This is the personal portfolio of Maximillian Piras, a product designer speciali
 - **Key Features**: Interactive portfolio cards, AI chat integration, animated UI components
 
 ### Core Architecture
-- **Frontend**: Vanilla JavaScript with custom components (CardStack, NavBar, FolioEngine)
+- **Frontend**: Next.js folio shell + FolioEngine card-stack
 - **Backend**: Express.js server with OpenAI API proxy
 - **Database**: Vercel Postgres for data storage
 - **Deployment**: Vercel hosting
