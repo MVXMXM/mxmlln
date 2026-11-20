@@ -287,7 +287,7 @@ export function HomeDock() {
   const parkedBlurb = useRef(false)
   const answersRef = useRef(answers)
   answersRef.current = answers
-  // Keyboard open → empty compose UI even when answers are stashed.
+  // Empty-compose mode (field focused for a new ask) — not the same as data-composer chrome.
   const browsing = !!answers && !composing
   const waiting = !browsing
   const loading = !answers && !!userMessage
@@ -477,6 +477,8 @@ export function HomeDock() {
   async function send(value: string) {
     if (busy.current) return
     busy.current = true
+    // Leave empty-compose so the turn (user bubble + reply) can show; chrome can stay open.
+    setComposing(false)
     // Drop the software keyboard before loading/results reflow.
     document.querySelector<HTMLInputElement>('.dockComposerField')?.blur()
     const id = ++turnId.current
@@ -652,6 +654,7 @@ export function HomeDock() {
               return open
             })
           }}
+          onComposerFocus={() => setComposing(true)}
           onSend={send}
         />
       </div>

@@ -90,12 +90,14 @@ export function Dock({
   activeItem: activeItemProp,
   onActiveItemChange,
   onComposerChange,
+  onComposerFocus,
   onSend,
 }: {
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
   onComposerChange?: (open: boolean) => void;
+  onComposerFocus?: () => void;
   onSend?: (value: string) => void;
 }) {
   const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
@@ -324,6 +326,7 @@ export function Dock({
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="send"
+              onFocus={() => onComposerFocus?.()}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
