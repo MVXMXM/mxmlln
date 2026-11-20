@@ -19,8 +19,8 @@
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
 
   <style>
-    /* Canvas before sheets — keep in sync with StyleMatters.2024.css
-       (.gradeBG lean, body::before) and NavBar.css fades. No noise filter. */
+    /* Keep in sync with StyleMatters.2024.css (.gradeBG lean / no noise
+       filter, body::before) and NavBar.css fades. */
     html {
       background-color: oklch(0.86 0.04 260);
     }
@@ -55,7 +55,7 @@
     }
     /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
     @media (max-width: 768px) {
-      /* Match bottomFade opaque stop — Safari URL bar samples html canvas. */
+      /* Keep in sync with .bottomFade opaque stop. */
       html,
       body {
         background-color: oklch(0.93 0.034 285);

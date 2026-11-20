@@ -93,7 +93,7 @@ a {
     opacity: 0.3;
 }
 
-/* Mobile Safari chrome only. Also inlined in portfolio.html / about.html. */
+/* Also inlined in portfolio.html / about.html. */
 .bottomFade,
 .topFade {
     display: none;
@@ -111,7 +111,7 @@ a {
     }
 
     .bottomFade {
-        /* -2px overscan: iOS Safari can leave a 1px seam at bottom:0 while the URL bar animates. */
+        /* -2px: iOS can leave a 1px seam at bottom:0 while the URL bar animates. */
         bottom: -2px;
         height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
         background-image: linear-gradient(
