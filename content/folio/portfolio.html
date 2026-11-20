@@ -20,7 +20,6 @@
   <!-- Preload critical assets -->
   <link rel="preload" href="css/StyleMatters.2024.css" as="style" fetchpriority="high">
   <link rel="preload" href="./components/FolioEngine.js" as="script">
-  <link rel="preload" href="./components/NavBar.js" as="script">
 
   <!-- Preconnect to external domains early -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +30,7 @@
   <style>
     /* Keep in sync with StyleMatters.2024.css (html, .gradeBG lean / no noise
        filter, body::before, .IntroLoader, .ContentContainer) and NavBar.css
-       (.topFade / .bottomFade, .navDynamicContainer). */
+       (.topFade / .bottomFade). */
     html {
       background-color: oklch(0.86 0.04 260);
     }
@@ -74,10 +73,6 @@
       top: 0;
       left: 0;
       width: 100%;
-    }
-    .navDynamicContainer {
-      position: fixed;
-      z-index: 900;
     }
     /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
     @media (max-width: 768px) {
@@ -176,11 +171,9 @@
 
   <!-- Defer non-critical CSS -->
   <link rel="stylesheet" href="css/StyleMatters.2024.css" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="./components/NavBar.css" media="print" onload="this.media='all'">
   <link rel="stylesheet" href="css/ProgressiveBlur.css" media="print" onload="this.media='all'">
   <noscript>
     <link rel="stylesheet" href="css/StyleMatters.2024.css">
-    <link rel="stylesheet" href="./components/NavBar.css">
     <link rel="stylesheet" href="css/ProgressiveBlur.css">
   </noscript>
 
@@ -203,200 +196,6 @@
 
   <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
-  <!-- Nav Bar -->
-  <div id="navDynamicContainer" class="navDynamicContainer" style="opacity:0;transform:translateY(124px);pointer-events:none;">
-    <div class="navBar" id="navBar">
-        <div class="navBarSegController" id="navBarSegController">
-            <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;">
-                <img src="./assets/LogoMark.fallback.png" id="navLogoSpinFallback" height="40" width="40" alt="Open info menu">
-            </div>
-            <a href="/">
-                <font class="navBarItem">👋 ABOUT</font>
-            </a>
-            <font class="navBarItem_OnState">📐 WORK</font>
-            <font class="navBarItem" onclick="openNavChatView()" id="openChatView" class="openChatView">💬 CHAT</font>
-            <img src="./assets/ContactSML.png" height="40px" width="40px" onclick="openNavContactView()" id="openNavContactView" class="openNavContactView" alt="Open contact menu">
-        </div>
-    </div>
-    <div class="infoViewContent" id="infoViewContent">
-        <div class="viewHeader">
-            <font class="viewHeaderText">MXMLLN FOLIO v2.0</font>
-            <img src="./assets/CloseSML.png" onclick="closeNavInfoView()" class="closeButton" alt="Close panel">
-        </div>
-        <div style="padding-bottom:32px;">
-            <div id="sigLogo" style="width:200px;height:200px;">
-                <img src="./assets/LogoMark.fallback.png" id="sigLogoFallback" height="200" width="200" decoding="async" alt="MXMLLN logo">
-            </div>
-        </div>
-        <div class="navInfoActions">
-            <a class="navInfoAction" href="https://github.com/MVXMXM/mxmlln" target="_blank">
-                <button class="navInfoButton navInfoButton--primary">View source</button>
-            </a>
-            <a class="navInfoAction" href="/system">
-                <button class="navInfoButton navInfoButton--secondary">Design system</button>
-            </a>
-        </div>
-    </div>
-    <div class="chatViewContent" id="chatViewContent">
-        <!--close button-->
-        <div class="viewHeader" style="justify-content:flex-end;">
-            <img src="./assets/CloseSML.png" onclick="closeNavChatView()" class="closeButton" alt="Close panel">
-        </div>
-        <!--input field-->
-        <form class="chatInputContainer" id="chatInputContainer">
-            <button type="submit" class="chatSubmit" id="chatSubmit" disabled>
-            <img src="./assets/up.svg" class="chatSubmitIMG" id="chatSubmitIMG" alt="Submit message">
-            </button>
-            <input type="text" class="chatInputField" name="defineProblem" id="chatInputField" placeholder="Tell me what you're looking for..." autocomplete="off">
-        </form>
-        <!--empty state-->
-        <div class="chatEmptyState" id="chatEmptyState">
-            <div class="chatEmptyStateLogo">
-                <div id="chatEmptyLogo" style="width:150px;height:150px;">
-                    <img src="./assets/LogoMark.fallback.png" id="chatEmptyLogoFallback" height="150" width="150" alt="MXMLLN logo">
-                </div>
-            </div>
-            <div class="chatEmptyStateText">
-                <h1 style="line-height:0%;font-weight:900;">Maximillian AI</h1>
-                <p>Tell me what you're looking for <font class="ampersand" style="font-size:18px;">&</font> I'll find the<br> most relevant content from my design portfolio.</p>
-            </div>
-            <div class="BetaBadge" style="background-color:rgba(6, 174, 239, 0.55);align-self:center;">
-                <div class="BadgeText">
-                    Beta v1.0
-                </div>
-            </div>
-        </div>
-        <!--populated state-->
-        <div class="chatResponseLog" id="chatResponseLog">
-            <div class="chatQueryContainer">
-                <div class="chatQuery">
-                    <p style="margin:0px;padding:0px;"></p>
-                </div>
-            </div>
-            <div class="loadingIndicator">
-                <div class="lds-ellipsis">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </div>
-            </div>
-            <div class="chatResponseContainer">
-                <div class="chatBlurb">
-                    <div class="chatResponseLogoContainer">
-                        <div id="chatResponseLogo" class="chatResponseLogo">
-                            <img src="./assets/LogoMark.fallback.png" id="chatResponseLogoFallback" height="40" width="40" alt="MXMLLN logo">
-                        </div>
-                    </div>
-                    <p style="margin:0px;padding:0px;text-align:left;"></p>
-                </div>
-                <div class="chatCardURL">
-                    <a href="https://www.maximillian.nyc" target="_blank">
-                        <div class="chatSuggestionCard">
-                            <div class="chatCardImageContainer">
-                                <img src="./assets/chatLoad.png" class="chatCardImage" alt="Preview image for chat suggestion">
-                            </div>
-                            <div class="chatCardTextBlock">
-                                <div class="chatCardHeader">
-                                    <p class="chatCardHeaderTitle"></p>
-                                </div>
-                                <div class="chatCardDescription">
-                                    <p class="chatCardDescriptionText"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="contactViewContent" id="contactViewContent">
-        <div class="viewHeader">
-            <font class="viewHeaderText">CONTACT</font>
-            <img src="./assets/CloseSML.png" onclick="closeNavContactView()" class="closeButton" alt="Close panel">
-        </div>            
-        <div style="display:flex;flex-direction:row;height:100px;">
-            <div class="contactViewIconContainer" id="Email">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            max@mxmlln.com
-                        </div>
-                    </div>
-                </div>
-                <a href="mailto:max@mxmlln.com">
-                    <img src="./assets/contact/EmailButton.svg" class="CircleButton" alt="Email" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-            <div class="contactViewIconContainer" id="X">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            X / Twitter
-                        </div>
-                    </div>
-                </div>
-                <a href="https://x.com/MVXMXM" target="_blank">
-                    <img src="./assets/contact/TwitterButton.svg" class="CircleButton" alt="Twitter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-            <div class="contactViewIconContainer" id="LinkedIn">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            LinkedIn
-                        </div>
-                    </div>
-                </div>
-                <a href="https://www.linkedin.com/in/maximilliannyc/" target="_blank">
-                    <img src="./assets/contact/LinkedInButton.svg" class="CircleButton" alt="LinkedIn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-        </div>  
-        <div style="display:flex;flex-direction:row;height:100px;">
-            <div class="contactViewIconContainer" id="Email">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            Medium
-                        </div>
-                    </div>
-                </div>
-                <a href="https://medium.com/@MaximillianNYC"  target="_blank">
-                    <img src="./assets/contact/MediumButton.svg" class="CircleButton" alt="Medium" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-            <div class="contactViewIconContainer" id="X">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            Instagram
-                        </div>
-                    </div>
-                </div>
-                <a href="https://www.instagram.com/maximillian.nyc" target="_blank">
-                    <img src="./assets/contact/InstaButton.svg" class="CircleButton" alt="Twitter" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-            <div class="contactViewIconContainer" id="LinkedIn">
-                <div class="ToolTip" id="ToolTip">
-                    <div class="ToolTipBadge">
-                        <div class="BadgeText">
-                            Dribbble
-                        </div>
-                    </div>
-                </div>
-                <a href="https://dribbble.com/MaximillianNYC" target="_blank">
-                    <img src="./assets/contact/DribbbleButton.svg" class="CircleButton" alt="LinkedIn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"/>
-                </a>
-            </div>
-        </div>    
-    </div>
-  </div>
-  <div class="navBarOverlay" id="navBarOverlay" onclick="document.getElementById('chatViewContent').style.visibility === 'visible' ? closeNavChatView() : (document.getElementById('contactViewContent').style.visibility === 'visible' ? closeNavContactView() : document.getElementById('infoViewContent').style.visibility === 'visible' ? closeNavInfoView() : null)">
-  </div>
-
-  <!-- Main Content -->
     <div class="ContentContainer" style="display:flex;top:0;transform:translateY(200%);visibility:hidden;">
         <div class="TitleBlock3">
             <div class="Text" style="text-align:center;">
@@ -942,12 +741,10 @@
     </div>
 
 <!-- Components -->
-<script defer src="./components/NavBar.js"></script>
 <script defer src="./components/FolioEngine.js"></script>
 <script defer src="./components/ScrollThumb.js"></script>
 
 <!-- Defer non-critical scripts -->
-<script defer src="./components/ChatIntelligence.js"></script>
 <script defer src="./js/IntenseImages/intense.js"></script>
 
 <script>

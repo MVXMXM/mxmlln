@@ -717,7 +717,7 @@
 }
 
 /* ─── Inputs ─────────────────────────────────────────────── */
-/* Mirrors .chatInputField in public/components/NavBar.css. */
+/* Mirrors the folio dock composer field. */
 .ui-field-stack {
   display: flex;
   flex-direction: column;
@@ -893,11 +893,8 @@
 }
 
 /* ─── Chat bubbles ───────────────────────────────────────── */
-/* Pulled verbatim from the production chatbot styles in
-   public/components/NavBar.css. The only additions are the .chat-demo-thread
-   wrapper (which stands in for the live .chatResponseLog, minus its hidden
-   animation state) and a few resets so the .system-prose p/a rules don't
-   bleed into the bubbles. Keep these in sync with NavBar.css. */
+/* Mirrors folio chat bubble classes in public/components/NavBar.css.
+   .chat-demo-thread is the specimen wrapper; keep in sync with NavBar.css. */
 .chat-demo-thread {
   display: flex;
   flex-direction: column;

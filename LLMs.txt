@@ -16,9 +16,9 @@ This is the personal portfolio of Maximillian Piras, a product designer speciali
 - **Deployment**: Vercel hosting
 
 ### Key Files & Components
-- `public/index.html` - Main portfolio page with animated card stacks
-- `controllers/openaiController.js` - AI chat functionality and API handling
-- `public/components/` - Modular UI components (CardStack, ChatIntelligence, etc.)
+- `app/(folio)/` - Live homepage (React dock/chat over folio card-stack markup)
+- `content/folio/portfolio.html` - Card-stack markup source for FolioMarkup
+- `public/components/FolioEngine.js` - Vanilla card-stack behavior
 
 ## Design System (Reference)
 The canonical reference for visual design — color/type/radius/elevation/motion tokens, reusable components (`registry/`), and recurring patterns — lives in `content/system.mdx` and renders at the unlisted `/system` route. Read it before designing or generating new UI. `app/globals.css` holds the canonical token values.

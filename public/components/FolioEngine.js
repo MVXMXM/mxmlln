@@ -458,22 +458,32 @@ function mountCardVideo(card) {
         height: 100%;
         object-fit: cover;
         pointer-events: none;
-        opacity: 0.999;
+        opacity: 0;
         transform: translateZ(0);
     `;
     video.muted = true;
+    video.defaultMuted = true;
     video.autoplay = true;
     video.loop = true;
     video.playsInline = true;
     video.controls = false;
     video.preload = 'auto';
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
     video.src = resolvedVideoSrc(videoSrc);
+
+    const reveal = () => {
+        video.style.opacity = '0.999';
+    };
+    video.addEventListener('playing', reveal, { once: true });
 
     wrap.appendChild(video);
     card.appendChild(wrap);
     ensureCardCursorHit(card);
-    video.play().catch(error => {
-        console.warn('Video autoplay failed:', error);
+    video.play().then(reveal).catch(() => {
+        // Keep the poster — no native play control over a paused layer.
+        unmountCardVideo(card);
     });
 }
 
@@ -523,9 +533,12 @@ function whenFolioIn(callback) {
 }
 
 function observeCardStackMedia() {
+    // Collapsed stacks stay on posters — Safari blocks muted autoplay until a
+    // gesture, which otherwise leaves a large native play control on the card.
+    // Videos mount on expand (user gesture) via expandCardStackLabelContainer.
     const stacks = document.querySelectorAll('.CardStack');
     if (!('IntersectionObserver' in window)) {
-        stacks.forEach(stack => hydrateStackMedia(stack, { frontOnly: true }));
+        stacks.forEach(dehydrateStackMedia);
         return;
     }
 
@@ -537,20 +550,13 @@ function observeCardStackMedia() {
                 if (!expanded) dehydrateStackMedia(stack);
                 return;
             }
-            if (entry.isIntersecting) {
-                hydrateStackMedia(stack, { frontOnly: true });
-            } else {
-                dehydrateStackMedia(stack);
-            }
+            dehydrateStackMedia(stack);
         });
     }, { rootMargin: '120px 0px', threshold: 0.05 });
 
-    stacks.forEach(stack => {
+    stacks.forEach((stack) => {
         observer.observe(stack);
-        const rect = stack.getBoundingClientRect();
-        if (rect.bottom > -120 && rect.top < window.innerHeight + 120) {
-            hydrateStackMedia(stack, { frontOnly: true });
-        }
+        dehydrateStackMedia(stack);
     });
 }
 
@@ -703,7 +709,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         StackBar.style.visibility = 'visible';
     } else {
         StackIsExpanded = false;
-        hydrateStackMedia(cardStack, { frontOnly: true });
+        dehydrateStackMedia(cardStack);
         const appStore = document.querySelector('.appStore');
         if (appStore) {
             Object.assign(appStore.style, initialStyles.appStore);
@@ -913,6 +919,7 @@ window.initIntroAnimation = initIntroAnimation;
 window.skipIntroAnimation = skipIntroAnimation;
 window.unmountCardVideo = unmountCardVideo;
 window.mountCardVideo = mountCardVideo;
+window.dehydrateStackMedia = dehydrateStackMedia;
 window.hydrateStackMedia = hydrateStackMedia;
 
 function youtubeVideoId(href) {

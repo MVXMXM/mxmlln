@@ -24,6 +24,7 @@ declare global {
     collapseExpandedStack?: () => void
     unmountCardVideo?: (card: HTMLElement) => void
     mountCardVideo?: (card: HTMLElement) => void
+    dehydrateStackMedia?: (cardStack: Element) => void
     hydrateStackMedia?: (cardStack: Element, options?: { frontOnly?: boolean }) => void
     lottie?: {
       loadAnimation: (options: {
@@ -47,7 +48,9 @@ function hydrateCard(card: HTMLElement) {
 
 function refreshStackMedia() {
   document.querySelectorAll('.CardStack').forEach((stack) => {
-    window.hydrateStackMedia?.(stack, { frontOnly: true })
+    const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded')
+    if (expanded) window.hydrateStackMedia?.(stack, { frontOnly: false })
+    else window.dehydrateStackMedia?.(stack)
   })
 }
 

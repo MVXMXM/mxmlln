@@ -9,7 +9,7 @@ const cardSchema = z.object({
   cardImage: z.string(),
   cardHeader: z.string(),
   cardDescription: z.string(),
-  // ChatIntelligence.js reads cardURL as one string. cardURLs is the full list.
+  // cardURL is the primary pick; cardURLs is the full list HomeDock maps to cards.
   cardURL: z.string(),
   // The model sometimes over-lists a theme. Keep the first six instead of failing.
   cardURLs: z
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // ChatIntelligence.js JSON.parses this string. Keep it a string.
+    // HomeDock JSON.parses this string. Keep the legacy { AiResponse } shape.
     return NextResponse.json({ AiResponse: JSON.stringify(object) });
   } catch (error) {
     console.error(error);

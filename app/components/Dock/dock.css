@@ -349,11 +349,12 @@
   border-radius: 1px;
   background: #00bbff;
   pointer-events: none;
-  animation: dock-caret 1.06s step-end infinite;
+  visibility: hidden;
 }
 
-.mx-dock .dockComposer:has(.dockComposerField:not(:placeholder-shown)) .dockComposerCaret {
-  visibility: hidden;
+.mx-dock .dockComposer:has(.dockComposerField:placeholder-shown:focus) .dockComposerCaret {
+  visibility: visible;
+  animation: dock-caret 1.06s step-end infinite;
 }
 
 @keyframes dock-caret {
