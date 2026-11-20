@@ -67,7 +67,7 @@ function findCard(pile: Element, title: string, badge?: string) {
     const mark = clean(card.querySelector('.BadgeText')?.textContent ?? '')
     return mark.includes(badge)
   })
-  // "logotype" is contained in "logotypes", so an exact title wins.
+    // "logotype" is contained in "logotypes", so an exact title wins.
   return (
     cards.find((card) => clean(card.querySelector('.CardTitle')?.textContent ?? '') === title) ??
     cards[0] ??
@@ -104,14 +104,14 @@ let orbitFrame = 0
 let orbitSpin = 0
 let orbitSlots: HTMLElement[] = []
 let orbitStartedAt = 0
-/** 0 = empty-state wide ring; 1 = loading ring pulled in around the logo. */
+
 let orbitTighten = 0
 let orbitTightenTarget = 0
 
 type CarouselState = {
   cards: HTMLElement[]
   offset: number
-  /** Spring rest target (usually an index * step). */
+  
   rest: number
   velocity: number
   size: number
@@ -121,9 +121,9 @@ type CarouselState = {
   cy: number
   grid: HTMLElement
   springFrame: number
-  /** Wheel input stays “live” until this timestamp (ms). */
+  
   inputUntil: number
-  /** Index at the start of the current interaction — one flick stays within ±1. */
+  
   gestureOrigin: number
   drag: {
     x: number
@@ -145,18 +145,17 @@ type RingPose = {
   size: number
 }
 
-/** Autoplay dwell — progress fill on the active pill is the clock. */
 const CAROUSEL_AUTOPLAY_MS = 4500
 const CAROUSEL_WHEEL_GAIN = 0.005
-/** Fallback px→rad when size isn’t ready; live drag uses step / (0.75 × card). */
+
 const CAROUSEL_DRAG_GAIN = 0.01
-/** Commit to the neighbor before halfway when the flick is decisive (px/ms). */
+
 const CAROUSEL_FLICK_VELOCITY = 0.55
-/** Fraction of a step that counts as intent toward the neighbor. */
+
 const CAROUSEL_COMMIT_FRAC = 0.18
-/** Keep wheel “live” briefly so the spring doesn’t fight mid-flick (inside bounds only). */
+
 const CAROUSEL_WHEEL_LIVE_MS = 50
-/** Spring toward rest — snappy, critically-ish damped. */
+
 const CAROUSEL_STIFFNESS = 420
 const CAROUSEL_DAMPING = 36
 
@@ -170,11 +169,10 @@ let carouselProgress: Animation | null = null
 let headlineFadeTimer = 0
 let carouselGlassDispose: (() => void) | null = null
 
-/** Settle onto the ring, then hold it before any reveal may start. */
 export const ORBIT_INTRO_MS = 900
 export const ORBIT_HOLD_MS = 2000
 export const ORBIT_TRAVEL_MS = 1500
-/** Response → loader inverse — snappier so the ring meets the logo pop. */
+
 const ORBIT_REORBIT_CULL_MS = 160
 const ORBIT_REORBIT_MS = 400
 const ORBIT_REORBIT_FOCUS_MS = 280
@@ -184,19 +182,17 @@ export function folioSessionOpen() {
 }
 
 export function orbitRevealWaitMs() {
-  // After a reveal the clock is stale; don't treat an old start as "hold already done".
+    // After a reveal the clock is stale; don't treat an old start as "hold already done".
   const orbiting = document.querySelector('.folio-masonry.is-orbit')
   if (!orbitStartedAt || !orbiting) return ORBIT_INTRO_MS + ORBIT_HOLD_MS
   return Math.max(0, orbitStartedAt + ORBIT_INTRO_MS + ORBIT_HOLD_MS - performance.now())
 }
 
-/** Start a fresh hold while the ring is already spinning (empty chat → first send). */
 export function armOrbitHold() {
   if (!document.querySelector('.folio-masonry.is-orbit')) return
   orbitStartedAt = performance.now() - ORBIT_INTRO_MS
 }
 
-/** Pull the orbit in around the logo while a turn is loading; release for empty idle. */
 export function setOrbitLoading(loading: boolean) {
   orbitTightenTarget = loading ? 1 : 0
   if (!orbitFrame && document.querySelector('.folio-masonry.is-orbit')) runOrbit()
@@ -207,7 +203,6 @@ function stopOrbit() {
   orbitFrame = 0
 }
 
-/** Empty-state thumb chrome — scaled down with the card when the ring tightens. */
 const ORBIT_THUMB_BORDER = 4
 const ORBIT_THUMB_RADIUS = 16
 const ORBIT_THUMB_SHADOW_Y = 8
@@ -216,7 +211,6 @@ const ORBIT_THUMB_SHADOW_BLUR = 18
 /** Edge-to-edge along the arc — 1.25 ⇒ a 0.25-card gutter between neighbors. */
 const ORBIT_PACK = 1.25
 
-/** Prefer a smaller ring over sparse cards — edge gap stays under 0.25 card (orbit + carousel). */
 function clampRingRadius(count: number, radius: number, cardSize: number) {
   const n = Math.max(count, 2)
   const maxSpacing = cardSize * ORBIT_PACK
@@ -224,7 +218,6 @@ function clampRingRadius(count: number, radius: number, cardSize: number) {
   return Math.min(radius, maxRadius)
 }
 
-/** Thumb that keeps the 0.25-card gutter on a given ring (shrinks when the ring is tight). */
 function packOrbitSize(count: number, radius: number) {
   const n = Math.max(count, 2)
   return (2 * radius * Math.sin(Math.PI / n)) / ORBIT_PACK
@@ -233,11 +226,11 @@ function packOrbitSize(count: number, radius: number) {
 function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
   const keyboard = folioKeyboardOpen()
-  // Always the empty-state thumb — chrome (border/radius/shadow) scales from this.
+  
   const sizeWide = orbitThumbSize(count)
 
   if (keyboard) {
-    // Fill the short visual axis and spill under the dock glass; size follows the gap rule.
+    
     const radius = Math.min(vw, vh) / 2 + sizeWide * 0.2
     const size = Math.min(sizeWide, Math.max(18, packOrbitSize(count, radius)))
     return {
@@ -250,17 +243,17 @@ function orbitMetrics(count: number) {
     }
   }
 
-  // Wide empty ring may spill past the short sides; loading hugs the ~300px logo area.
+  
   const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
   const ratio = sizeWide / Math.max(wide, 1)
   const logoHalf = 150
   const tight = (logoHalf + 20) / Math.max(0.35, 1 - 0.55 * ratio)
   const uncapped = wide + (tight - wide) * orbitTighten
   // Size from the uncapped ring — clamping radius must not shrink cards or the
-  // relative gap stays the same and the cap does nothing on large screens.
+  // first submit packs larger than later ones that share the same angular step.
   let size = Math.max(28, uncapped * ratio)
   const radius = clampRingRadius(count, uncapped, size)
-  // When the ring tightens faster than the thumbs, shrink thumbs so they don’t overlap.
+  
   size = Math.min(size, Math.max(18, packOrbitSize(count, radius)))
   return {
     size,
@@ -287,7 +280,7 @@ function placeOrbitSlot(slot: HTMLElement, index: number, total: number, spin: n
   const angle = (index / total) * Math.PI * 2 + spin - Math.PI / 2
   const x = metrics.cx + Math.cos(angle) * metrics.rx - metrics.size / 2
   const y = metrics.cy + Math.sin(angle) * metrics.ry - metrics.size / 2
-  // Bottom of the card faces the ring center (top points outward).
+  
   const rotate = angle + Math.PI / 2
   slot.style.width = `${metrics.size}px`
   slot.style.height = `${metrics.size}px`
@@ -421,7 +414,6 @@ function mountOrbitRing(grid: HTMLElement) {
   return metrics
 }
 
-/** Snap results back to a full empty orbit while the keyboard is open. */
 export function parkResultsForCompose(grid: HTMLElement) {
   if (grid.classList.contains('is-orbit') && !grid.classList.contains('is-result')) return
   motionToken += 1
@@ -429,7 +421,7 @@ export function parkResultsForCompose(grid: HTMLElement) {
   stopOrbit()
   ensureSession(grid)
   syncFolioVisualViewport()
-  // Fresh compose pose — full ring, spin at 0. Answers stay in React.
+  
   orbitSpin = 0
   orbitTighten = 0
   orbitTightenTarget = 0
@@ -569,7 +561,7 @@ function restartCarouselProgress() {
   const active = carouselStepper.querySelector<HTMLElement>('.folio-carousel-dot.is-active')
   const fill = active?.querySelector<HTMLElement>('.folio-carousel-dot-fill')
   if (!active || !fill) return
-  // Circle (= track height) grows into the full capsule so the ends stay round.
+  
   const circle = `${active.clientHeight || 10}px`
   fill.style.width = circle
   const animation = new Animation(
@@ -613,7 +605,6 @@ function syncCarouselStepper(activeOverride?: number) {
   }
 }
 
-/** Keep pill width stable: one elongated active + the rest as dots. */
 function lockCarouselPillWidth(pill: HTMLElement, count: number) {
   const dot = 10
   const active = 40
@@ -683,7 +674,7 @@ function mountCarouselStepper(count: number) {
   carouselGlassDispose = () => {
     for (const dispose of glassDisposers) dispose()
   }
-  // After paint — otherwise the expand transition never runs.
+    // After paint — otherwise the expand transition never runs.
   requestAnimationFrame(() => {
     chrome.classList.add('is-in')
     syncCarouselStepperPos()
@@ -704,13 +695,9 @@ export function snapFolioGrid(
   return Math.round(value / unit) * unit
 }
 
-/**
- * Shared focus geometry — card centered on the 16px grid; reply column & stepper
- * keep relative gaps but snap their edges onto the same lattice.
- */
 export function folioFocusMetrics() {
   const { width: vw, height: vh, top, left } = folioViewport()
-  // Even grid units so size/2 stays on-lattice (edges + center share the grid).
+    // Even grid units so size/2 stays on-lattice (edges + center share the grid).
   let size = snapFolioGrid(Math.min(336, Math.max(256, vw * 0.38)))
   if ((size / FOLIO_GRID) % 2 !== 0) size -= FOLIO_GRID
   const cardTop = snapFolioGrid(top + vh / 2 - size / 2)
@@ -751,7 +738,6 @@ function syncCarouselStepperPos() {
   carouselHeadline.style.bottom = 'auto'
 }
 
-/** Empty-orbit thumb size — shared so assortment and carousel keep one packing ratio. */
 function orbitThumbSize(count: number) {
   const { width, height } = folioViewport()
   const span = Math.min(width, height)
@@ -764,13 +750,13 @@ function carouselMetrics(count: number) {
   const thumb = orbitThumbSize(packCount)
   const { width, height } = folioViewport()
   const thumbRadius = Math.max(width, height) / 2 - thumb * 0.2
-  // Same size/radius as the full assortment at featured scale — then clamp gaps.
+  
   const radius = clampRingRadius(
     packCount,
     size * (thumbRadius / Math.max(thumb, 1)),
     size,
   )
-  // Same angular step as pre-cull equal spacing — don’t re-pack after the cull.
+  // Same angular step for every carousel length — don’t re-pack mid-session.
   const step = (Math.PI * 2) / packCount
   return { size, radius, step, cx: focusX, cy: focusY + radius, focusX, focusY }
 }
@@ -792,7 +778,7 @@ function styleCarouselCard(card: HTMLElement, size: number) {
   card.style.cursor = 'pointer'
   card.style.contentVisibility = 'visible'
   card.style.transformOrigin = 'center center'
-  // Image-only — badge/title live in the carousel headline, even for one card.
+  
   const inner = card.querySelector<HTMLElement>('.CardInnerContainer')
   if (inner) {
     inner.style.height = '0%'
@@ -819,19 +805,16 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-/** Shortest signed delta from one angle to another. */
 function angleDelta(from: number, to: number) {
   const tau = Math.PI * 2
   return ((((to - from) + Math.PI) % tau) + tau) % tau - Math.PI
 }
 
-/** Always-counterclockwise delta in [0, 2π) — used to order neighbors around the ring. */
 function ccwDelta(from: number, to: number) {
   const tau = Math.PI * 2
   return (((to - from) % tau) + tau) % tau
 }
 
-/** True if traveling `delta` from `from` passes through `barrier` (not just endpoints). */
 function openArcContains(from: number, delta: number, barrier: number) {
   if (Math.abs(delta) < 1e-12) return false
   const tau = Math.PI * 2
@@ -883,7 +866,7 @@ function paintCarousel(logical: number, stepperIndex?: number) {
   const { cards, size, radius, step, cx, cy } = carousel
   const total = cards.length
   if (!total) return
-  // Offset is already soft-clamped at the ends on input — paint 1:1.
+  
   const pose: RingPose = { cx, cy, radius, size }
   cards.forEach((card, index) => {
     const angle = -Math.PI / 2 + index * step - logical
@@ -903,10 +886,6 @@ function stopCarouselSpring() {
   carousel.springFrame = 0
 }
 
-/**
- * Soft ±1 window around the current interaction origin.
- * Absolute ends are hard-clamped — no rubber / overscroll.
- */
 function applyCarouselInput(raw: number, originIndex: number) {
   if (!carousel) return raw
   const { step } = carousel
@@ -926,7 +905,6 @@ function applyCarouselInput(raw: number, originIndex: number) {
   return raw
 }
 
-/** One interaction → at most a neighbor; velocity only tips the commit. */
 function resolveGestureSnapIndex(fromOffset: number, originIndex: number, velocity = 0) {
   if (!carousel) return originIndex
   const { step, cards } = carousel
@@ -962,7 +940,6 @@ function syncCarouselRestFromOffset(velocity = 0) {
     resolveGestureSnapIndex(carousel.offset, carousel.gestureOrigin, velocity) * carousel.step
 }
 
-/** Continuous spring — input owns offset while the gesture is live; spring after release. */
 function ensureCarouselSpring() {
   if (!carousel || carousel.springFrame) return
   let last = performance.now()
@@ -1054,7 +1031,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     pauseCarouselAutoplay()
     const { min, max } = carouselBounds()
     const delta = (event.deltaY + event.deltaX) * CAROUSEL_WHEEL_GAIN
-    // Bookends are inert — no rubber, no bounce, no outbound reaction.
+        // Bookends are inert — no rubber, no bounce, no outbound reaction.
     if (
       (carousel.offset >= max - 1e-6 && delta > 0) ||
       (carousel.offset <= min + 1e-6 && delta < 0)
@@ -1062,7 +1039,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       return
     }
     const now = performance.now()
-    // New interaction once the live window lapses — re-arm even mid-spring so flick-flick isn’t blocked.
+        // New interaction once the live window lapses — re-arm even mid-spring so flick-flick isn’t blocked.
     if (now >= carousel.inputUntil) {
       carousel.gestureOrigin = activeCarouselIndex()
     }
@@ -1078,7 +1055,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   const onPointerDown = (event: PointerEvent) => {
     if (!carousel || event.button > 0) return
     if (!(event.target instanceof Element)) return
-    // Stepper lives outside the grid; ignore anything that isn’t the ring surface.
+    
     if (!grid.contains(event.target)) return
     pauseCarouselAutoplay()
     carousel.gestureOrigin = activeCarouselIndex()
@@ -1106,13 +1083,13 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     if (Math.hypot(dx, dy) > 3) drag.moved = true
     const now = performance.now()
     const dt = Math.max(1, now - drag.lastT)
-    // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
+        // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
     const instant = -(event.clientX - drag.lastX + (event.clientY - drag.lastY)) / dt
     drag.velocity = drag.velocity * 0.65 + instant * 0.35
     drag.lastX = event.clientX
     drag.lastY = event.clientY
     drag.lastT = now
-    // Keep drag origin fixed for the press; ±1 only. Lift + press again to go further.
+    
     carousel.offset = applyCarouselInput(
       drag.offset - (dx + dy) * carouselDragGain(),
       carousel.gestureOrigin,
@@ -1129,7 +1106,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     try {
       grid.releasePointerCapture?.(event.pointerId)
     } catch {
-      /* already released */
+      
     }
     const card = event.target instanceof Element ? (event.target.closest('.Card') as HTMLElement | null) : null
     if (!drag.moved && card && carousel.cards.includes(card)) {
@@ -1140,7 +1117,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
         snapCarousel(index)
         return
       }
-      // Focused card — leave the click for FolioEngine’s real action.
+            // Focused card — leave the click for FolioEngine’s real action.
       return
     }
     if (drag.moved) {
@@ -1151,7 +1128,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     }
   }
 
-  // Unfocused cards only scroll into focus; actions stay on the focused card.
+    // Unfocused cards only scroll into focus; actions stay on the focused card.
   const onClickCapture = (event: MouseEvent) => {
     if (!carousel) return
     if (!(event.target instanceof Element)) return
@@ -1226,14 +1203,10 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   paintCarousel(0)
 }
 
-/**
- * Perfect inverse of revealSessionCards:
- * un-slide, un-cull, and shrink/unspin run as one pass onto the loading ring.
- */
 export function reorbitSession(grid: HTMLElement): Promise<void> {
   const token = ++motionToken
 
-  // Capture carousel pose before teardown — inverse starts from here.
+  
   const prior = carousel
   const kept = (prior?.cards.length ? prior.cards : sessionCards.filter((card) => {
     if (card.style.display === 'none') return false
@@ -1255,7 +1228,7 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
   ensureSession(grid)
   window.scrollTo(0, 0)
 
-  // Loading ring is the destination (tight around the logo).
+  
   orbitTighten = 1
   orbitTightenTarget = 1
   const orbitCount = Math.max(sessionCards.length, 1)
@@ -1326,8 +1299,8 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
 
   const singleFocus = !multi && !prior
 
-  // Seed on the result ring immediately (carousel) so reconstruction starts on submit.
-  // Single-card focus stays put until the inverse settle FLIP below.
+  
+  
   for (const card of kept) {
     card.style.display = 'block'
     card.style.opacity = '1'
@@ -1351,7 +1324,7 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
   const barrier = settledAngles.get(focusCard) ?? -Math.PI / 2
 
   return (async () => {
-    // Single-card focus sits off-ring — park it on the top slot first.
+    
     if (singleFocus) {
       const card = focusCard
       const before = card.getBoundingClientRect()
@@ -1371,7 +1344,7 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
       endAngles.set(card, -Math.PI / 2)
     }
 
-    // Un-slide + shrink + un-cull together — resize must start on submit, not after slide.
+    
     const fromAngles = kept.map((card) => endAngles.get(card) ?? -Math.PI / 2)
     const toAngles = kept.map((card) => startAngles.get(card) ?? -Math.PI / 2)
     const slides = fromAngles.map((from, i) => {
@@ -1426,7 +1399,7 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
       card.style.opacity = '1'
       thumbCard(card)
     }
-    // Intro already played as the inverse travel — only the hold remains.
+    
     orbitStartedAt = performance.now() - ORBIT_INTRO_MS
     runOrbit()
   })()
@@ -1476,7 +1449,7 @@ export function revealSessionCards(
     size: startMetrics.size,
   }
 
-  // Preserve each card's orbit angle before leaving slots.
+  
   const startAngles = new Map<HTMLElement, number>()
   sessionCards.forEach((card, index) => {
     startAngles.set(card, (index / orbitCount) * Math.PI * 2 + orbitSpin - Math.PI / 2)
@@ -1516,7 +1489,7 @@ export function revealSessionCards(
   const focusCard =
     chosen.find((card) => keep.has(card)) ??
     [...keep][0]!
-  // Carousel order: focus at top, then the rest continuing counterclockwise.
+  
   const settledAngles = new Map<HTMLElement, number>()
   const focusSpin = angleDelta(startAngles.get(focusCard) ?? -Math.PI / 2, -Math.PI / 2)
   for (const card of sessionCards) {
@@ -1538,7 +1511,7 @@ export function revealSessionCards(
     radius: endMetrics.radius,
     size: endMetrics.size,
   }
-  // Size stays tied to radius; end ratio is the carousel’s so t=1 lands on endRing exactly.
+  
   const startRatio = startRing.size / Math.max(startRing.radius, 1)
   const endRatio = endRing.size / Math.max(endRing.radius, 1)
   const endAngles = new Map(
@@ -1549,7 +1522,7 @@ export function revealSessionCards(
   )
 
   void (async () => {
-    // 1) Grow onto the shared ring at final carousel size; spin so the focus card lands at top.
+    
     await animateMs(motion() ? 0 : ORBIT_TRAVEL_MS * 0.55, token, (t) => {
       const radius = lerp(startRing.radius, endRing.radius, t)
       const size = radius * lerp(startRatio, endRatio, t)
@@ -1591,7 +1564,7 @@ export function revealSessionCards(
     })
     if (token !== motionToken) return
 
-    // Snap every visible card to the exact carousel pose before culling.
+    
     for (const card of sessionCards) {
       if (card.style.display === 'none') continue
       const angle = settledAngles.get(card)
@@ -1604,7 +1577,7 @@ export function revealSessionCards(
 
     options?.onCull?.()
 
-    // 2) Cull rejects in place on that same ring.
+    
     await animateMs(motion() ? 0 : 420, token, (t) => {
       const scale = 1 - t
       for (const card of culls) {
@@ -1617,7 +1590,7 @@ export function revealSessionCards(
     if (token !== motionToken) return
     for (const card of culls) card.style.display = 'none'
 
-    // 3) Slide kept cards into slots — never through the focused card at the top.
+    // Never slide through the focused card at the top.
     const barrier = settledAngles.get(focusCard) ?? -Math.PI / 2
     const fromAngles = kept.map((card) => settledAngles.get(card) ?? -Math.PI / 2)
     const toAngles = kept.map((card) => endAngles.get(card)!)

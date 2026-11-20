@@ -111,7 +111,6 @@ function blurAxis(
   }
 }
 
-// Shader frost bands, and backdrop-filter paints behind this canvas.
 let blurScratch = new Uint8ClampedArray(0);
 let blurSigma = -1;
 let blurBoxes: number[] = [];
@@ -159,12 +158,10 @@ function asFolioLens(lens: unknown): FolioLens | null {
 function isFolioGlassLens(lens: unknown) {
   const item = asFolioLens(lens);
   if (!item) return false;
-  // Dock pill + carousel chrome that share the folio photograph.
   if (pageGlassHosts.has(item.el)) return true;
   return Boolean(item.el.closest('.folio-page .mx-dock'));
 }
 
-// The bevel reads past the rim, so the photo is the pill plus this margin.
 const PAGE_PAD = 48;
 
 const PAGE_GLASS_OPTS = {
@@ -180,7 +177,6 @@ const PAGE_GLASS_OPTS = {
   magnify: 1,
 } as const;
 
-/** Extra lenses (carousel pill / play) that share the dock’s photograph. */
 const pageGlassHosts = new Set<HTMLElement>();
 let pageGlassRefresh: (() => void) | null = null;
 // Glassworks raises the shared canvas to max(lens z) − 1. The carousel chrome
@@ -325,14 +321,12 @@ function attachPhotoLiquidGlass(el: HTMLElement) {
   };
 }
 
-/** Share the dock’s liquid-glass material with another pill (carousel stepper). */
 export function attachLiquidGlass(el: HTMLElement) {
   if (usesSvgBackdropLens(navigator.userAgent)) return attachSvgLiquidGlass(el);
   return attachPhotoLiquidGlass(el);
 }
 const PAGE_SCALE = 0.5;
 
-// .gradeBG quiet field: oklch(0.86 0.063 220 → 0.82 0.059 275 → 0.84 0.048 345 → 0.93 0.034 285).
 const GRADE_STOPS = [
   [0xa3, 0xdb, 0xee],
   [0xb8, 0xc2, 0xeb],
@@ -411,7 +405,6 @@ function gradeTone(channel: number) {
   return Math.round(Math.min(255, Math.max(0, contrasted * 1.1 * 255)));
 }
 
-// .gradeBG paints the ramp at 400% and slides it. The pill covers one point of that slice.
 function samplePageColor(region: DOMRect) {
   const grade = document.querySelector<HTMLElement>('.gradeBG');
   const width = window.innerWidth;
@@ -534,8 +527,6 @@ function paintCard(context: CanvasRenderingContext2D, card: HTMLElement, rect: D
   context.restore();
 }
 
-// A pile rasterized with snapdom finishes after the scroll has moved on.
-// The card images are already decoded, so the strip is redrawn from them.
 function paintCards(context: CanvasRenderingContext2D, region: DOMRect) {
   const cards = document.getElementsByClassName('Card');
   const hits: { card: HTMLElement; rect: DOMRect }[] = [];
@@ -578,10 +569,8 @@ function mountPageGlass(dock: HTMLElement) {
   let undoOverscroll: (() => void) | null = null;
   let poseFrame = 0;
   let canvasGeom = '';
-  // Glassworks snapshots whatever carries this attribute, using that node's
-  // scroll height, and parks its canvas at z-index 0. An empty plate the size
-  // of the pill keeps the first snapshot off the page; the canvas is lifted
-  // under the dock because the portfolio gradient sits at z-index 1.
+  // Glassworks snapshots this node’s scroll height and parks its canvas at z-index 0.
+  // Empty plate = first snapshot off the page; lift under the dock (gradient is z-index 1).
   const plate = document.createElement('div');
   plate.setAttribute('data-dock-snapshot', '');
   plate.setAttribute('data-liquid-ignore', '');
@@ -610,9 +599,9 @@ function mountPageGlass(dock: HTMLElement) {
     if (!canvas.isConnected) document.body.appendChild(canvas);
     const cluster = dock.closest('.dockCluster');
     const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 900;
-    // Keep under the dock even after extra lenses (carousel) tempt a higher z.
+        // Keep under the dock even after extra lenses (carousel) tempt a higher z.
     canvas.style.zIndex = String(Number.isFinite(z) && z > 1 ? z - 1 : 899);
-    // Match the visible frame — layout innerHeight lags URL-bar / keyboard churn.
+        // Match the visible frame — layout innerHeight lags URL-bar / keyboard churn.
     const vv = window.visualViewport;
     if (vv) {
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -634,7 +623,7 @@ function mountPageGlass(dock: HTMLElement) {
   };
   pageGlassLift = liftCanvas;
 
-  /** Our CSS already pins the dock to vv — liquidGL must not add offsetTop again. */
+    /** Our CSS already pins the dock to vv — liquidGL must not add offsetTop again. */
   const bindFolioLensPose = (renderer: CapturedRenderer) => {
     if (!renderer._renderLens || undoRenderLens) return;
     const original = renderer._renderLens.bind(renderer);
@@ -671,7 +660,7 @@ function mountPageGlass(dock: HTMLElement) {
 
   const syncLensPose = () => {
     if (cancelled || !started) return;
-    // Minify animates width/height on the main thread — skip GL work so it doesn’t hitch mid-pill.
+        // Minify animates width/height on the main thread — skip GL work so it doesn’t hitch mid-pill.
     if (scrollShape || dock.dataset.dockScrolling) return;
     liftCanvas();
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
@@ -723,8 +712,7 @@ function mountPageGlass(dock: HTMLElement) {
       fitRim();
       revealed = true;
       dock.dataset.dockGlass = 'live';
-      // The lens writes backdrop-filter: none. The live rule is saturate only,
-      // and it has to win or the pill stays uncolored over the refraction.
+      // Lens writes backdrop-filter: none; live rule is saturate only — clear inline.
       dock.style.backdropFilter = '';
       (dock.style as CSSStyleDeclaration & { webkitBackdropFilter: string }).webkitBackdropFilter = '';
     }
@@ -759,7 +747,7 @@ function mountPageGlass(dock: HTMLElement) {
     const dy = Number.isNaN(lastScroll) ? 0 : (lastScroll - origin) * PAGE_SCALE;
     lastScroll = origin;
     if (prior && prior.width === width && prior.height === height && Math.abs(dy) >= 1) {
-      // Ghosts sit between the last photograph and this one, along the scroll.
+      
       context.save();
       const steps = 3;
       for (let step = 1; step <= steps; step += 1) {
@@ -774,8 +762,8 @@ function mountPageGlass(dock: HTMLElement) {
     return sharp;
   };
 
-  // One clock for anything that keeps moving under the pill. A video is copied
-  // as it plays. A GIF is seeked to the same loop time as the card.
+  
+  
   const videoUnder = (region: DOMRect) => {
     for (const video of document.querySelectorAll<HTMLVideoElement>('.Card video')) {
       if (video.paused || video.ended || video.readyState < 2) continue;
@@ -862,7 +850,7 @@ function mountPageGlass(dock: HTMLElement) {
       mediaFrame = 0;
       if (cancelled || !started || dock.dataset.dockMoving) return;
       if (dock.dataset.dockScrolling) {
-        // The pill is solid, so skip the photograph, but keep the GIF on the page's clock.
+        
         if (!scrollingClips) scrollingClips = gifsUnder(syncPlate());
         if (!scrollingClips.length) return;
         seekGifs(scrollingClips);
@@ -879,8 +867,7 @@ function mountPageGlass(dock: HTMLElement) {
     });
   };
 
-  // Empty-chat orbit writes transforms from rAF — not CSS transitions — so the
-  // photograph has to keep shooting or the pill freezes the last pose under it.
+  // Orbit transforms are rAF, not CSS — keep photographing or the pill freezes.
   const orbitLive = () =>
     Boolean(dock.closest('.folio-page')?.querySelector('.folio-masonry.is-orbit'));
   const followOrbit = () => {
@@ -921,8 +908,8 @@ function mountPageGlass(dock: HTMLElement) {
     }, delay);
   };
 
-  // The frost eases with the pill. The controls fold down to the mark, and the
-  // size change is the pill itself, so it does not take the width-change cover.
+  
+  
   const releaseScroll = () => {
     scrollTimer = 0;
     if (!dock.dataset.dockScrolling) return;
@@ -942,8 +929,8 @@ function mountPageGlass(dock: HTMLElement) {
     scrollTimer = window.setTimeout(() => {
       delete dock.dataset.dockExpanding;
       scrollShape = false;
-      // The open pill is what covers the GIFs. Dropping this region earlier
-      // follows the tiny mark, and the photograph stays on an old frame.
+      
+      
       home = null;
       scrollTimer = 0;
       if (started) refresh();
@@ -952,7 +939,7 @@ function mountPageGlass(dock: HTMLElement) {
   };
 
   const armScrollMinify = () => {
-    // Chat composer stays full-width — minify is for the idle dock only.
+        // Chat composer stays full-width — minify is for the idle dock only.
     if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
       if (dock.dataset.dockScrolling) releaseScroll();
       return;
@@ -962,7 +949,7 @@ function mountPageGlass(dock: HTMLElement) {
       scrollShape = true;
       delete dock.dataset.dockExpanding;
       dock.dataset.dockScrolling = 'true';
-      // Glass fade is optional — CSS minify should not wait on first capture.
+      
       if (started) {
         const canvas = window.__liquidGLRenderer__?.canvas;
         if (canvas) {
@@ -986,14 +973,14 @@ function mountPageGlass(dock: HTMLElement) {
     armScrollMinify();
   };
 
-  // Touch scroll delivers `scroll` late on mobile — arm as soon as the finger moves on the page.
+    // Touch scroll delivers `scroll` late on mobile — arm as soon as the finger moves on the page.
   const onTouchMove = (event: TouchEvent) => {
     if (scrollFromDock(event.target)) return;
     armScrollMinify();
   };
 
-  // A hover writes the destination style once. The cards keep moving for the
-  // transition, and nothing else asks for a new photograph until it ends.
+  
+  
   const sceneTransition = (target: EventTarget | null) =>
     target instanceof Element && !target.closest('.mx-dock') && Boolean(target.closest('.folio-page'));
   const sceneMoving = () =>
@@ -1021,7 +1008,7 @@ function mountPageGlass(dock: HTMLElement) {
     }
     if (size === lastSize) return;
     lastSize = size;
-    // Size is animating to the scroll mark — don’t touch transition / rim mid-flight.
+    
     if (scrollShape || dock.dataset.dockScrolling) return;
     fitRim();
     dock.dataset.dockMoving = 'true';
@@ -1055,7 +1042,7 @@ function mountPageGlass(dock: HTMLElement) {
   const pageObserver = page
     ? new MutationObserver(() => {
         watchMasonry();
-        // The about timeline is HTML, which this photograph cannot paint.
+                // The about timeline is HTML, which this photograph cannot paint.
         const about = page instanceof HTMLElement && page.dataset.folioView === 'about';
         if (about) {
           dock.dataset.dockPaging = 'true';
@@ -1148,7 +1135,7 @@ function mountPageGlass(dock: HTMLElement) {
   introObserver?.observe(folioDock!, { attributes: true, attributeFilter: ['class'] });
   if (!folioDock || folioDock.classList.contains('is-in')) queueBegin();
 
-  // Pose tracks the URL bar / keyboard via the shared folio vv bus.
+  
   const unbindViewport = bindFolioVisualViewport(scheduleLensPose);
 
   return () => {
@@ -1270,7 +1257,7 @@ function mountCapturedGlass(dock: HTMLElement) {
 
   const applyCover = () => {
     const canvas = (window.__liquidGLRenderer__ as CapturedRenderer | undefined)?.canvas;
-    // Glassworks leaves transition:none on the pill, which cancels the grow.
+        // Glassworks leaves transition:none on the pill, which cancels the grow.
     dock.style.removeProperty('transition');
     if (resizing) {
       dock.dataset.dockMoving = 'true';
@@ -1293,7 +1280,7 @@ function mountCapturedGlass(dock: HTMLElement) {
     canvas.style.opacity = resizing || fadeHold ? '0' : '1';
   };
 
-  // Shader falloff width is 2 × band.
+  
   const fitRim = () => {
     const lens = window.__liquidGLRenderer__?.lenses.find((item) => item.el === dock);
     if (!lens) return;
@@ -1406,7 +1393,7 @@ function mountCapturedGlass(dock: HTMLElement) {
         on: {
           init() {
             if (cancelled) return;
-            // Glassworks appends the canvas to body at z-index 0, and the stage overflow traps the dock.
+                        // Glassworks appends the canvas to body at z-index 0, and the stage overflow traps the dock.
             const canvas = window.__liquidGLRenderer__?.canvas;
             if (canvas && stage) {
               stage.appendChild(canvas);
@@ -1469,7 +1456,7 @@ function mountSvgLens(
   mapRef: { current: SVGFEImageElement | null },
   displacementRefs: { current: (SVGFEDisplacementMapElement | null)[] },
 ) {
-  // The backdrop is display:none until this is set, so the map can be measured.
+    // The backdrop is display:none until this is set, so the map can be measured.
   dock.dataset.dockNative = 'true';
   let settleTimer = 0;
   let generation = 0;
@@ -1478,8 +1465,7 @@ function mountSvgLens(
   let builtSize = '';
   let pendingSize = '';
 
-  // The lens map only matches one size. Frost covers that gap. A backdrop
-  // filter on the panel would hide the lens, so the panel stays unfiltered.
+  // Backdrop-filter on the panel would hide the lens — keep the panel unfiltered.
   const holdCover = (closing: boolean) => {
     coverStarted = true;
     closingAtStart = closing;
@@ -1568,8 +1554,7 @@ function mountSvgLens(
     }
     builtSize = size;
     paintMap(width, height, radius);
-    // The new map is blank for a frame. Show it once that frame has passed,
-    // or the channel split reads as a turquoise flash.
+    // New map is blank for a frame — wait or the channel split flashes turquoise.
     requestAnimationFrame(() => {
       showLens(radius, token);
     });
