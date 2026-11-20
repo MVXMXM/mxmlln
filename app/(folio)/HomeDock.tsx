@@ -284,10 +284,15 @@ export function HomeDock() {
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
   const logoFromRef = useRef<DOMRect | null>(null)
-  // Mobile only raises the dock with the keyboard — no empty-compose park of results/logo.
+  const chatMountedRef = useRef(chatMounted)
+  chatMountedRef.current = chatMounted
   const browsing = !!answers
   const waiting = !browsing
   const loading = !answers && !!userMessage
+
+  function mobileComposerOnly() {
+    return window.matchMedia('(max-width: 768px)').matches
+  }
 
   useLayoutEffect(() => {
     if (!waiting || !column.current) return
@@ -418,17 +423,23 @@ export function HomeDock() {
     releaseFolioFocus()
   }
 
+  function mountChatShell() {
+    setChatMounted(true)
+    setLogoIn(false)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => setLogoIn(true))
+    })
+  }
+
   function openChat() {
     if (closeTimer.current) {
       window.clearTimeout(closeTimer.current)
       closeTimer.current = 0
     }
     setChatOpen(true)
-    setChatMounted(true)
-    setLogoIn(false)
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => setLogoIn(true))
-    })
+    // Mobile: dock composer only until the first send — no empty logo/orbit mount.
+    if (mobileComposerOnly() && !userMessage && !answers) return
+    mountChatShell()
   }
 
   function closeChat() {
@@ -506,6 +517,12 @@ export function HomeDock() {
       const cards = fromResult && grid ? reorbitSession(grid) : Promise.resolve()
 
       skipBegin.current = true
+      // Mobile may have opened the composer without mounting empty chat chrome.
+      if (!chatMountedRef.current) {
+        setChatOpen(true)
+        setChatMounted(true)
+        setLogoIn(true)
+      }
       setDockLaunch(true)
       setAnswers(null)
       setUserMessage(value)

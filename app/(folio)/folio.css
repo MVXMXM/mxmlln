@@ -27,7 +27,7 @@ html:has(.folio-page) body {
 }
 
 /* Chat/orbit owns vertical input — don’t let wheel/trackpad scroll the folio underneath.
-   Height follows the visible band so iOS keyboard doesn’t leave a layout-tall blue slab. */
+   Height uses the resting layout band (keyboard only lifts the dock via inset). */
 html:has(.folio-page.is-folio-session),
 html:has(.folio-page.is-folio-session) body {
   overflow: hidden;
