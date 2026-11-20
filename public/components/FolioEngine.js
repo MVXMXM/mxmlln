@@ -70,7 +70,7 @@ const initialStyles = {
         transition: 'all 0.15s ease'
     },
     StackBar: {
-        zIndex: '699',
+        zIndex: '9998',
         position: 'fixed',
         top: '-124px',
         left: '50%',
@@ -708,6 +708,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         document.getElementById('stackBarSectionName').textContent = sectionName;
         const StackBar = document.getElementById('StackBar');
         StackBar.style.transition = 'top 0.5s, opacity 0.5s, visibility 0.5s';
+        StackBar.style.zIndex = initialStyles.StackBar.zIndex;
         StackBar.style.top = '24px';
         StackBar.style.opacity = '1';
         StackBar.style.visibility = 'visible';
@@ -833,7 +834,7 @@ function skipIntroAnimation() {
     nav.style.transform = 'none';
     nav.style.pointerEvents = '';
     nav.style.transition = '';
-    nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+    nav.style.bottom = NAV_DOCK_BOTTOM;
   }
 
   document.body.classList.add('folio-in');
@@ -855,20 +856,28 @@ function initIntroAnimation() {
 
   const gradeFront = document.querySelector('.gradeFront');
   if (gradeFront) {
-    const sx = 525 / Math.max(window.innerWidth, 1);
-    const sy = 525 / Math.max(window.innerHeight, 1);
-    gradeFront.style.borderRadius = '400px';
-    gradeFront.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
-    gradeFront.style.opacity = '1';
-    setTimeout(function() {
-      gradeFront.style.transition = 'transform 500ms ease, border-radius 500ms ease';
-      gradeFront.getBoundingClientRect();
-      gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      gradeFront.style.width = '100%';
+      gradeFront.style.height = '100%';
       gradeFront.style.borderRadius = '0px';
+      gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+      gradeFront.style.opacity = '1';
+    } else {
+      const sx = 525 / Math.max(window.innerWidth, 1);
+      const sy = 525 / Math.max(window.innerHeight, 1);
+      gradeFront.style.borderRadius = '400px';
+      gradeFront.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+      gradeFront.style.opacity = '1';
       setTimeout(function() {
-        gradeFront.style.transition = '';
-      }, 500);
-    }, 1250);
+        gradeFront.style.transition = 'transform 500ms ease, border-radius 500ms ease';
+        gradeFront.getBoundingClientRect();
+        gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+        gradeFront.style.borderRadius = '0px';
+        setTimeout(function() {
+          gradeFront.style.transition = '';
+        }, 500);
+      }, 1250);
+    }
   }
 
   setTimeout(function() {
@@ -897,7 +906,7 @@ function initIntroAnimation() {
       setTimeout(function() {
         nav.style.transition = '';
         nav.style.pointerEvents = '';
-        nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+        nav.style.bottom = NAV_DOCK_BOTTOM;
       }, 250);
     }, 250);
   }, 1250);

@@ -93,14 +93,47 @@ a {
     opacity: 0.3;
 }
 
-.bottomFade {
-    position: fixed;
-    z-index: 898;
-    bottom: 0;
-    left: 0;
-    height: 100px;
-    width: 100vw;
-    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.15));
+/* Also inlined in portfolio.html / about.html. */
+.bottomFade,
+.topFade {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .bottomFade,
+    .topFade {
+        display: block;
+        position: fixed;
+        z-index: 898;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .bottomFade {
+        /* -2px: iOS can leave a 1px seam at bottom:0 while the URL bar animates. */
+        bottom: -2px;
+        height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+        background-image: linear-gradient(
+            to bottom,
+            oklch(0.93 0.034 285 / 0) 0%,
+            oklch(0.93 0.034 285 / 0.75) 50%,
+            oklch(0.93 0.034 285 / 0.9) 75%,
+            oklch(0.93 0.034 285 / 1) 100%
+        );
+    }
+
+    .topFade {
+        top: -2px;
+        height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+        background-image: linear-gradient(
+            to top,
+            oklch(0.96 0.024 345 / 0) 0%,
+            oklch(0.96 0.024 345 / 0.5) 50%,
+            oklch(0.96 0.024 345 / 0.75) 75%,
+            oklch(0.96 0.024 345 / 1) 100%
+        );
+    }
 }
 
 .navBarOverlay {
@@ -117,6 +150,7 @@ a {
     backdrop-filter: blur(30px);
 }
 
+/* Keep in sync with NAV_DOCK_BOTTOM in NavBar.js. */
 .navDynamicContainer {
     position: fixed;
     z-index: 900;

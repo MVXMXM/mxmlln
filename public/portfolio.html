@@ -29,6 +29,117 @@
   
   <!-- Load critical CSS first -->
   <style>
+    /* Keep in sync with StyleMatters.2024.css (html, .gradeBG lean / no noise
+       filter, body::before, .IntroLoader, .ContentContainer) and NavBar.css
+       (.topFade / .bottomFade, .navDynamicContainer). */
+    html {
+      background-color: oklch(0.86 0.04 260);
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradeBG {
+      position: fixed;
+      z-index: 1;
+      inset: 0;
+      overflow: hidden;
+      background: linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285));
+      background-size: 400% 400%;
+      animation: gradient 5s ease infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: 3;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle at center, #0f172b 0.85px, transparent 1px);
+      background-size: 16px 16px;
+      background-position: center var(--dot-shift, -8px);
+      mix-blend-mode: multiply;
+      opacity: 0.2;
+    }
+    body.folio-in::before {
+      opacity: 0;
+    }
+    .IntroLoader {
+      position: absolute;
+      z-index: 9999;
+    }
+    .ContentContainer {
+      position: absolute;
+      z-index: 500;
+      top: 0;
+      left: 0;
+      width: 100%;
+    }
+    .navDynamicContainer {
+      position: fixed;
+      z-index: 900;
+    }
+    /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
+    @media (max-width: 768px) {
+      /* Keep in sync with .bottomFade opaque stop. */
+      html,
+      body {
+        background-color: oklch(0.93 0.034 285);
+      }
+      body > .gradeFront {
+        position: fixed;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.85);
+        filter: blur(150px);
+        overflow: hidden;
+        pointer-events: none;
+      }
+    }
+    .bottomFade,
+    .topFade {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .bottomFade,
+      .topFade {
+        display: block;
+        position: fixed;
+        z-index: 898;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+      .bottomFade {
+        bottom: -2px;
+        height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+        background-image: linear-gradient(
+          to bottom,
+          oklch(0.93 0.034 285 / 0) 0%,
+          oklch(0.93 0.034 285 / 0.75) 50%,
+          oklch(0.93 0.034 285 / 0.9) 75%,
+          oklch(0.93 0.034 285 / 1) 100%
+        );
+      }
+      .topFade {
+        top: -2px;
+        height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+        background-image: linear-gradient(
+          to top,
+          oklch(0.96 0.024 345 / 0) 0%,
+          oklch(0.96 0.024 345 / 0.5) 50%,
+          oklch(0.96 0.024 345 / 0.75) 75%,
+          oklch(0.96 0.024 345 / 1) 100%
+        );
+      }
+    }
+
     .IntroLoader svg, .IntroLoader img {
       width: 100%;
       height: 100%;
@@ -85,7 +196,11 @@
 </head>
 
 <body>
-  
+  <div class="gradeBG"></div>
+  <div class="gradeFront"></div>
+  <div class="topFade" id="topFade"></div>
+  <div class="bottomFade" id="bottomFade"></div>
+
   <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
   <!-- Nav Bar -->
@@ -278,11 +393,8 @@
         </div>    
     </div>
   </div>
-  <div class="bottomFade" id="bottomFade"></div>
   <div class="navBarOverlay" id="navBarOverlay" onclick="document.getElementById('chatViewContent').style.visibility === 'visible' ? closeNavChatView() : (document.getElementById('contactViewContent').style.visibility === 'visible' ? closeNavContactView() : document.getElementById('infoViewContent').style.visibility === 'visible' ? closeNavInfoView() : null)">
   </div>
-  <div class="gradeFront"></div>
-  <div class="gradeBG"></div>
 
   <!-- Main Content -->
     <div class="ContentContainer" style="display:flex;top:0;transform:translateY(200%);visibility:hidden;">

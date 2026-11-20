@@ -87,6 +87,24 @@ button:disabled {
 	filter: blur(150px) contrast(1.1) brightness(1.1) url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxmaWx0ZXIgaWQ9Im4iPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjU1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIj48L2ZlVHVyYnVsZW5jZT48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjbikiIG9wYWNpdHk9IjAuMjUiLz48L3N2Zz4=);
 }
 
+/* body > beats base .gradeFront { opacity:0; scale(0) } after deferred sheets.
+   Keep in sync with critical <style> in portfolio.html / about.html. */
+@media (max-width: 768px) {
+	html,
+	body {
+		background-color: oklch(0.93 0.034 285);
+	}
+	body > .gradeFront {
+		width: 100%;
+		height: 100%;
+		transform: translate(-50%, -50%) scale(1);
+		border-radius: 0;
+		opacity: 1;
+		background-color: rgba(255, 255, 255, 0.85);
+		pointer-events: none;
+	}
+}
+
 @keyframes gradient {
 	0% {
 		background-position: 0% 50%;
