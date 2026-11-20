@@ -139,6 +139,8 @@ type CarouselState = {
     lastY: number
     lastT: number
     velocity: number
+    pointerId: number
+    card: HTMLElement | null
   } | null
   dispose: () => void
 }
@@ -1058,12 +1060,12 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   const onPointerDown = (event: PointerEvent) => {
     if (!carousel || event.button > 0) return
     if (!(event.target instanceof Element)) return
-    
     if (!grid.contains(event.target)) return
     pauseCarouselAutoplay()
     carousel.gestureOrigin = activeCarouselIndex()
     carousel.velocity = 0
     const now = performance.now()
+    const card = event.target.closest('.Card') as HTMLElement | null
     carousel.drag = {
       x: event.clientX,
       y: event.clientY,
@@ -1073,8 +1075,10 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       lastY: event.clientY,
       lastT: now,
       velocity: 0,
+      pointerId: event.pointerId,
+      card: card && carousel.cards.includes(card) ? card : null,
     }
-    grid.setPointerCapture?.(event.pointerId)
+    // Capture only after a drag — immediate capture swallows the focused-card click.
     ensureCarouselSpring()
   }
 
@@ -1083,7 +1087,12 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     const drag = carousel.drag
     const dx = event.clientX - drag.x
     const dy = event.clientY - drag.y
-    if (Math.hypot(dx, dy) > 3) drag.moved = true
+    if (Math.hypot(dx, dy) > 3) {
+      if (!drag.moved) {
+        drag.moved = true
+        grid.setPointerCapture?.(drag.pointerId)
+      }
+    }
     const now = performance.now()
     const dt = Math.max(1, now - drag.lastT)
         // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
@@ -1092,7 +1101,8 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     drag.lastX = event.clientX
     drag.lastY = event.clientY
     drag.lastT = now
-    
+    if (!drag.moved) return
+
     carousel.offset = applyCarouselInput(
       drag.offset - (dx + dy) * carouselDragGain(),
       carousel.gestureOrigin,
@@ -1106,29 +1116,27 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     if (!carousel?.drag) return
     const drag = carousel.drag
     carousel.drag = null
-    try {
-      grid.releasePointerCapture?.(event.pointerId)
-    } catch {
-      
-    }
-    const card = event.target instanceof Element ? (event.target.closest('.Card') as HTMLElement | null) : null
-    if (!drag.moved && card && carousel.cards.includes(card)) {
-      const index = carousel.cards.indexOf(card)
-      if (index !== activeCarouselIndex()) {
-        event.preventDefault()
-        event.stopPropagation()
-        snapCarousel(index)
-        return
-      }
-            // Focused card — leave the click for FolioEngine’s real action.
-      return
-    }
     if (drag.moved) {
+      try {
+        grid.releasePointerCapture?.(drag.pointerId)
+      } catch {
+        
+      }
       event.preventDefault()
       syncCarouselRestFromOffset(drag.velocity)
       carousel.inputUntil = 0
       ensureCarouselSpring()
+      return
     }
+    const card = drag.card
+    if (!card || !carousel.cards.includes(card)) return
+    const index = carousel.cards.indexOf(card)
+    if (index !== activeCarouselIndex()) {
+      event.preventDefault()
+      event.stopPropagation()
+      snapCarousel(index)
+    }
+    // Focused tap — no capture was taken, so FolioEngine’s card click can fire.
   }
 
     // Unfocused cards only scroll into focus; actions stay on the focused card.

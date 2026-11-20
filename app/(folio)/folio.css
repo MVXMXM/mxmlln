@@ -372,10 +372,9 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-masonry.is-result.is-carousel {
-  /* Above the dock glass canvas (~899) — WebGL can still eat hits at opacity 0. */
+  /* Above the dock glass canvas (~899). Keep the shell click-through — only cards hit. */
   z-index: 905;
-  pointer-events: auto;
-  touch-action: none;
+  pointer-events: none;
 }
 
 .folio-masonry.is-result.is-carousel .Card {
