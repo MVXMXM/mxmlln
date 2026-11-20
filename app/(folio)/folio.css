@@ -323,6 +323,16 @@ html:has(.folio-page.is-folio-session) body {
   gap: 16px;
 }
 
+/* Parent is none, but descendants default to auto and will steal carousel card hits. */
+.folio-focus-column.is-session.is-answered,
+.folio-focus-column.is-session.is-answered * {
+  pointer-events: none !important;
+}
+
+.folio-focus-column.is-session.is-answered a {
+  pointer-events: auto !important;
+}
+
 .folio-focus-column.is-session.is-answered.is-miss {
   gap: 16px;
 }
@@ -370,7 +380,8 @@ html:has(.folio-page.is-folio-session) body {
 
 .folio-masonry.is-result.is-carousel .Card {
   touch-action: none;
-  pointer-events: auto;
+  pointer-events: auto !important;
+  cursor: pointer;
 }
 
 .folio-masonry.is-result.is-carousel .CardContent {

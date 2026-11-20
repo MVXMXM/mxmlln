@@ -160,11 +160,13 @@ const REPLY_CARD_GAP = 80
 
 /** `bottom` (not `top`) so the blurb can grow up without re-anchoring each chunk. */
 function placeReplyColumn(frame: HTMLElement) {
-  const { width: vw, left: vLeft } = folioViewport()
+  const { width: vw, height: vh, top, left: vLeft } = folioViewport()
   const { cardTop } = folioFocusMetrics()
   const width = snapFolioGrid(Math.min(600, vw - 40))
   const left = snapFolioGrid((vw - width) / 2 + vLeft)
-  const bottom = Math.max(0, window.innerHeight - (cardTop - REPLY_CARD_GAP))
+  // Use the visible band — innerHeight drifts from vv on iOS and can drop the
+  // column over the carousel cards (descendants then steal clicks).
+  const bottom = Math.max(0, top + vh - (cardTop - REPLY_CARD_GAP))
   frame.style.width = `${width}px`
   frame.style.left = `${left}px`
   frame.style.right = 'auto'
