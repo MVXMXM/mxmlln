@@ -684,9 +684,14 @@ function mountPageGlass(dock: HTMLElement) {
     });
   };
 
-  // Pause photographs while vv height is moving (OSK); resume after a short settle.
-  const onViewport = () => {
+  const onViewport = (layoutChanged: boolean) => {
     const height = Math.round(window.visualViewport?.height ?? window.innerHeight);
+    const composing = dock.closest('.mx-dock')?.hasAttribute('data-composer');
+    if (!layoutChanged || composing) {
+      lastVvHeight = height;
+      if (!layoutSettling) scheduleLensPose();
+      return;
+    }
     if (lastVvHeight && Math.abs(height - lastVvHeight) > 2) {
       layoutSettling = true;
       const canvas = window.__liquidGLRenderer__?.canvas;
@@ -1113,9 +1118,13 @@ function mountPageGlass(dock: HTMLElement) {
     }
     if (size === lastSize) return;
     lastSize = size;
-    
+
     if (scrollShape || dock.dataset.dockScrolling) return;
     fitRim();
+    if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
+      scheduleLensPose();
+      return;
+    }
     dock.dataset.dockMoving = 'true';
     const canvas = window.__liquidGLRenderer__?.canvas;
     if (canvas) {

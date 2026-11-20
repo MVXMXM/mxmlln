@@ -6,7 +6,7 @@ export function folioViewport() {
   const width = vv?.width ?? window.innerWidth
   const liveRest = restHeight || height
   const inset = Math.max(0, liveRest - height)
-  if (inset >= KEYBOARD_INSET_MIN) {
+  if (keyboardLatched || inset >= KEYBOARD_INSET_MIN) {
     return {
       width: window.innerWidth,
       height: liveRest,
@@ -17,15 +17,14 @@ export function folioViewport() {
   return { width, height, top, left }
 }
 
-/** URL-bar jitter stays under this; larger shrinks are treated as the keyboard. */
-const REST_HEIGHT_SLACK = 120
-const KEYBOARD_INSET_MIN = REST_HEIGHT_SLACK
+const KEYBOARD_INSET_MIN = 24
 
-type Listener = () => void
+type Listener = (layoutChanged: boolean) => void
 
 const listeners = new Set<Listener>()
 let restHeight = 0
 let restTop = 0
+let keyboardLatched = false
 let layoutHeightWritten = -1
 let layoutTopWritten = -1
 let attached = false
@@ -43,21 +42,23 @@ export function syncFolioVisualViewport() {
   const height = vv?.height ?? window.innerHeight
   const top = vv?.offsetTop ?? 0
   const layoutInnerHeight = window.innerHeight
-  // iOS often shrinks window.innerHeight with the keyboard, so
-  // innerHeight − vv.bottom stays ~0. Diff against a resting vv height instead.
-  if (height >= restHeight - 1) restHeight = height
-  else if (restHeight - height < REST_HEIGHT_SLACK) restHeight = height
+  // iOS shrinks innerHeight with the keyboard — diff against resting vv height, never lower it.
+  if (height >= restHeight - 1) {
+    restHeight = height
+    keyboardLatched = false
+  } else if (restHeight - height >= KEYBOARD_INSET_MIN) {
+    keyboardLatched = true
+  }
 
-  const inset = Math.max(0, restHeight - height)
-  const keyboardOpen = inset >= KEYBOARD_INSET_MIN
-  if (!keyboardOpen) restTop = top
+  if (!keyboardLatched) restTop = top
 
-  const layoutHeight = keyboardOpen ? restHeight : height
-  const layoutTop = keyboardOpen ? restTop : top
+  const layoutHeight = keyboardLatched ? restHeight : height
+  const layoutTop = keyboardLatched ? restTop : top
   const layoutBottom = layoutTop + layoutHeight
   const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
   root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
+  root.style.setProperty('--folio-vv-offset-top', `${top}px`)
 
   const layoutChanged =
     layoutHeight !== layoutHeightWritten || layoutTop !== layoutTopWritten
@@ -77,8 +78,7 @@ function attach() {
   const flush = () => {
     syncRaf = 0
     const layoutChanged = syncFolioVisualViewport()
-    if (!layoutChanged) return
-    for (const fn of [...listeners]) fn()
+    for (const fn of [...listeners]) fn(layoutChanged)
   }
   const run = () => {
     if (syncRaf) return
@@ -87,6 +87,7 @@ function attach() {
   const onOrient = () => {
     restHeight = 0
     restTop = 0
+    keyboardLatched = false
     layoutHeightWritten = -1
     layoutTopWritten = -1
     run()
@@ -108,13 +109,13 @@ function attach() {
   }
 }
 
-/** Layout listeners only — dock pin updates every sync regardless. */
+/** `layoutChanged` is false while the keyboard is latched — gate reflows on it. */
 export function bindFolioVisualViewport(onChange?: Listener) {
   attach()
   syncFolioVisualViewport()
   if (onChange) {
     listeners.add(onChange)
-    onChange()
+    onChange(true)
   }
   return () => {
     if (onChange) listeners.delete(onChange)

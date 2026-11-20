@@ -384,11 +384,12 @@ export function HomeDock() {
     if (!chatMounted || !browsing || !column.current) return
     const frame = column.current
     if (!frame.classList.contains('is-answered')) return
-    const onResize = () => {
+    const onResize = (layoutChanged: boolean) => {
+      if (!layoutChanged) return
       if (emptyMiss) placeMissColumn(frame)
       else placeReplyColumn(frame)
     }
-    onResize()
+    onResize(true)
     return bindFolioVisualViewport(onResize)
   }, [chatMounted, browsing, emptyMiss])
 

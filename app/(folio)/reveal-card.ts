@@ -1135,7 +1135,10 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   grid.addEventListener('pointercancel', endDrag)
   grid.addEventListener('lostpointercapture', endDrag)
   grid.addEventListener('click', onClickCapture, true)
-  const unbindViewport = bindFolioVisualViewport(onResize)
+  const unbindViewport = bindFolioVisualViewport((layoutChanged) => {
+    if (!layoutChanged) return
+    onResize()
+  })
 
   carousel = {
     cards,

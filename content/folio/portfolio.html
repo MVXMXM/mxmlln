@@ -112,7 +112,7 @@
         pointer-events: none;
       }
       .bottomFade {
-        bottom: -2px;
+        bottom: calc(-2px + var(--folio-dock-bottom, 0px));
         height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
         background-image: linear-gradient(
           to bottom,
@@ -123,7 +123,7 @@
         );
       }
       .topFade {
-        top: -2px;
+        top: calc(-2px + var(--folio-vv-offset-top, 0px));
         height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
         background-image: linear-gradient(
           to top,
