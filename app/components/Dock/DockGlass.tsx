@@ -908,11 +908,13 @@ function mountPageGlass(dock: HTMLElement) {
     }, delay);
   };
 
-  
-  
-  const releaseScroll = () => {
+  let touchDepth = 0;
+
+  const releaseScroll = (force = false) => {
     scrollTimer = 0;
     if (!dock.dataset.dockScrolling) return;
+    // Finger still down — expanding mid-gesture re-minifies on the next move.
+    if (!force && touchDepth > 0) return;
     scrollingClips = null;
     if (mediaFrame) {
       cancelAnimationFrame(mediaFrame);
@@ -929,8 +931,6 @@ function mountPageGlass(dock: HTMLElement) {
     scrollTimer = window.setTimeout(() => {
       delete dock.dataset.dockExpanding;
       scrollShape = false;
-      
-      
       home = null;
       scrollTimer = 0;
       if (started) refresh();
@@ -938,10 +938,16 @@ function mountPageGlass(dock: HTMLElement) {
     }, 600);
   };
 
+  const scheduleScrollRelease = () => {
+    window.clearTimeout(scrollTimer);
+    if (touchDepth > 0) return;
+    scrollTimer = window.setTimeout(releaseScroll, 400);
+  };
+
   const armScrollMinify = () => {
-        // Chat composer stays full-width — minify is for the idle dock only.
+    // Chat composer stays full-width — minify is for the idle dock only.
     if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
-      if (dock.dataset.dockScrolling) releaseScroll();
+      if (dock.dataset.dockScrolling) releaseScroll(true);
       return;
     }
     if (!dock.dataset.dockScrolling) {
@@ -949,7 +955,6 @@ function mountPageGlass(dock: HTMLElement) {
       scrollShape = true;
       delete dock.dataset.dockExpanding;
       dock.dataset.dockScrolling = 'true';
-      
       if (started) {
         const canvas = window.__liquidGLRenderer__?.canvas;
         if (canvas) {
@@ -959,8 +964,7 @@ function mountPageGlass(dock: HTMLElement) {
         if (!mediaFrame) followMedia(syncPlate());
       }
     }
-    window.clearTimeout(scrollTimer);
-    scrollTimer = window.setTimeout(releaseScroll, 400);
+    scheduleScrollRelease();
   };
 
   const scrollFromDock = (target: EventTarget | null) => {
@@ -973,14 +977,17 @@ function mountPageGlass(dock: HTMLElement) {
     armScrollMinify();
   };
 
-    // Touch scroll delivers `scroll` late on mobile — arm as soon as the finger moves on the page.
-  const onTouchMove = (event: TouchEvent) => {
+  const onTouchStart = (event: TouchEvent) => {
     if (scrollFromDock(event.target)) return;
+    touchDepth += 1;
     armScrollMinify();
   };
 
-  
-  
+  const onTouchEnd = () => {
+    touchDepth = Math.max(0, touchDepth - 1);
+    if (touchDepth === 0 && dock.dataset.dockScrolling) scheduleScrollRelease();
+  };
+
   const sceneTransition = (target: EventTarget | null) =>
     target instanceof Element && !target.closest('.mx-dock') && Boolean(target.closest('.folio-page'));
   const sceneMoving = () =>
@@ -1058,7 +1065,9 @@ function mountPageGlass(dock: HTMLElement) {
   if (page) pageObserver?.observe(page, { attributes: true, attributeFilter: ['class', 'data-folio-view'], childList: true });
   watchMasonry();
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
-  document.addEventListener('touchmove', onTouchMove, { passive: true, capture: true });
+  document.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
+  document.addEventListener('touchend', onTouchEnd, { passive: true, capture: true });
+  document.addEventListener('touchcancel', onTouchEnd, { passive: true, capture: true });
   document.addEventListener('transitionrun', onTransitionRun, true);
   const onPlaying = (event: Event) => {
     if (!started || mediaFrame || !(event.target instanceof HTMLVideoElement)) return;
@@ -1159,7 +1168,9 @@ function mountPageGlass(dock: HTMLElement) {
     pageObserver?.disconnect();
     masonryObserver?.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
-    document.removeEventListener('touchmove', onTouchMove, { capture: true });
+    document.removeEventListener('touchstart', onTouchStart, { capture: true });
+    document.removeEventListener('touchend', onTouchEnd, { capture: true });
+    document.removeEventListener('touchcancel', onTouchEnd, { capture: true });
     unbindViewport();
     undoRenderLens?.();
     undoOverscroll?.();
