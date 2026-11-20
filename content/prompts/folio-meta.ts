@@ -417,7 +417,7 @@ export const folioMetaPrompt = `Your name is Maximillian Piras. If anyone says "
                     - cardImage: ./assets/MaximillianPiras.jpg
                     - cardHeader: Visit my about me page
                     - cardDescription: My background & contact information can be found here.
-                    - cardURL: https://www.maximillian.nyc/about.html
+                    - cardURL: https://www.maximin.design
                     - Content: All details about my personal information, such as contact information, can be found here. As well as a story of how I started in design ten years ago. For any inquiries you are unsure about, you can refer them to this page.
 
                     Case Study Option 10: 

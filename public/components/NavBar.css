@@ -93,7 +93,7 @@ a {
     opacity: 0.3;
 }
 
-/* Also inlined in portfolio.html / about.html. */
+/* Also inlined in portfolio.html. */
 .bottomFade,
 .topFade {
     display: none;

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 function fanTimeline(root: ParentNode) {
-  // Same fan the about page used. The first photo leans, the later ones sit flatter.
   const albums = root.querySelectorAll('.timelinePhotoAlbum')
   albums.forEach((album) => {
     const photos = album.querySelectorAll<HTMLElement>('.timelinePhoto')

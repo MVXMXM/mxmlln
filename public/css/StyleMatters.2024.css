@@ -88,7 +88,7 @@ button:disabled {
 }
 
 /* body > beats base .gradeFront { opacity:0; scale(0) } after deferred sheets.
-   Keep in sync with critical <style> in portfolio.html / about.html. */
+   Keep in sync with critical <style> in portfolio.html. */
 @media (max-width: 768px) {
 	html,
 	body {
