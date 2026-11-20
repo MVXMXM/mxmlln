@@ -9,6 +9,8 @@ export const viewport: Viewport = {
   maximumScale: 0.75,
   userScalable: false,
   viewportFit: 'cover',
+  // Keyboard overlays instead of resizing layout (Chrome/Android; ignored where unsupported).
+  interactiveWidget: 'overlays-content',
 }
 
 export default function FolioLayout({ children }: { children: ReactNode }) {

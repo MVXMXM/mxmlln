@@ -33,9 +33,29 @@ let layoutHeightWritten = -1
 let layoutTopWritten = -1
 let attached = false
 let detachBus: (() => void) | null = null
+/** While the dock composer is focused, fight iOS scroll-into-view. */
+let composerFocus = false
 
 function page() {
   return document.querySelector('.folio-page')
+}
+
+function holdDocumentScroll() {
+  if (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop) {
+    window.scrollTo(0, 0)
+  }
+}
+
+/** Dock composer open — keep document at 0 and expose offsetTop for content counter-translate. */
+export function setFolioComposerFocus(open: boolean) {
+  composerFocus = open
+  const root = page()
+  if (root instanceof HTMLElement) {
+    if (open) root.dataset.folioComposer = 'true'
+    else delete root.dataset.folioComposer
+  }
+  if (open) holdDocumentScroll()
+  syncFolioVisualViewport()
 }
 
 /**
@@ -66,7 +86,11 @@ export function syncFolioVisualViewport() {
   // Gap under the visible band — accounts for offsetTop when Safari shifts the page.
   const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
+  if (composerFocus) holdDocumentScroll()
+
   root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
+  // Content counter-translates by this so iOS vv scroll doesn’t drag the folio up.
+  root.style.setProperty('--folio-vv-offset-top', composerFocus ? `${top}px` : '0px')
 
   const layoutChanged =
     layoutHeight !== layoutHeightWritten || layoutTop !== layoutTopWritten

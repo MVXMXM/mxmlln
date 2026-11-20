@@ -43,6 +43,19 @@ html:has(.folio-page.is-folio-session) body {
   max-height: var(--folio-vv-height, 100dvh);
 }
 
+/* iOS scrolls the visual viewport on input focus — shift folio content back so
+   only the dock rides up. Do not include .folio-dock (fixed pin uses its own gap). */
+.folio-page[data-folio-composer] .AllStacks,
+.folio-page[data-folio-composer] .TitleBlock3,
+.folio-page[data-folio-composer] #StackBar,
+.folio-page[data-folio-composer] .folio-stage,
+.folio-page[data-folio-composer] .folio-about-slot,
+.folio-page[data-folio-composer] .folio-focus-column,
+.folio-page[data-folio-composer] .folio-masonry,
+.folio-page[data-folio-composer] .folio-carousel-chrome {
+  translate: 0 var(--folio-vv-offset-top, 0px);
+}
+
 .folio-page,
 .folio-page *,
 .folio-page *::before,
