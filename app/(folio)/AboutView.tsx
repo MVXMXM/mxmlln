@@ -42,15 +42,36 @@ export function AboutView() {
     const root = slot.querySelector('.folio-about')
     if (!root) return
     fanTimeline(root)
-    let tries = 0
-    const id = window.setInterval(() => {
-      const intense = (window as Window & { Intense?: (photos: NodeListOf<Element>) => void }).Intense
-      if (intense) {
-        intense(root.querySelectorAll('.timelinePhoto'))
-        window.clearInterval(id)
-      } else if (++tries > 40) window.clearInterval(id)
-    }, 100)
-    return () => window.clearInterval(id)
+
+    const openLightbox = (
+      window as Window & {
+        openLightbox?: (media: {
+          kind: 'image' | 'video' | 'youtube'
+          src: string
+          title?: string
+          sourceEl?: Element
+        }) => boolean
+      }
+    ).openLightbox
+
+    const onPhotoClick = (event: Event) => {
+      const photo = event.currentTarget
+      if (!(photo instanceof HTMLImageElement) || !openLightbox) return
+      const src = photo.currentSrc || photo.getAttribute('src')
+      if (!src) return
+      openLightbox({
+        kind: 'image',
+        src,
+        title: photo.getAttribute('alt') || 'Image',
+        sourceEl: photo,
+      })
+    }
+
+    const photos = root.querySelectorAll<HTMLImageElement>('.timelinePhoto')
+    photos.forEach((photo) => photo.addEventListener('click', onPhotoClick))
+    return () => {
+      photos.forEach((photo) => photo.removeEventListener('click', onPhotoClick))
+    }
   }, [slot])
 
   if (!slot) return null

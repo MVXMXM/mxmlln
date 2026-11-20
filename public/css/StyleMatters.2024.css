@@ -391,7 +391,7 @@ h3 {
 	border: #ffffff 8px solid;
 	box-shadow: 0 4px 12px oklch(0.25 0.04 260 / 0.12);
 	width: 35%;
-	cursor: url('../js/IntenseImages/plus_cursor-48.png') 24 24, pointer;
+	cursor: url('../assets/icons/plus_cursor-48.png') 24 24, pointer;
 	transition: box-shadow 0.25s ease;
 }
 
@@ -402,7 +402,7 @@ h3 {
 /* Safari won't inherit cursor:url(); hover hits .CardInnerContainer / .card-cursor-hit. */
 #cardZoom,
 #cardZoom * {
-	cursor: url('../js/IntenseImages/plus_cursor-48.png') 24 24, pointer;
+	cursor: url('../assets/icons/plus_cursor-48.png') 24 24, pointer;
 }
 
 #cardPlay,
@@ -1489,7 +1489,7 @@ input:focus {
 	text-align: left;
 }
 
-.yt-lightbox {
+.lightbox {
 	position: fixed;
 	inset: 0;
 	z-index: 10050;
@@ -1504,11 +1504,11 @@ input:focus {
 	transition: opacity 0.2s ease;
 }
 
-.yt-lightbox.is-open {
+.lightbox.is-open {
 	opacity: 1;
 }
 
-.yt-lightbox-stage {
+.lightbox-stage {
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -1517,7 +1517,7 @@ input:focus {
 	will-change: transform, opacity;
 }
 
-.yt-lightbox-hint {
+.lightbox-hint {
 	pointer-events: none;
 	position: absolute;
 	top: -44px;
@@ -1537,7 +1537,7 @@ input:focus {
 	transition: opacity 0.35s ease;
 }
 
-.yt-lightbox-hint kbd {
+.lightbox-hint kbd {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1555,11 +1555,11 @@ input:focus {
 	color: #1a1a1a;
 }
 
-.yt-lightbox.is-hint .yt-lightbox-hint {
+.lightbox.is-hint .lightbox-hint {
 	opacity: 1;
 }
 
-.yt-lightbox-player {
+.lightbox-player {
 	overflow: hidden;
 	cursor: default;
 	background: #000;
@@ -1572,34 +1572,52 @@ input:focus {
 	transition: transform 0.35s ease;
 }
 
-.yt-lightbox.is-hint .yt-lightbox-player {
+.lightbox.is-hint .lightbox-player {
 	transform: translateY(8px);
 }
 
-.yt-lightbox-player iframe {
+.lightbox-player iframe,
+.lightbox-player video,
+.lightbox-player img {
 	display: block;
 	width: 100%;
 	height: 100%;
 	border: 0;
 }
 
+.lightbox-player.is-image {
+	width: auto;
+	max-width: min(90vw, 1280px);
+	max-height: min(85vh, 1280px);
+	aspect-ratio: auto;
+	background: #000;
+}
+
+.lightbox-player.is-image img {
+	width: auto;
+	height: auto;
+	max-width: min(90vw, 1280px);
+	max-height: min(85vh, 1280px);
+	object-fit: contain;
+}
+
 @media (min-width: 640px) {
-	.yt-lightbox-player {
+	.lightbox-player {
 		width: min(93.5vw, 160vh, 1280px);
 	}
 }
 
 @media (max-width: 639px) {
-	.yt-lightbox-hint {
+	.lightbox-hint {
 		display: none;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.yt-lightbox,
-	.yt-lightbox-stage,
-	.yt-lightbox-hint,
-	.yt-lightbox-player {
+	.lightbox,
+	.lightbox-stage,
+	.lightbox-hint,
+	.lightbox-player {
 		transition: none;
 	}
 }

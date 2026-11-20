@@ -83,7 +83,6 @@ export function FolioScripts() {
 
     async function boot() {
       await loadScript('https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js')
-      await loadScript('/js/IntenseImages/intense.js')
       await loadScript('/components/FolioEngine.js')
       try {
         await loadScript('https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js')
