@@ -9,6 +9,9 @@ declare global {
     disposeScrollThumb?: () => void
     expandCardStackLabelContainer?: (container: Element) => void
     collapseExpandedStack?: () => void
+    unmountCardVideo?: (card: HTMLElement) => void
+    mountCardVideo?: (card: HTMLElement) => void
+    hydrateStackMedia?: (cardStack: Element, options?: { frontOnly?: boolean }) => void
     lottie?: {
       loadAnimation: (options: {
         container: Element
@@ -19,6 +22,20 @@ declare global {
       }) => { addEventListener: (event: string, handler: () => void) => void }
     }
   }
+}
+
+function dehydrateCard(card: HTMLElement) {
+  window.unmountCardVideo?.(card)
+}
+
+function hydrateCard(card: HTMLElement) {
+  window.mountCardVideo?.(card)
+}
+
+function refreshStackMedia() {
+  document.querySelectorAll('.CardStack').forEach((stack) => {
+    window.hydrateStackMedia?.(stack, { frontOnly: true })
+  })
 }
 
 function wait(ms: number) {
@@ -396,6 +413,7 @@ function runOrbit() {
 }
 
 function thumbCard(card: HTMLElement) {
+  dehydrateCard(card)
   const metrics = orbitMetrics(Math.max(1, sessionCards.length || orbitSlots.length))
   card.style.boxSizing = 'border-box'
   card.style.position = 'relative'
@@ -458,25 +476,27 @@ function ensureSession(grid: HTMLElement) {
   const inners = cards.flatMap((card) => [...card.querySelectorAll<HTMLElement>('.CardInnerContainer')])
   const saved = savedStyles([...cards, ...inners])
   sessionCards = cards
-    sessionUndo = () => {
-      disposeCarousel()
-      stopOrbit()
-      orbitRing?.remove()
-      orbitRing = null
-      orbitSlots = []
-      for (const [parent, nodes] of parents) {
-        for (const node of nodes) parent.appendChild(node)
-      }
-      restoreStyles(saved)
-      sessionUndo = null
-      sessionCards = []
-      orbitStartedAt = 0
-      orbitTighten = 0
-      orbitTightenTarget = 0
-      grid.classList.remove('is-result', 'is-orbit', 'is-carousel')
-      page()?.classList.remove('is-folio-session')
+  for (const card of sessionCards) dehydrateCard(card)
+  sessionUndo = () => {
+    disposeCarousel()
+    stopOrbit()
+    orbitRing?.remove()
+    orbitRing = null
+    orbitSlots = []
+    for (const [parent, nodes] of parents) {
+      for (const node of nodes) parent.appendChild(node)
     }
+    restoreStyles(saved)
+    sessionUndo = null
+    sessionCards = []
+    orbitStartedAt = 0
+    orbitTighten = 0
+    orbitTightenTarget = 0
+    grid.classList.remove('is-result', 'is-orbit', 'is-carousel')
+    page()?.classList.remove('is-folio-session')
+    refreshStackMedia()
   }
+}
 
 function mountOrbitRing(grid: HTMLElement) {
   if (!orbitRing || !orbitRing.isConnected) {
@@ -853,6 +873,7 @@ function carouselMetrics(count: number) {
 }
 
 function styleCarouselCard(card: HTMLElement, size: number) {
+  hydrateCard(card)
   card.style.boxSizing = 'border-box'
   card.style.position = 'fixed'
   card.style.margin = '0'

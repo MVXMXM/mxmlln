@@ -9,17 +9,11 @@ function folioBody() {
 
   let html = file.slice(bodyStart + '<body>'.length, bodyEnd)
   const navStart = html.indexOf('<!-- Nav Bar -->')
-  const fadeStart = html.indexOf('<div class="bottomFade"')
-  if (navStart === -1 || fadeStart === -1 || fadeStart < navStart) {
+  const mainStart = html.indexOf('<!-- Main Content -->')
+  if (navStart === -1 || mainStart === -1 || mainStart < navStart) {
     throw new Error('portfolio.html nav markers moved')
   }
-  html = html.slice(0, navStart) + html.slice(fadeStart)
-
-  const overlayStart = html.indexOf('<div class="navBarOverlay"')
-  const overlayEnd = overlayStart === -1 ? -1 : html.indexOf('</div>', overlayStart)
-  if (overlayStart !== -1 && overlayEnd !== -1) {
-    html = html.slice(0, overlayStart) + html.slice(overlayEnd + '</div>'.length)
-  }
+  html = html.slice(0, navStart) + html.slice(mainStart)
 
   return html.replace(/<script\b[\s\S]*?<\/script>/gi, '')
 }

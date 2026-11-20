@@ -884,6 +884,8 @@ function initIntroAnimation() {
   }, 1000);
 
   setTimeout(function() {
+    // Next strips the vanilla nav; arm the React dock before that early return.
+    document.querySelector('.folio-dock')?.classList.add('is-in');
     const nav = document.querySelector('.navDynamicContainer');
     if (!nav) return;
     nav.style.transition = 'opacity 250ms ease';
@@ -899,7 +901,6 @@ function initIntroAnimation() {
         nav.style.bottom = NAV_DOCK_BOTTOM;
       }, 250);
     }, 250);
-    document.querySelector('.folio-dock')?.classList.add('is-in');
   }, 1250);
 
   document.body.style.overflowY = 'hidden';
@@ -910,6 +911,9 @@ function initIntroAnimation() {
 
 window.initIntroAnimation = initIntroAnimation;
 window.skipIntroAnimation = skipIntroAnimation;
+window.unmountCardVideo = unmountCardVideo;
+window.mountCardVideo = mountCardVideo;
+window.hydrateStackMedia = hydrateStackMedia;
 
 function youtubeVideoId(href) {
     const match = String(href || '').match(
