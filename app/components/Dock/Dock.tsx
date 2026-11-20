@@ -4,7 +4,6 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { flushSync } from 'react-dom';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
-import { setFolioComposerFocus } from '@/app/(folio)/folio-viewport';
 import { DockGlass } from './DockGlass';
 import './dock.css';
 
@@ -113,7 +112,6 @@ export function Dock({
   const activeItem = activeItemProp ?? uncontrolledItem;
 
   const closeComposer = useCallback(() => {
-    setFolioComposerFocus(false);
     setComposer(false);
     setComposerClosing(true);
     setUncontrolledItem('work');
@@ -134,18 +132,8 @@ export function Dock({
     }
     // Commit before focus so `inert` clears in the same tap (iOS needs the gesture).
     flushSync(() => setComposer(true));
-    setFolioComposerFocus(true);
     inputRef.current?.focus({ preventScroll: true });
   }, []);
-
-  useEffect(() => {
-    if (!composer) {
-      setFolioComposerFocus(false);
-      return;
-    }
-    setFolioComposerFocus(true);
-    return () => setFolioComposerFocus(false);
-  }, [composer]);
 
   useEffect(() => {
     const cluster = clusterRef.current;
@@ -332,7 +320,6 @@ export function Dock({
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="send"
-              onFocus={() => setFolioComposerFocus(true)}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;

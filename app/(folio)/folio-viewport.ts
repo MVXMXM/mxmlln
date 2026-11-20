@@ -31,21 +31,9 @@ let layoutTopWritten = -1
 let attached = false
 let detachBus: (() => void) | null = null
 let syncRaf = 0
-let composerFocus = false
 
 function page() {
   return document.querySelector('.folio-page')
-}
-
-export function setFolioComposerFocus(open: boolean) {
-  composerFocus = open
-  const root = page()
-  if (root instanceof HTMLElement) {
-    if (open) root.dataset.folioComposer = 'true'
-    else delete root.dataset.folioComposer
-  }
-  if (open) window.scrollTo(0, 0)
-  syncFolioVisualViewport()
 }
 
 export function syncFolioVisualViewport() {
@@ -70,7 +58,6 @@ export function syncFolioVisualViewport() {
   const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
   root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
-  root.style.setProperty('--folio-vv-offset-top', composerFocus ? `${top}px` : '0px')
 
   const layoutChanged =
     layoutHeight !== layoutHeightWritten || layoutTop !== layoutTopWritten

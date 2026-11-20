@@ -43,31 +43,6 @@ html:has(.folio-page.is-folio-session) body {
   max-height: var(--folio-vv-height, 100dvh);
 }
 
-/* Counter iOS vv offsetTop — omit .folio-dock (uses --folio-dock-bottom). */
-.folio-page[data-folio-composer] .AllStacks,
-.folio-page[data-folio-composer] .TitleBlock3,
-.folio-page[data-folio-composer] #StackBar,
-.folio-page[data-folio-composer] .folio-stage,
-.folio-page[data-folio-composer] .folio-about-slot,
-.folio-page[data-folio-composer] .folio-masonry,
-.folio-page[data-folio-composer] .folio-carousel-chrome {
-  transform: translate3d(0, var(--folio-vv-offset-top, 0px), 0);
-  will-change: transform;
-}
-
-.folio-page[data-folio-composer] .folio-focus-column {
-  transform: translate3d(-50%, var(--folio-vv-offset-top, 0px), 0);
-  will-change: transform;
-}
-
-.folio-page[data-folio-composer] .folio-focus-column.is-session:not(.is-answered) {
-  transform: translate3d(-50%, calc(-50% + var(--folio-vv-offset-top, 0px)), 0);
-}
-
-.folio-page[data-folio-composer] .folio-focus-column.is-session.is-answered {
-  transform: translate3d(0, var(--folio-vv-offset-top, 0px), 0);
-}
-
 .folio-page,
 .folio-page *,
 .folio-page *::before,
