@@ -54,33 +54,40 @@
     }
     .bottomFade,
     .topFade {
-      position: fixed;
-      z-index: 898;
-      left: 0;
-      width: 100%;
-      pointer-events: none;
+      display: none;
     }
-    .bottomFade {
-      bottom: -2px;
-      height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
-      background-image: linear-gradient(
-        to bottom,
-        oklch(0.93 0.034 285 / 0) 0%,
-        oklch(0.93 0.034 285 / 0.75) 50%,
-        oklch(0.93 0.034 285 / 0.9) 75%,
-        oklch(0.93 0.034 285 / 1) 100%
-      );
-    }
-    .topFade {
-      top: -2px;
-      height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
-      background-image: linear-gradient(
-        to top,
-        oklch(0.96 0.024 345 / 0) 0%,
-        oklch(0.96 0.024 345 / 0.5) 50%,
-        oklch(0.96 0.024 345 / 0.75) 75%,
-        oklch(0.96 0.024 345 / 1) 100%
-      );
+    @media (max-width: 768px) {
+      .bottomFade,
+      .topFade {
+        display: block;
+        position: fixed;
+        z-index: 898;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+      .bottomFade {
+        bottom: -2px;
+        height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+        background-image: linear-gradient(
+          to bottom,
+          oklch(0.93 0.034 285 / 0) 0%,
+          oklch(0.93 0.034 285 / 0.75) 50%,
+          oklch(0.93 0.034 285 / 0.9) 75%,
+          oklch(0.93 0.034 285 / 1) 100%
+        );
+      }
+      .topFade {
+        top: -2px;
+        height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+        background-image: linear-gradient(
+          to top,
+          oklch(0.96 0.024 345 / 0) 0%,
+          oklch(0.96 0.024 345 / 0.5) 50%,
+          oklch(0.96 0.024 345 / 0.75) 75%,
+          oklch(0.96 0.024 345 / 1) 100%
+        );
+      }
     }
 
     /* Note: .IntroLoader base styles (0x0) come from StyleMatters.2024.css */

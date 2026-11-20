@@ -93,39 +93,47 @@ a {
     opacity: 0.3;
 }
 
-/* Also inlined in portfolio.html / about.html <head> for first paint. */
+/* Mobile Safari chrome only. Also inlined in portfolio.html / about.html. */
 .bottomFade,
 .topFade {
-    position: fixed;
-    z-index: 898;
-    left: 0;
-    width: 100%;
-    pointer-events: none;
+    display: none;
 }
 
-.bottomFade {
-    /* -2px overscan: iOS Safari can leave a 1px seam at bottom:0 while the URL bar animates. */
-    bottom: -2px;
-    height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
-    background-image: linear-gradient(
-        to bottom,
-        oklch(0.93 0.034 285 / 0) 0%,
-        oklch(0.93 0.034 285 / 0.75) 50%,
-        oklch(0.93 0.034 285 / 0.9) 75%,
-        oklch(0.93 0.034 285 / 1) 100%
-    );
-}
+@media (max-width: 768px) {
+    .bottomFade,
+    .topFade {
+        display: block;
+        position: fixed;
+        z-index: 898;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+    }
 
-.topFade {
-    top: -2px;
-    height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
-    background-image: linear-gradient(
-        to top,
-        oklch(0.96 0.024 345 / 0) 0%,
-        oklch(0.96 0.024 345 / 0.5) 50%,
-        oklch(0.96 0.024 345 / 0.75) 75%,
-        oklch(0.96 0.024 345 / 1) 100%
-    );
+    .bottomFade {
+        /* -2px overscan: iOS Safari can leave a 1px seam at bottom:0 while the URL bar animates. */
+        bottom: -2px;
+        height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+        background-image: linear-gradient(
+            to bottom,
+            oklch(0.93 0.034 285 / 0) 0%,
+            oklch(0.93 0.034 285 / 0.75) 50%,
+            oklch(0.93 0.034 285 / 0.9) 75%,
+            oklch(0.93 0.034 285 / 1) 100%
+        );
+    }
+
+    .topFade {
+        top: -2px;
+        height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+        background-image: linear-gradient(
+            to top,
+            oklch(0.96 0.024 345 / 0) 0%,
+            oklch(0.96 0.024 345 / 0.5) 50%,
+            oklch(0.96 0.024 345 / 0.75) 75%,
+            oklch(0.96 0.024 345 / 1) 100%
+        );
+    }
 }
 
 .navBarOverlay {
