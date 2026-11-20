@@ -814,6 +814,8 @@ function skipIntroAnimation() {
     gradeFront.style.height = '100%';
     gradeFront.style.borderRadius = '0px';
     gradeFront.style.opacity = '1';
+    gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+    gradeFront.style.transition = '';
   }
 
   const content = document.querySelector('.ContentContainer');
@@ -839,14 +841,35 @@ function skipIntroAnimation() {
 }
 
 function initIntroAnimation() {
-  $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
-    $('.IntroLoader')
-      .delay(1000)
-      .animate({top:'-100%'}, 250);
-  });
-  $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-    .delay(1250)
-    .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+  const loader = document.querySelector('.IntroLoader');
+  if (loader) {
+    loader.style.transition = 'transform 500ms ease';
+    loader.getBoundingClientRect();
+    loader.style.transform = 'translate(-50%, -50%) scale(1)';
+    setTimeout(function() {
+      loader.style.transition = 'transform 250ms ease';
+      loader.getBoundingClientRect();
+      loader.style.transform = 'translate(-50%, calc(-50% - 100vh)) scale(1)';
+    }, 1500);
+  }
+
+  const gradeFront = document.querySelector('.gradeFront');
+  if (gradeFront) {
+    const sx = 525 / Math.max(window.innerWidth, 1);
+    const sy = 525 / Math.max(window.innerHeight, 1);
+    gradeFront.style.borderRadius = '400px';
+    gradeFront.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+    gradeFront.style.opacity = '1';
+    setTimeout(function() {
+      gradeFront.style.transition = 'transform 500ms ease, border-radius 500ms ease';
+      gradeFront.getBoundingClientRect();
+      gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+      gradeFront.style.borderRadius = '0px';
+      setTimeout(function() {
+        gradeFront.style.transition = '';
+      }, 500);
+    }, 1250);
+  }
 
   setTimeout(function() {
     const content = document.querySelector('.ContentContainer');
@@ -879,9 +902,9 @@ function initIntroAnimation() {
     }, 250);
   }, 1250);
 
-  $('body').css('overflow-y', 'hidden');
+  document.body.style.overflowY = 'hidden';
   setTimeout(function() {
-    $('body').css('overflow-y', 'auto');
+    document.body.style.overflowY = 'auto';
   }, 2500);
 }
 
