@@ -18,23 +18,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.75, viewport-fit=cover" />
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
 
-  <link rel="stylesheet" href="css/StyleMatters.2024.css">
-  <link rel="stylesheet" href="./components/NavBar.css">
-  <link rel="stylesheet" href="css/ProgressiveBlur.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="./js/IntenseImages/intense.js"></script>
-    
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
-  <!-- Lottie player (light version - 40% smaller) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
-  
   <style>
+    /* Canvas + edge fades before stylesheets — keep in sync with
+       StyleMatters.2024.css (html) and NavBar.css (.topFade / .bottomFade). */
+    html {
+      background-color: oklch(0.86 0.04 260);
+    }
+    /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
+    @media (max-width: 768px) {
+      .gradeFront {
+        position: fixed;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.75);
+        filter: blur(150px);
+        overflow: hidden;
+        pointer-events: none;
+      }
+    }
+    .bottomFade,
+    .topFade {
+      position: fixed;
+      z-index: 898;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+    }
+    .bottomFade {
+      bottom: -2px;
+      height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+      background-image: linear-gradient(
+        to bottom,
+        oklch(0.93 0.034 285 / 0) 0%,
+        oklch(0.93 0.034 285 / 0.75) 50%,
+        oklch(0.93 0.034 285 / 0.9) 75%,
+        oklch(0.93 0.034 285 / 1) 100%
+      );
+    }
+    .topFade {
+      top: -2px;
+      height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+      background-image: linear-gradient(
+        to top,
+        oklch(0.96 0.024 345 / 0) 0%,
+        oklch(0.96 0.024 345 / 0.5) 50%,
+        oklch(0.96 0.024 345 / 0.75) 75%,
+        oklch(0.96 0.024 345 / 1) 100%
+      );
+    }
+
     /* Note: .IntroLoader base styles come from StyleMatters.2024.css */
     /* jQuery animates it to 300x300, so we don't set size here */
     .IntroLoader svg, .IntroLoader img {
@@ -57,10 +95,30 @@
     }
   </style>
 
+  <link rel="stylesheet" href="css/StyleMatters.2024.css">
+  <link rel="stylesheet" href="./components/NavBar.css">
+  <link rel="stylesheet" href="css/ProgressiveBlur.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="./js/IntenseImages/intense.js"></script>
+    
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+  <!-- Lottie player (light version - 40% smaller) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
+
 </head>
 
 <body>
-  
+  <div class="gradeBG"></div>
+  <div class="gradeFront"></div>
+  <div class="topFade" id="topFade"></div>
+  <div class="bottomFade" id="bottomFade"></div>
+
   <!-- Intro Graphic -->
   <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
@@ -256,11 +314,8 @@
         </div>    
     </div>
   </div>
-  <div class="bottomFade" id="bottomFade"></div>
   <div class="navBarOverlay" id="navBarOverlay" onclick="document.getElementById('chatViewContent').style.visibility === 'visible' ? closeNavChatView() : (document.getElementById('contactViewContent').style.visibility === 'visible' ? closeNavContactView() : document.getElementById('infoViewContent').style.visibility === 'visible' ? closeNavInfoView() : null)">
   </div>
-  <div class="gradeFront"></div>
-  <div class="gradeBG"></div>
 
   <!-- Main Content -->
   <div class="ContentContainer" style="display:none;"> 
@@ -519,7 +574,7 @@
     var nav = document.querySelector('.navDynamicContainer');
     if (nav) {
       nav.style.display = '';
-      nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+      nav.style.bottom = NAV_DOCK_BOTTOM;
     }
     document.body.style.overflowY = 'auto';
   }
@@ -528,9 +583,13 @@
     $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
       $('.IntroLoader').delay(1000).animate({top:'-100%'}, 250);
     });
-    $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-      .delay(1250)
-      .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      $('.gradeFront').css({width: '100%', height: '100%', borderRadius: '0px', opacity: '1'});
+    } else {
+      $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
+        .delay(1250)
+        .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+    }
     setTimeout(function() {
       $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
         $('.ContentContainer').animate({top: '0px'}, 1000);
@@ -538,7 +597,10 @@
     }, 1000);
     setTimeout(function() {
       $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
-        $('.navDynamicContainer').animate({bottom: '24px'}, 250);
+        // jQuery can't animate calc()/env(); tween then snap to NAV_DOCK_BOTTOM.
+        $('.navDynamicContainer').animate({bottom: '24px'}, 250, function() {
+          this.style.bottom = NAV_DOCK_BOTTOM;
+        });
       });
     }, 1250);
     $('body').css('overflow-y', 'hidden');

@@ -29,6 +29,60 @@
   
   <!-- Load critical CSS first -->
   <style>
+    /* Canvas + edge fades before deferred sheets — keep in sync with
+       StyleMatters.2024.css (html) and NavBar.css (.topFade / .bottomFade). */
+    html {
+      background-color: oklch(0.86 0.04 260);
+    }
+    /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
+    @media (max-width: 768px) {
+      .gradeFront {
+        position: fixed;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.75);
+        filter: blur(150px);
+        overflow: hidden;
+        pointer-events: none;
+      }
+    }
+    .bottomFade,
+    .topFade {
+      position: fixed;
+      z-index: 898;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+    }
+    .bottomFade {
+      bottom: -2px;
+      height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+      background-image: linear-gradient(
+        to bottom,
+        oklch(0.93 0.034 285 / 0) 0%,
+        oklch(0.93 0.034 285 / 0.75) 50%,
+        oklch(0.93 0.034 285 / 0.9) 75%,
+        oklch(0.93 0.034 285 / 1) 100%
+      );
+    }
+    .topFade {
+      top: -2px;
+      height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+      background-image: linear-gradient(
+        to top,
+        oklch(0.96 0.024 345 / 0) 0%,
+        oklch(0.96 0.024 345 / 0.5) 50%,
+        oklch(0.96 0.024 345 / 0.75) 75%,
+        oklch(0.96 0.024 345 / 1) 100%
+      );
+    }
+
     /* Note: .IntroLoader base styles (0x0) come from StyleMatters.2024.css */
     /* FolioEngine.js animates it to 300x300, so we don't set size here */
     .IntroLoader svg, .IntroLoader img {
@@ -87,7 +141,11 @@
 </head>
 
 <body>
-  
+  <div class="gradeBG"></div>
+  <div class="gradeFront"></div>
+  <div class="topFade" id="topFade"></div>
+  <div class="bottomFade" id="bottomFade"></div>
+
   <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
   <!-- Nav Bar -->
@@ -280,11 +338,8 @@
         </div>    
     </div>
   </div>
-  <div class="bottomFade" id="bottomFade"></div>
   <div class="navBarOverlay" id="navBarOverlay" onclick="document.getElementById('chatViewContent').style.visibility === 'visible' ? closeNavChatView() : (document.getElementById('contactViewContent').style.visibility === 'visible' ? closeNavContactView() : document.getElementById('infoViewContent').style.visibility === 'visible' ? closeNavInfoView() : null)">
   </div>
-  <div class="gradeFront"></div>
-  <div class="gradeBG"></div>
 
   <!-- Main Content -->
     <div class="ContentContainer" style="display: none; top: 200%;"> 

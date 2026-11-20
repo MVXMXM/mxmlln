@@ -70,7 +70,7 @@ const initialStyles = {
         transition: 'all 0.15s ease'
     },
     StackBar: {
-        zIndex: '699',
+        zIndex: '9998',
         position: 'fixed',
         top: '-124px',
         left: '50%',
@@ -708,6 +708,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         document.getElementById('stackBarSectionName').textContent = sectionName;
         const StackBar = document.getElementById('StackBar');
         StackBar.style.transition = 'top 0.5s, opacity 0.5s, visibility 0.5s';
+        StackBar.style.zIndex = initialStyles.StackBar.zIndex;
         StackBar.style.top = '24px';
         StackBar.style.opacity = '1';
         StackBar.style.visibility = 'visible';
@@ -825,7 +826,7 @@ function skipIntroAnimation() {
   const nav = document.querySelector('.navDynamicContainer');
   if (nav) {
     nav.style.display = '';
-    nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+    nav.style.bottom = NAV_DOCK_BOTTOM;
   }
 
   document.body.classList.add('folio-in');
@@ -838,9 +839,13 @@ function initIntroAnimation() {
       .delay(1000)
       .animate({top:'-100%'}, 250);
   });
-  $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-    .delay(1250)
-    .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    $('.gradeFront').css({width: '100%', height: '100%', borderRadius: '0px', opacity: '1'});
+  } else {
+    $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
+      .delay(1250)
+      .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+  }
   setTimeout(function() {
     $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
       $('.ContentContainer').animate({top: '0px'}, 1000, function() {
@@ -851,8 +856,9 @@ function initIntroAnimation() {
 
   setTimeout(function() {
     $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
+      // jQuery can't animate calc()/env(); tween then snap to NAV_DOCK_BOTTOM.
       $('.navDynamicContainer').animate({bottom: '24px'}, 250, function() {
-        this.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+        this.style.bottom = NAV_DOCK_BOTTOM;
       });
     });
   }, 1250);
