@@ -50,9 +50,9 @@
 .mx-dock .dockCluster {
   position: fixed;
   z-index: 900;
-  /* Track visualViewport every frame — no keyboard-threshold mode switch. */
-  bottom: auto;
-  top: calc(var(--folio-vv-bottom, 100dvh) - 64px - 24px);
+  /* Bottom-anchored so info/contact grow upward; inset tracks the OSK every frame. */
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-vv-inset-bottom, 0px));
+  top: auto;
   left: 0;
   right: 0;
   margin-inline: auto;

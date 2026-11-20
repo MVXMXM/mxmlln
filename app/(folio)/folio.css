@@ -362,8 +362,8 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 .folio-masonry.is-result.is-carousel {
-  /* Above the reply column (850) so ring drags aren’t lost to pass-through quirks. */
-  z-index: 860;
+  /* Above the dock glass canvas (~899) — WebGL can still eat hits at opacity 0. */
+  z-index: 905;
   pointer-events: auto;
   touch-action: none;
 }
@@ -380,11 +380,11 @@ html:has(.folio-page.is-folio-session) body {
 /* Headline centers between card & stepper; stepper sits 24px above the
    chat input (positions set in JS). Fade children — not a parent opacity
    group — so soft-light can blend with the page like .Title. */
-/* Above the dock glass canvas (~899) so refraction sits under the chrome like the dock. */
+/* Above the carousel cards (905) so the stepper stays clickable. */
 .folio-carousel-chrome {
   position: fixed;
   inset: 0;
-  z-index: 901;
+  z-index: 910;
   pointer-events: none;
 }
 
