@@ -12,8 +12,9 @@ export {
   syncFolioVisualViewport,
 } from './folio-viewport'
 
+/** Empty-compose park (mobile) — not dock composer chrome. */
 function folioComposing() {
-  return Boolean(document.querySelector('.mx-dock[data-composer]'))
+  return Boolean(document.querySelector('.folio-page[data-folio-composing]'))
 }
 
 declare global {
@@ -231,7 +232,7 @@ function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
   const sizeWide = orbitThumbSize(count)
 
-  // Composer open — tighter ring for the shorter visible band (was OSK-threshold gated).
+  // Empty-compose park — tighter ring for the shorter visible band.
   if (folioComposing()) {
     const radius = Math.min(vw, vh) / 2 + sizeWide * 0.2
     const size = Math.min(sizeWide, Math.max(18, packOrbitSize(count, radius)))

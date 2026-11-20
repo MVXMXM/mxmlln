@@ -287,10 +287,20 @@ export function HomeDock() {
   const parkedBlurb = useRef(false)
   const answersRef = useRef(answers)
   answersRef.current = answers
-  // Empty-compose mode (field focused for a new ask) — not the same as data-composer chrome.
+  // Empty-compose mode (mobile park) — not the same as data-composer chrome.
   const browsing = !!answers && !composing
   const waiting = !browsing
   const loading = !answers && !!userMessage
+
+  useEffect(() => {
+    const page = document.querySelector('.folio-page')
+    if (!(page instanceof HTMLElement)) return
+    if (composing) page.dataset.folioComposing = 'true'
+    else delete page.dataset.folioComposing
+    return () => {
+      delete page.dataset.folioComposing
+    }
+  }, [composing])
 
   useLayoutEffect(() => {
     if (!waiting || composing || !column.current) return
@@ -649,12 +659,19 @@ export function HomeDock() {
         <Dock
           onActiveItemChange={selectItem}
           onComposerChange={(open) => {
-            setComposing((prev) => {
-              if (prev && !open && answersRef.current) parkedBlurb.current = true
-              return open
-            })
+            if (!open) {
+              setComposing((prev) => {
+                if (prev && answersRef.current) parkedBlurb.current = true
+                return false
+              })
+              return
+            }
+            // Empty-compose park is mobile-only — desktop keeps results while the field is open.
+            if (window.matchMedia('(max-width: 768px)').matches) setComposing(true)
           }}
-          onComposerFocus={() => setComposing(true)}
+          onComposerFocus={() => {
+            if (window.matchMedia('(max-width: 768px)').matches) setComposing(true)
+          }}
           onSend={send}
         />
       </div>
