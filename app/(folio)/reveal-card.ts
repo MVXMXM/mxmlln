@@ -2,18 +2,19 @@ import { attachLiquidGlass } from '@/app/components/Dock/DockGlass'
 import { targetForCardUrl } from '@/content/folio-card-map'
 import {
   bindFolioVisualViewport,
-  folioKeyboardOpen,
   folioViewport,
   syncFolioVisualViewport,
 } from './folio-viewport'
 
 export {
   bindFolioVisualViewport,
-  FOLIO_KEYBOARD_INSET,
-  folioKeyboardOpen,
   folioViewport,
   syncFolioVisualViewport,
 } from './folio-viewport'
+
+function folioComposing() {
+  return Boolean(document.querySelector('.mx-dock[data-composer]'))
+}
 
 declare global {
   interface Window {
@@ -228,12 +229,10 @@ function packOrbitSize(count: number, radius: number) {
 
 function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
-  const keyboard = folioKeyboardOpen()
-  
   const sizeWide = orbitThumbSize(count)
 
-  if (keyboard) {
-    
+  // Composer open — tighter ring for the shorter visible band (was OSK-threshold gated).
+  if (folioComposing()) {
     const radius = Math.min(vw, vh) / 2 + sizeWide * 0.2
     const size = Math.min(sizeWide, Math.max(18, packOrbitSize(count, radius)))
     return {

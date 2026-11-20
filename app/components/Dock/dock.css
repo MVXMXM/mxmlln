@@ -50,7 +50,9 @@
 .mx-dock .dockCluster {
   position: fixed;
   z-index: 900;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-vv-inset-bottom, 0px));
+  /* Track visualViewport every frame — no keyboard-threshold mode switch. */
+  bottom: auto;
+  top: calc(var(--folio-vv-bottom, 100dvh) - 64px - 24px);
   left: 0;
   right: 0;
   margin-inline: auto;
@@ -59,12 +61,6 @@
   align-items: flex-end;
   width: max-content;
   pointer-events: none;
-}
-
-/* Software keyboard: pin to the visual bottom, not the layout bottom. */
-.folio-page[data-folio-keyboard] .mx-dock .dockCluster {
-  bottom: auto;
-  top: calc(var(--folio-vv-bottom, 100dvh) - 64px - 24px);
 }
 
 .mx-dock .dockDynamicContainer {

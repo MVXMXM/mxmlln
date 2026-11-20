@@ -548,7 +548,6 @@ function mountPageGlass(dock: HTMLElement) {
   let started = false;
   let revealed = false;
   let resizeTimer = 0;
-  let scrollTimer = 0;
   let motionFrame = 0;
   let mediaFrame = 0;
   let orbitFrame = 0;
@@ -568,6 +567,9 @@ function mountPageGlass(dock: HTMLElement) {
   let undoRenderLens: (() => void) | null = null;
   let undoOverscroll: (() => void) | null = null;
   let poseFrame = 0;
+  let vvSettleTimer = 0;
+  let lastVvHeight = 0;
+  let layoutSettling = false;
   let canvasGeom = '';
   // Glassworks snapshots this node’s scroll height and parks its canvas at z-index 0.
   // Empty plate = first snapshot off the page; lift under the dock (gradient is z-index 1).
@@ -661,7 +663,7 @@ function mountPageGlass(dock: HTMLElement) {
   const syncLensPose = () => {
     if (cancelled || !started) return;
         // Minify animates width/height on the main thread — skip GL work so it doesn’t hitch mid-pill.
-    if (scrollShape || dock.dataset.dockScrolling) return;
+    if (scrollShape || dock.dataset.dockScrolling || layoutSettling) return;
     liftCanvas();
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
     if (!renderer) return;
@@ -678,6 +680,39 @@ function mountPageGlass(dock: HTMLElement) {
       poseFrame = 0;
       syncLensPose();
     });
+  };
+
+  // Pause photographs while vv height is moving (OSK); resume after a short settle.
+  const onViewport = () => {
+    const height = Math.round(window.visualViewport?.height ?? window.innerHeight);
+    if (lastVvHeight && Math.abs(height - lastVvHeight) > 2) {
+      layoutSettling = true;
+      const canvas = window.__liquidGLRenderer__?.canvas;
+      if (canvas && started && !dock.dataset.dockPaging) {
+        canvas.style.transition = 'none';
+        canvas.style.opacity = '0';
+      }
+      window.clearTimeout(vvSettleTimer);
+      vvSettleTimer = window.setTimeout(() => {
+        layoutSettling = false;
+        if (cancelled || !started) return;
+        refresh(true);
+        const next = window.__liquidGLRenderer__?.canvas;
+        if (
+          next &&
+          !dock.dataset.dockMoving &&
+          !dock.dataset.dockPaging &&
+          !dock.dataset.dockScrolling
+        ) {
+          next.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+          next.style.opacity = '1';
+        }
+        scheduleLensPose();
+      }, 140);
+    } else if (!layoutSettling) {
+      scheduleLensPose();
+    }
+    lastVvHeight = height;
   };
 
   const fitRim = () => {
@@ -843,7 +878,7 @@ function mountPageGlass(dock: HTMLElement) {
   };
 
   const followMedia = (region: DOMRect) => {
-    if (mediaFrame || cancelled || dock.dataset.dockMoving) return;
+    if (mediaFrame || cancelled || dock.dataset.dockMoving || layoutSettling) return;
     const scrolling = Boolean(dock.dataset.dockScrolling);
     if (!scrolling && !gifsUnder(region).length && !videoUnder(region)) return;
     mediaFrame = requestAnimationFrame(() => {
@@ -871,10 +906,10 @@ function mountPageGlass(dock: HTMLElement) {
   const orbitLive = () =>
     Boolean(dock.closest('.folio-page')?.querySelector('.folio-masonry.is-orbit'));
   const followOrbit = () => {
-    if (orbitFrame || cancelled || dock.dataset.dockMoving || !orbitLive()) return;
+    if (orbitFrame || cancelled || dock.dataset.dockMoving || layoutSettling || !orbitLive()) return;
     orbitFrame = requestAnimationFrame(() => {
       orbitFrame = 0;
-      if (cancelled || !started || dock.dataset.dockMoving || !orbitLive()) return;
+      if (cancelled || !started || dock.dataset.dockMoving || layoutSettling || !orbitLive()) return;
       if (performance.now() - refreshedAt > 12) refresh();
       else followOrbit();
     });
@@ -882,7 +917,14 @@ function mountPageGlass(dock: HTMLElement) {
 
   const refresh = (force = false) => {
     const renderer = window.__liquidGLRenderer__ as CapturedRenderer | undefined;
-    if (!renderer?._uploadTexture || cancelled || dock.dataset.dockPaging || (!force && dock.dataset.dockScrolling)) return;
+    if (
+      !renderer?._uploadTexture ||
+      cancelled ||
+      dock.dataset.dockPaging ||
+      (!force && (dock.dataset.dockScrolling || layoutSettling))
+    ) {
+      return;
+    }
     const region = syncPlate();
     if (region.width < 1 || region.height < 1) return;
     try {
@@ -910,12 +952,45 @@ function mountPageGlass(dock: HTMLElement) {
 
   // Touch identifiers currently down on the page (not ++/-- — that desyncs on cancel).
   const pageTouches = new Set<number>();
+  // Desire vs in-flight: interrupts only write intent; settle reconciles the DOM.
+  // Idle debounce and width settle must not share a timer.
+  let releaseIdleTimer = 0;
+  let minifySettleTimer = 0;
+  let minifyIntent: 'open' | 'minified' = 'open';
+  let minifyAnimating = false;
 
-  const releaseScroll = (force = false) => {
-    scrollTimer = 0;
-    if (!dock.dataset.dockScrolling) return;
-    // Finger still down — expanding mid-gesture re-minifies on the next move.
-    if (!force && pageTouches.size > 0) return;
+  const finishMinifySettle = () => {
+    minifySettleTimer = 0;
+    minifyAnimating = false;
+    delete dock.dataset.dockExpanding;
+    if (minifyIntent === 'open') {
+      scrollShape = false;
+      home = null;
+      if (started) refresh();
+      scheduleLensPose();
+    }
+    reconcileMinify();
+  };
+
+  const applyMinified = () => {
+    if (!home) home = dock.getBoundingClientRect();
+    scrollShape = true;
+    delete dock.dataset.dockExpanding;
+    dock.dataset.dockScrolling = 'true';
+    if (started) {
+      const canvas = window.__liquidGLRenderer__?.canvas;
+      if (canvas) {
+        canvas.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+        canvas.style.opacity = '0';
+      }
+      if (!mediaFrame) followMedia(syncPlate());
+    }
+    minifyAnimating = true;
+    window.clearTimeout(minifySettleTimer);
+    minifySettleTimer = window.setTimeout(finishMinifySettle, 320);
+  };
+
+  const applyOpen = () => {
     scrollingClips = null;
     if (mediaFrame) {
       cancelAnimationFrame(mediaFrame);
@@ -928,43 +1003,51 @@ function mountPageGlass(dock: HTMLElement) {
     dock.dataset.dockExpanding = 'true';
     delete dock.dataset.dockScrolling;
     if (canvas && !dock.dataset.dockMoving && !dock.dataset.dockPaging) canvas.style.opacity = '1';
-    window.clearTimeout(scrollTimer);
-    scrollTimer = window.setTimeout(() => {
-      delete dock.dataset.dockExpanding;
-      scrollShape = false;
-      home = null;
-      scrollTimer = 0;
-      if (started) refresh();
-      scheduleLensPose();
-    }, 600);
+    minifyAnimating = true;
+    window.clearTimeout(minifySettleTimer);
+    minifySettleTimer = window.setTimeout(finishMinifySettle, 560);
+  };
+
+  const reconcileMinify = () => {
+    if (minifyAnimating) return;
+    const minified = Boolean(dock.dataset.dockScrolling);
+    if (minifyIntent === 'minified') {
+      if (!minified) applyMinified();
+      return;
+    }
+    if (minified) applyOpen();
+  };
+
+  const setMinifyIntent = (next: 'open' | 'minified', force = false) => {
+    // Finger still down — opening mid-gesture would bounce on the next move.
+    if (next === 'open' && !force && pageTouches.size > 0) return;
+    minifyIntent = next;
+    if (force) {
+      window.clearTimeout(releaseIdleTimer);
+      releaseIdleTimer = 0;
+      window.clearTimeout(minifySettleTimer);
+      minifySettleTimer = 0;
+      minifyAnimating = false;
+    } else if (minifyAnimating) {
+      return;
+    }
+    reconcileMinify();
   };
 
   const scheduleScrollRelease = () => {
-    window.clearTimeout(scrollTimer);
+    window.clearTimeout(releaseIdleTimer);
     if (pageTouches.size > 0) return;
-    scrollTimer = window.setTimeout(() => releaseScroll(), 400);
+    if (minifyIntent !== 'minified') return;
+    releaseIdleTimer = window.setTimeout(() => setMinifyIntent('open'), 400);
   };
 
   const armScrollMinify = () => {
     // Chat composer stays full-width — minify is for the idle dock only.
     if (dock.closest('.mx-dock')?.hasAttribute('data-composer')) {
-      if (dock.dataset.dockScrolling) releaseScroll(true);
+      setMinifyIntent('open', true);
       return;
     }
-    if (!dock.dataset.dockScrolling) {
-      if (!home) home = dock.getBoundingClientRect();
-      scrollShape = true;
-      delete dock.dataset.dockExpanding;
-      dock.dataset.dockScrolling = 'true';
-      if (started) {
-        const canvas = window.__liquidGLRenderer__?.canvas;
-        if (canvas) {
-          canvas.style.transition = 'opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1)';
-          canvas.style.opacity = '0';
-        }
-        if (!mediaFrame) followMedia(syncPlate());
-      }
-    }
+    setMinifyIntent('minified');
     scheduleScrollRelease();
   };
 
@@ -988,12 +1071,12 @@ function mountPageGlass(dock: HTMLElement) {
     for (const touch of event.changedTouches) pageTouches.delete(touch.identifier);
     // Absolute sync — missed cancels otherwise leave ids and never expand.
     if (event.touches.length === 0) pageTouches.clear();
-    if (pageTouches.size === 0 && dock.dataset.dockScrolling) scheduleScrollRelease();
+    if (pageTouches.size === 0 && minifyIntent === 'minified') scheduleScrollRelease();
   };
 
   const forceClearTouches = () => {
     pageTouches.clear();
-    if (dock.dataset.dockScrolling) releaseScroll(true);
+    setMinifyIntent('open', true);
   };
 
   const onVisibility = () => {
@@ -1160,7 +1243,7 @@ function mountPageGlass(dock: HTMLElement) {
   if (!folioDock || folioDock.classList.contains('is-in')) queueBegin();
 
   
-  const unbindViewport = bindFolioVisualViewport(scheduleLensPose);
+  const unbindViewport = bindFolioVisualViewport(onViewport);
 
   return () => {
     cancelled = true;
@@ -1169,7 +1252,9 @@ function mountPageGlass(dock: HTMLElement) {
     window.clearTimeout(settleWait);
     window.clearTimeout(resizeTimer);
     window.clearTimeout(settleTimer);
-    window.clearTimeout(scrollTimer);
+    window.clearTimeout(releaseIdleTimer);
+    window.clearTimeout(minifySettleTimer);
+    window.clearTimeout(vvSettleTimer);
     if (motionFrame) cancelAnimationFrame(motionFrame);
     if (mediaFrame) cancelAnimationFrame(mediaFrame);
     if (orbitFrame) cancelAnimationFrame(orbitFrame);

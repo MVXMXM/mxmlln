@@ -9,8 +9,8 @@ export function folioViewport() {
   }
 }
 
-/** On-screen keyboard — not hardware focus. Desktop inset stays ~0. */
-export const FOLIO_KEYBOARD_INSET = 120
+/** Ignore tiny URL-bar jitter when tracking resting height. */
+const REST_HEIGHT_SLACK = 120
 
 type Listener = () => void
 
@@ -34,18 +34,12 @@ export function syncFolioVisualViewport() {
   // iOS often shrinks window.innerHeight with the keyboard, so
   // innerHeight − vv.bottom stays ~0. Diff against a resting vv height instead.
   if (height >= restHeight - 1) restHeight = height
-  else if (restHeight - height < FOLIO_KEYBOARD_INSET) restHeight = height
+  else if (restHeight - height < REST_HEIGHT_SLACK) restHeight = height
   const inset = Math.max(0, restHeight - height)
   root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
   root.style.setProperty('--folio-vv-height', `${height}px`)
   root.style.setProperty('--folio-vv-top', `${top}px`)
   root.style.setProperty('--folio-vv-bottom', `${bottom}px`)
-  if (inset >= FOLIO_KEYBOARD_INSET) root.dataset.folioKeyboard = 'true'
-  else delete root.dataset.folioKeyboard
-}
-
-export function folioKeyboardOpen() {
-  return Boolean(page()?.hasAttribute('data-folio-keyboard'))
 }
 
 function attach() {

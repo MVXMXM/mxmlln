@@ -3,11 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import lottie from 'lottie-web'
 import { Dock, type DockItem } from '@/app/components/Dock/Dock'
-import {
-  bindFolioVisualViewport,
-  folioKeyboardOpen,
-  folioViewport,
-} from './folio-viewport'
+import { bindFolioVisualViewport, folioViewport } from './folio-viewport'
 import {
   armOrbitHold,
   beginFolioSession,
@@ -403,16 +399,6 @@ export function HomeDock() {
   }, [chatMounted, browsing, emptyMiss])
 
   useEffect(() => {
-    return bindFolioVisualViewport(() => {
-      const next = folioKeyboardOpen()
-      setComposing((prev) => {
-        if (prev && !next && answersRef.current) parkedBlurb.current = true
-        return next
-      })
-    })
-  }, [])
-
-  useEffect(() => {
     return () => {
       if (revealTimer.current) window.clearTimeout(revealTimer.current)
       if (closeTimer.current) window.clearTimeout(closeTimer.current)
@@ -658,7 +644,16 @@ export function HomeDock() {
         </p>
       ) : null}
       <div className="folio-dock">
-        <Dock onActiveItemChange={selectItem} onSend={send} />
+        <Dock
+          onActiveItemChange={selectItem}
+          onComposerChange={(open) => {
+            setComposing((prev) => {
+              if (prev && !open && answersRef.current) parkedBlurb.current = true
+              return open
+            })
+          }}
+          onSend={send}
+        />
       </div>
     </>
   )

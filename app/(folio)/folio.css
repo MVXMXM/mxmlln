@@ -130,9 +130,8 @@ html:has(.folio-page.is-folio-session) body {
   filter: brightness(0);
 }
 
-/* Matches the old nav intro: parked below the screen, then a 250ms rise.
-   Fill stops when the rise ends. A lingering opacity or transform animation
-   becomes the backdrop root and the glass lens stops seeing the page. */
+/* Fill must end with the rise — a lingering opacity/transform becomes the
+   backdrop root and the glass lens stops seeing the page. */
 .folio-dock:not(.is-in) .dockCluster {
   visibility: hidden;
   transform: translateY(calc(124px + env(safe-area-inset-bottom, 0px)));
@@ -771,8 +770,8 @@ html:has(.folio-page.is-folio-session) body {
   min-height: 200px;
 }
 
-/* Compose (OSK): mark is 25% smaller so the ring can sit closer. */
-.folio-page[data-folio-keyboard] .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogoContainer {
+/* Compose: mark is 25% smaller so the ring can sit closer. */
+.folio-page:has(.mx-dock[data-composer]) .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogoContainer {
   width: 150px;
   height: 150px;
   min-width: 150px;
@@ -818,7 +817,7 @@ html:has(.folio-page.is-folio-session) body {
   height: 200px;
 }
 
-.folio-page[data-folio-keyboard] .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
+.folio-page:has(.mx-dock[data-composer]) .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
   width: 150px;
   height: 150px;
 }
