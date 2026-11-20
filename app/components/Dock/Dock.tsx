@@ -89,15 +89,11 @@ export function Dock({
   contained = false,
   activeItem: activeItemProp,
   onActiveItemChange,
-  onComposerChange,
-  onComposerFocus,
   onSend,
 }: {
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
-  onComposerChange?: (open: boolean) => void;
-  onComposerFocus?: () => void;
   onSend?: (value: string) => void;
 }) {
   const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
@@ -120,11 +116,10 @@ export function Dock({
     setComposerClosing(true);
     setUncontrolledItem('work');
     onActiveItemChange?.('work');
-    onComposerChange?.(false);
     if (composerTimer.current) clearTimeout(composerTimer.current);
     // Outlasts the bar fade. Clearing sooner lets the indicator travel while the labels are still invisible.
     composerTimer.current = setTimeout(() => setComposerClosing(false), 480);
-  }, [onActiveItemChange, onComposerChange]);
+  }, [onActiveItemChange]);
 
   const openComposer = useCallback(() => {
     if (composerTimer.current) clearTimeout(composerTimer.current);
@@ -137,9 +132,8 @@ export function Dock({
     }
     // Commit before focus so `inert` clears in the same tap (iOS needs the gesture).
     flushSync(() => setComposer(true));
-    onComposerChange?.(true);
     inputRef.current?.focus({ preventScroll: true });
-  }, [onComposerChange]);
+  }, []);
 
   useEffect(() => {
     const cluster = clusterRef.current;
@@ -326,7 +320,6 @@ export function Dock({
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="send"
-              onFocus={() => onComposerFocus?.()}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;

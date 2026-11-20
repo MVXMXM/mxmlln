@@ -12,7 +12,6 @@ import {
   folioSessionOpen,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
-  parkResultsForCompose,
   releaseFolioFocus,
   reorbitSession,
   revealSessionCards,
@@ -281,31 +280,17 @@ export function HomeDock() {
   const [logoIn, setLogoIn] = useState(false)
   const [answers, setAnswers] = useState<HTMLElement[] | null>(null)
   const [dockLaunch, setDockLaunch] = useState(false)
-  const [composing, setComposing] = useState(false)
   const fadeGen = useRef(0)
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
   const logoFromRef = useRef<DOMRect | null>(null)
-  const parkedBlurb = useRef(false)
-  const answersRef = useRef(answers)
-  answersRef.current = answers
-  // Empty-compose mode (mobile park) — not the same as data-composer chrome.
-  const browsing = !!answers && !composing
+  // Mobile only raises the dock with the keyboard — no empty-compose park of results/logo.
+  const browsing = !!answers
   const waiting = !browsing
   const loading = !answers && !!userMessage
 
-  useEffect(() => {
-    const page = document.querySelector('.folio-page')
-    if (!(page instanceof HTMLElement)) return
-    if (composing) page.dataset.folioComposing = 'true'
-    else delete page.dataset.folioComposing
-    return () => {
-      delete page.dataset.folioComposing
-    }
-  }, [composing])
-
   useLayoutEffect(() => {
-    if (!waiting || composing || !column.current) return
+    if (!waiting || !column.current) return
     const logo = column.current.querySelector<HTMLElement>('.chatResponseLogoContainer')
     if (!logo) return
     const rect = logo.getBoundingClientRect()
@@ -330,11 +315,6 @@ export function HomeDock() {
         frame.style.transition = ''
         frame.style.opacity = ''
       }
-      if (composing && answers) {
-        parkResultsForCompose(grid)
-        setOrbitLoading(false)
-        return
-      }
       setOrbitLoading(!!userMessage)
       if (skipBegin.current) {
         skipBegin.current = false
@@ -358,9 +338,7 @@ export function HomeDock() {
     const logo = frame.querySelector<HTMLElement>('.chatResponseLogoContainer')
     const mark = frame.querySelector<HTMLElement>('.chatResponseLogo')
     const landMs = reducedMotion() ? 0 : Math.min(ORBIT_TRAVEL_MS, 560)
-    const replay = parkedBlurb.current
-    parkedBlurb.current = false
-    if (from && logo && mark && landMs > 0 && !replay) {
+    if (from && logo && mark && landMs > 0) {
       const to = logo.getBoundingClientRect()
       if (to.width > 2 && to.height > 2) {
         const dx = from.left - to.left
@@ -391,11 +369,10 @@ export function HomeDock() {
     const blurb = emptyMiss ? NO_CARD_MSG : (turn.current?.assistantMessage ?? '')
     revealSessionCards(grid, answers, {
       onCull: () => {
-        if (replay) return
         void streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
       },
     })
-  }, [chatMounted, userMessage, answers, emptyMiss, composing, browsing])
+  }, [chatMounted, userMessage, answers, emptyMiss, browsing])
 
   // Resize / visualViewport — blurb growth rides CSS `bottom`.
   useLayoutEffect(() => {
@@ -489,8 +466,6 @@ export function HomeDock() {
   async function send(value: string) {
     if (busy.current) return
     busy.current = true
-    // Leave empty-compose so the turn (user bubble + reply) can show; chrome can stay open.
-    setComposing(false)
     // Drop the software keyboard before loading/results reflow.
     document.querySelector<HTMLInputElement>('.dockComposerField')?.blur()
     const id = ++turnId.current
@@ -605,7 +580,7 @@ export function HomeDock() {
     <>
       {chatMounted ? (
         <div className="folio-focus-column is-session" ref={column}>
-          {userMessage && !composing ? (
+          {userMessage ? (
             <div className="folio-user-msg">
               <div className="chatQueryContainer">
                 <div className="chatQuery" style={dockLaunch ? { opacity: 0 } : undefined}>
@@ -658,24 +633,7 @@ export function HomeDock() {
         </p>
       ) : null}
       <div className="folio-dock">
-        <Dock
-          onActiveItemChange={selectItem}
-          onComposerChange={(open) => {
-            if (!open) {
-              setComposing((prev) => {
-                if (prev && answersRef.current) parkedBlurb.current = true
-                return false
-              })
-              return
-            }
-            // Empty-compose park is mobile-only — desktop keeps results while the field is open.
-            if (window.matchMedia('(max-width: 768px)').matches) setComposing(true)
-          }}
-          onComposerFocus={() => {
-            if (window.matchMedia('(max-width: 768px)').matches) setComposing(true)
-          }}
-          onSend={send}
-        />
+        <Dock onActiveItemChange={selectItem} onSend={send} />
       </div>
     </>
   )

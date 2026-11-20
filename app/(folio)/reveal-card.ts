@@ -12,11 +12,6 @@ export {
   syncFolioVisualViewport,
 } from './folio-viewport'
 
-/** Empty-compose park (mobile) — not dock composer chrome. */
-function folioComposing() {
-  return Boolean(document.querySelector('.folio-page[data-folio-composing]'))
-}
-
 declare global {
   interface Window {
     __folioReady?: boolean
@@ -141,6 +136,8 @@ type CarouselState = {
     velocity: number
     pointerId: number
     card: HTMLElement | null
+    /** Must be a .Card — masonry shell is pointer-events:none. */
+    capture: HTMLElement
   } | null
   dispose: () => void
 }
@@ -233,22 +230,6 @@ function packOrbitSize(count: number, radius: number) {
 function orbitMetrics(count: number) {
   const { width: vw, height: vh, top, left } = folioViewport()
   const sizeWide = orbitThumbSize(count)
-
-  // Empty-compose park — tighter ring for the shorter visible band.
-  if (folioComposing()) {
-    const radius = Math.min(vw, vh) / 2 + sizeWide * 0.2
-    const size = Math.min(sizeWide, Math.max(18, packOrbitSize(count, radius)))
-    return {
-      size,
-      sizeWide,
-      rx: Math.max(size, radius),
-      ry: Math.max(size, radius),
-      cx: left + vw / 2,
-      cy: top + vh / 2,
-    }
-  }
-
-  
   const wide = Math.max(vw, vh) / 2 - sizeWide * 0.2
   const ratio = sizeWide / Math.max(wide, 1)
   const logoHalf = 150
@@ -417,30 +398,6 @@ function mountOrbitRing(grid: HTMLElement) {
     slot.appendChild(card)
   })
   return metrics
-}
-
-export function parkResultsForCompose(grid: HTMLElement) {
-  if (grid.classList.contains('is-orbit') && !grid.classList.contains('is-result')) return
-  motionToken += 1
-  disposeCarousel()
-  stopOrbit()
-  ensureSession(grid)
-  syncFolioVisualViewport()
-  
-  orbitSpin = 0
-  orbitTighten = 0
-  orbitTightenTarget = 0
-  orbitStartedAt = performance.now()
-  grid.classList.remove('is-carousel', 'is-result')
-  grid.classList.add('is-orbit')
-  for (const card of sessionCards) {
-    card.style.display = 'block'
-    card.style.opacity = '1'
-    card.style.filter = 'none'
-  }
-  mountOrbitRing(grid)
-  for (const card of sessionCards) thumbCard(card)
-  runOrbit()
 }
 
 export function beginFolioSession(grid: HTMLElement) {
@@ -1061,11 +1018,13 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     if (!carousel || event.button > 0) return
     if (!(event.target instanceof Element)) return
     if (!grid.contains(event.target)) return
+    const card = event.target.closest('.Card') as HTMLElement | null
+    const hit = card && carousel.cards.includes(card) ? card : null
+    if (!hit) return
     pauseCarouselAutoplay()
     carousel.gestureOrigin = activeCarouselIndex()
     carousel.velocity = 0
     const now = performance.now()
-    const card = event.target.closest('.Card') as HTMLElement | null
     carousel.drag = {
       x: event.clientX,
       y: event.clientY,
@@ -1076,9 +1035,10 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       lastT: now,
       velocity: 0,
       pointerId: event.pointerId,
-      card: card && carousel.cards.includes(card) ? card : null,
+      card: hit,
+      capture: hit,
     }
-    // Capture only after a drag — immediate capture swallows the focused-card click.
+    hit.setPointerCapture?.(event.pointerId)
     ensureCarouselSpring()
   }
 
@@ -1087,26 +1047,21 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
     const drag = carousel.drag
     const dx = event.clientX - drag.x
     const dy = event.clientY - drag.y
-    if (Math.hypot(dx, dy) > 3) {
-      if (!drag.moved) {
-        drag.moved = true
-        grid.setPointerCapture?.(drag.pointerId)
-      }
-    }
+    if (Math.hypot(dx, dy) > 3) drag.moved = true
     const now = performance.now()
     const dt = Math.max(1, now - drag.lastT)
-        // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
+    // Negate so content follows the finger (swipe left → next). Wheel path stays as-is.
     const instant = -(event.clientX - drag.lastX + (event.clientY - drag.lastY)) / dt
     drag.velocity = drag.velocity * 0.65 + instant * 0.35
     drag.lastX = event.clientX
     drag.lastY = event.clientY
     drag.lastT = now
-    if (!drag.moved) return
 
     carousel.offset = applyCarouselInput(
       drag.offset - (dx + dy) * carouselDragGain(),
       carousel.gestureOrigin,
     )
+    advanceGestureOriginIfNeeded()
     syncCarouselRestFromOffset(drag.velocity)
     paintCarousel(carousel.offset)
     ensureCarouselSpring()
@@ -1114,14 +1069,13 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
 
   const endDrag = (event: PointerEvent) => {
     if (!carousel?.drag) return
+    if (event.pointerId !== carousel.drag.pointerId) return
     const drag = carousel.drag
     carousel.drag = null
+    try {
+      drag.capture.releasePointerCapture?.(drag.pointerId)
+    } catch {}
     if (drag.moved) {
-      try {
-        grid.releasePointerCapture?.(drag.pointerId)
-      } catch {
-        
-      }
       event.preventDefault()
       syncCarouselRestFromOffset(drag.velocity)
       carousel.inputUntil = 0
@@ -1135,8 +1089,12 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       event.preventDefault()
       event.stopPropagation()
       snapCarousel(index)
+      return
     }
-    // Focused tap — no capture was taken, so FolioEngine’s card click can fire.
+    // Pointer capture suppresses the click FolioEngine listens for.
+    event.preventDefault()
+    event.stopPropagation()
+    card.click()
   }
 
     // Unfocused cards only scroll into focus; actions stay on the focused card.

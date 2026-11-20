@@ -839,14 +839,6 @@ html:has(.folio-page.is-folio-session) body {
   min-height: 200px;
 }
 
-/* Mobile empty-compose: mark is 25% smaller so the ring can sit closer. */
-.folio-page[data-folio-composing] .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogoContainer {
-  width: 150px;
-  height: 150px;
-  min-width: 150px;
-  min-height: 150px;
-}
-
 .folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogoContainer {
   width: 0;
   height: 0;
@@ -884,11 +876,6 @@ html:has(.folio-page.is-folio-session) body {
 .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
   width: 200px;
   height: 200px;
-}
-
-.folio-page[data-folio-composing] .folio-assistant-msg.is-waiting.is-logo-in .chatResponseLogo {
-  width: 150px;
-  height: 150px;
 }
 
 .folio-assistant-msg:not(.is-waiting):not(.is-logo-in) .chatResponseLogo {
