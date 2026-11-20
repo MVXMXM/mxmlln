@@ -1423,11 +1423,12 @@ input:focus {
 	will-change: transform, opacity;
 }	
 	
-.CardInnerContainer:hover {
-	box-shadow: 0px 3px 20px 0px rgba(0, 0, 0, .15);
-	width: 415px;
-	height: 415px;
-	/* cursor: pointer; */
+@media (min-width: 769px) {
+	.CardInnerContainer:hover {
+		box-shadow: 0px 3px 20px 0px rgba(0, 0, 0, .15);
+		width: 415px;
+		height: 415px;
+	}
 }
 	
 .CardContent {

@@ -252,6 +252,11 @@ function setDefaultCardStackStyles() {
     const titleCenter = parseFloat(initialStyles.TitleBlock3.marginTop) + parseFloat(initialStyles.TitleBlock3.height) / 2;
     document.documentElement.style.setProperty('--dot-shift', `${titleCenter - grid / 2}px`);
 }
+// Touch synthesizes mouseover and leaves the fan open — skip under the mobile breakpoint.
+function stackHoverEnabled() {
+    return window.matchMedia('(min-width: 769px)').matches;
+}
+
 const cards = document.querySelectorAll('.Card');
 cards.forEach((card, index) => {
     Object.assign(card.style, initialStyles.card);
@@ -261,14 +266,17 @@ cards.forEach((card, index) => {
     setCardPosition(card, cardIndexInStack, cardsInStack.length, cardStack.id || `stack-${Math.random().toString(36).substr(2, 9)}`);
 
     cardStack.addEventListener('mouseover', function(e) {
+        if (!stackHoverEnabled()) return;
         handleCardStackHover(e, cardStack);
     });
 
     cardStack.addEventListener('mouseout', function() {
+        if (!stackHoverEnabled()) return;
         handleCardStackMouseOut(cardStack);
     });
 
     cardStack.addEventListener('mouseover', function() {
+        if (!stackHoverEnabled()) return;
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
             applyCardHoverStyles(cardStack, cardIndexInStack);
@@ -276,6 +284,7 @@ cards.forEach((card, index) => {
     });
 
     cardStack.addEventListener('mouseout', function() {
+        if (!stackHoverEnabled()) return;
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
             resetCardStyles(cardStack, cardIndexInStack, cardsInStack.length);
