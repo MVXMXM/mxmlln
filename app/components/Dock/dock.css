@@ -94,7 +94,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-    0 10px 28px rgba(0, 0, 0, 0.12);
+    0 4px 12px oklch(0.25 0.04 260 / 0.12);
 }
 
 .mx-dock .dockDynamicContainer::after {
@@ -211,7 +211,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 0 28px rgba(255, 255, 255, 0.45),
-    0 10px 28px rgba(0, 0, 0, 0.12);
+    0 4px 12px oklch(0.25 0.04 260 / 0.12);
 }
 
 .mx-dock .dockDynamicContainer[data-dock-native='true'] {
@@ -472,7 +472,7 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-archivo), 'Archivo', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.2px;
@@ -489,7 +489,7 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-archivo), 'Archivo', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.2px;

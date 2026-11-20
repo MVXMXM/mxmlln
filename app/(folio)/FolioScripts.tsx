@@ -6,6 +6,18 @@ declare global {
   interface Window {
     initIntroAnimation?: () => void
     skipIntroAnimation?: () => void
+    __folioBootStarted?: boolean
+    mountScrollThumb?: () => void
+    disposeScrollThumb?: () => void
+    lottie?: {
+      loadAnimation: (options: {
+        container: Element
+        renderer: 'svg'
+        loop: boolean
+        autoplay: boolean
+        path: string
+      }) => { addEventListener: (event: string, handler: () => void) => void }
+    }
   }
 }
 
@@ -32,7 +44,6 @@ function loadIntroLottie() {
       reject(new Error('intro lottie unavailable'))
       return
     }
-    const fallback = document.getElementById('introLoaderFallback')
     const anim = lottie.loadAnimation({
       container,
       renderer: 'svg',
@@ -40,10 +51,7 @@ function loadIntroLottie() {
       autoplay: true,
       path: '/assets/WebIntro.json',
     })
-    anim.addEventListener('DOMLoaded', () => {
-      if (fallback) fallback.style.display = 'none'
-      resolve()
-    })
+    anim.addEventListener('DOMLoaded', () => resolve())
     anim.addEventListener('data_failed', () => reject(new Error('intro data_failed')))
   })
 }
@@ -53,6 +61,11 @@ function mountOverlayScroll() {
   return loadScript('/components/ScrollThumb.js').then(() => {
     window.mountScrollThumb?.()
   })
+}
+
+function failOpen() {
+  window.skipIntroAnimation?.()
+  document.querySelector('.folio-dock')?.classList.add('is-in')
 }
 
 export function FolioScripts() {
@@ -77,16 +90,11 @@ export function FolioScripts() {
         await loadIntroLottie()
         window.initIntroAnimation?.()
       } catch {
-        // Main dropped GIF fallbacks — enter the folio directly if Lottie can’t run.
-        window.skipIntroAnimation?.()
-        document.querySelector('.folio-dock')?.classList.add('is-in')
+        failOpen()
       }
     }
 
-    boot().catch(() => {
-      window.skipIntroAnimation?.()
-      document.querySelector('.folio-dock')?.classList.add('is-in')
-    })
+    boot().catch(failOpen)
 
     return releaseScroll
   }, [])

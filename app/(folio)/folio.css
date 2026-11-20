@@ -1,9 +1,24 @@
+/* Keep in sync with StyleMatters — Safari samples this for chrome tint. */
 body:has(.folio-page) {
   display: block;
   align-items: stretch;
   max-width: none;
-  background-color: #5357eb;
-  background-image: linear-gradient(10deg, #30d6ff, #5357eb, #dd8aba, #d8d8ff);
+  background-color: oklch(0.86 0.04 260);
+  background-image: linear-gradient(
+    10deg,
+    oklch(0.86 0.063 220),
+    oklch(0.82 0.059 275),
+    oklch(0.84 0.048 345),
+    oklch(0.93 0.034 285)
+  );
+  background-size: 400% 400%;
+}
+
+@media (max-width: 768px) {
+  html:has(.folio-page),
+  body:has(.folio-page) {
+    background-color: oklch(0.93 0.034 285);
+  }
 }
 
 html:has(.folio-page),
@@ -387,6 +402,13 @@ html:has(.folio-page.is-folio-session) body {
 .folio-carousel-pill {
   position: relative;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 60px;
+  padding: 0 22px;
+  flex: 0 0 auto;
   isolation: isolate;
   overflow: hidden;
   border: 0;
@@ -398,7 +420,7 @@ html:has(.folio-page.is-folio-session) body {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-    0 10px 28px rgba(0, 0, 0, 0.12);
+    0 4px 12px oklch(0.25 0.04 260 / 0.12);
 }
 
 .folio-carousel-pill[data-dock-glass='live'] {
@@ -498,17 +520,6 @@ html:has(.folio-page.is-folio-session) body {
   mask-composite: exclude;
 }
 
-.folio-carousel-pill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 60px;
-  padding: 0 22px;
-  /* Locked in JS from dot count so last→first doesn’t momentarily shrink. */
-  flex: 0 0 auto;
-}
-
 .folio-carousel-dot {
   position: relative;
   z-index: 1;
@@ -557,14 +568,6 @@ html:has(.folio-page.is-folio-session) body {
   outline-offset: 3px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .folio-carousel-headline,
-  .folio-carousel-stepper,
-  .folio-carousel-dot {
-    transition: none;
-  }
-}
-
 @media (min-width: 1000px) {
   .folio-carousel-headline {
     font-size: var(--text-h2);
@@ -572,6 +575,12 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .folio-carousel-headline,
+  .folio-carousel-stepper,
+  .folio-carousel-dot {
+    transition: none;
+  }
+
   .folio-orbit-slot {
     will-change: auto;
   }
@@ -702,12 +711,6 @@ html:has(.folio-page.is-folio-session) body {
 
 .folio-assistant-msg.is-reply .chatBlurb p {
   min-width: 0;
-}
-
-.folio-page.is-folio-focus #StackBar {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
 }
 
 .folio-assistant-msg .chatBlurb {
@@ -846,11 +849,6 @@ html:has(.folio-page.is-folio-session) body {
   }
 }
 
-.folio-assistant-msg.is-scan {
-  width: max-content;
-  max-width: min(320px, calc(100vw - 48px));
-}
-
 .folio-assistant-msg .chatBlurb p {
   margin: 0;
   padding: 0;
@@ -859,49 +857,6 @@ html:has(.folio-page.is-folio-session) body {
   font-size: 16px;
   line-height: 1.75;
   text-align: left;
-}
-
-.folio-assistant-msg .chatBlurb .folio-scan-label,
-.folio-assistant-msg .chatBlurb .folio-scan-kicker {
-  font-family: var(--font-handwritten), "Homemade Apple", cursive;
-  color: #000;
-}
-
-.folio-assistant-msg .chatBlurb .folio-scan-label {
-  font-size: 22px;
-  line-height: 1.3;
-}
-
-.folio-assistant-msg .chatBlurb .folio-scan-kicker {
-  margin-bottom: 2px;
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.folio-assistant-msg.is-scan .chatBlurb {
-  width: max-content;
-  max-width: min(320px, calc(100vw - 48px));
-}
-
-.folio-page .CardStackLabelContainer.is-scanning {
-  outline: 3px solid #000;
-  outline-offset: 8px;
-}
-
-.folio-scan-status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-
-.folio-page .Card.is-picked {
-  outline: 3px solid #000;
-  outline-offset: 4px;
 }
 
 .folio-chat-failure {

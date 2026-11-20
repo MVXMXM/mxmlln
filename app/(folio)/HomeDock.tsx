@@ -4,15 +4,16 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import lottie from 'lottie-web'
 import { Dock, type DockItem } from '@/app/components/Dock/Dock'
 import {
+  bindFolioVisualViewport,
+  folioKeyboardOpen,
+  folioViewport,
+} from './folio-viewport'
+import {
   armOrbitHold,
   beginFolioSession,
-  bindFolioVisualViewport,
   cardsForAnswer,
-  FOLIO_GRID,
   folioFocusMetrics,
-  folioKeyboardOpen,
   folioSessionOpen,
-  folioViewport,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   parkResultsForCompose,
@@ -101,17 +102,13 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
   return (
     <div className="chatResponseLogo">
       <div ref={ref} className="chatResponseLogoLottie" aria-hidden />
-      {!ready && <img src="/assets/LogoSpin2024.SML.gif" alt="" />}
+      {!ready && <img src="/assets/LogoMark.fallback.png" alt="" />}
     </div>
   )
 }
 
 function reducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-function travelMs() {
-  return reducedMotion() ? 0 : ORBIT_TRAVEL_MS
 }
 
 function wait(ms: number) {
@@ -286,7 +283,6 @@ export function HomeDock() {
   const [logoIn, setLogoIn] = useState(false)
   const [answers, setAnswers] = useState<HTMLElement[] | null>(null)
   const [dockLaunch, setDockLaunch] = useState(false)
-  const [markLanded, setMarkLanded] = useState(false)
   const [composing, setComposing] = useState(false)
   const fadeGen = useRef(0)
   const revealTimer = useRef(0)
@@ -343,7 +339,6 @@ export function HomeDock() {
     }
 
     if (!frame || !answers) return
-    const { cardTop } = folioFocusMetrics()
     const from = logoFromRef.current
     logoFromRef.current = null
     frame.classList.add('is-answered')
@@ -384,16 +379,13 @@ export function HomeDock() {
       }
     }
 
-    const gatherTop = cardTop
     const id = turnId.current
     const blurb = emptyMiss ? NO_CARD_MSG : (turn.current?.assistantMessage ?? '')
-    revealSessionCards(grid, answers, gatherTop, {
+    revealSessionCards(grid, answers, {
       onCull: () => {
-        setMarkLanded(true)
         if (replay) return
         void streamBlurb(blurb, setAssistantMessage, () => turnId.current === id)
       },
-      gatherTop: () => folioFocusMetrics().cardTop,
     })
   }, [chatMounted, userMessage, answers, emptyMiss, composing, browsing])
 
@@ -446,7 +438,6 @@ export function HomeDock() {
     setFailure(null)
     setEmptyMiss(false)
     setDockLaunch(false)
-    setMarkLanded(false)
     setLogoIn(false)
     setOrbitLoading(false)
     releaseFolioFocus()
@@ -504,9 +495,7 @@ export function HomeDock() {
     document.querySelector<HTMLInputElement>('.dockComposerField')?.blur()
     const id = ++turnId.current
     if (!folioSessionOpen()) {
-      const restoring =
-        !!document.querySelector('.is-folio-focus') ||
-        !!document.querySelector('.CardStackLabelContainer.expanded')
+      const restoring = !!document.querySelector('.CardStackLabelContainer.expanded')
       releaseFolioFocus()
       if (restoring) await new Promise((resolve) => window.setTimeout(resolve, 420))
       if (turnId.current !== id) return
@@ -543,7 +532,6 @@ export function HomeDock() {
 
       skipBegin.current = true
       setDockLaunch(true)
-      setMarkLanded(false)
       setAnswers(null)
       setUserMessage(value)
       setAssistantMessage(null)

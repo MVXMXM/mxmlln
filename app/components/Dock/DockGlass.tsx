@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useId, useRef } from 'react';
+import { bindFolioVisualViewport } from '@/app/(folio)/folio-viewport';
 import { openGif, type GifReel } from './gif-frames';
 
 const AIR_TO_GLASS = 1 / 1.5;
@@ -1147,10 +1148,8 @@ function mountPageGlass(dock: HTMLElement) {
   introObserver?.observe(folioDock!, { attributes: true, attributeFilter: ['class'] });
   if (!folioDock || folioDock.classList.contains('is-in')) queueBegin();
 
-  // Pose tracks the URL bar / keyboard; capture cadence stays separate.
-  const vv = window.visualViewport;
-  vv?.addEventListener('resize', scheduleLensPose);
-  vv?.addEventListener('scroll', scheduleLensPose);
+  // Pose tracks the URL bar / keyboard via the shared folio vv bus.
+  const unbindViewport = bindFolioVisualViewport(scheduleLensPose);
 
   return () => {
     cancelled = true;
@@ -1174,8 +1173,7 @@ function mountPageGlass(dock: HTMLElement) {
     masonryObserver?.disconnect();
     document.removeEventListener('scroll', onScroll, { capture: true });
     document.removeEventListener('touchmove', onTouchMove, { capture: true });
-    vv?.removeEventListener('resize', scheduleLensPose);
-    vv?.removeEventListener('scroll', scheduleLensPose);
+    unbindViewport();
     undoRenderLens?.();
     undoOverscroll?.();
     plate.remove();

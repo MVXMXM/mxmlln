@@ -1,5 +1,19 @@
 import { attachLiquidGlass } from '@/app/components/Dock/DockGlass'
-import { targetForCardUrl, type FolioTarget } from '@/content/folio-card-map'
+import { targetForCardUrl } from '@/content/folio-card-map'
+import {
+  bindFolioVisualViewport,
+  folioKeyboardOpen,
+  folioViewport,
+  syncFolioVisualViewport,
+} from './folio-viewport'
+
+export {
+  bindFolioVisualViewport,
+  FOLIO_KEYBOARD_INSET,
+  folioKeyboardOpen,
+  folioViewport,
+  syncFolioVisualViewport,
+} from './folio-viewport'
 
 declare global {
   interface Window {
@@ -7,7 +21,6 @@ declare global {
     __folioBootStarted?: boolean
     mountScrollThumb?: () => void
     disposeScrollThumb?: () => void
-    expandCardStackLabelContainer?: (container: Element) => void
     collapseExpandedStack?: () => void
     unmountCardVideo?: (card: HTMLElement) => void
     mountCardVideo?: (card: HTMLElement) => void
@@ -46,25 +59,6 @@ function clean(value: string) {
   return value.replace(/\s+/g, ' ').trim().toLowerCase()
 }
 
-async function whenFolioReady() {
-  const started = Date.now()
-  while (!window.__folioReady && Date.now() - started < 4000) {
-    await wait(50)
-  }
-  if (!window.__folioReady || !window.expandCardStackLabelContainer) {
-    throw new Error('folio engine unavailable')
-  }
-}
-
-function findPile(label: string) {
-  const piles = document.querySelectorAll('.CardStackLabelContainer')
-  for (const pile of piles) {
-    const text = pile.querySelector('.CardStackLabelContainerValue')?.textContent ?? ''
-    if (clean(text) === label) return pile
-  }
-  return null
-}
-
 function findCard(pile: Element, title: string, badge?: string) {
   const cards = [...pile.querySelectorAll('.Card')].filter((card) => {
     const text = clean(card.querySelector('.CardTitle')?.textContent ?? '')
@@ -81,19 +75,7 @@ function findCard(pile: Element, title: string, badge?: string) {
   )
 }
 
-export type FolioFocus = {
-  mode: 'card' | 'pile' | 'stack'
-  pile: HTMLElement
-  card: HTMLElement | null
-  cards?: HTMLElement[]
-}
-
-const FAN_ROTATION = [-12, 8, -5, 14, -9, 6]
-
 type SavedStyle = { el: HTMLElement; style: string | null }
-
-let generation = 0
-let undoPile: (() => void) | null = null
 
 function motion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -101,71 +83,6 @@ function motion() {
 
 function page() {
   return document.querySelector('.folio-page')
-}
-
-/** Visible frame — visualViewport when it diverges (iOS keyboard / URL bar). */
-export function folioViewport() {
-  const vv = window.visualViewport
-  return {
-    width: vv?.width ?? window.innerWidth,
-    height: vv?.height ?? window.innerHeight,
-    top: vv?.offsetTop ?? 0,
-    left: vv?.offsetLeft ?? 0,
-  }
-}
-
-/** On-screen keyboard — not hardware focus. Desktop inset stays ~0. */
-export const FOLIO_KEYBOARD_INSET = 120
-
-/** Largest recent visual height while the keyboard is down (URL-bar noise folds in). */
-let folioVvRestHeight = 0
-
-/** Keep dock + session shell pinned to the visible band. */
-export function syncFolioVisualViewport() {
-  const root = page()
-  if (!(root instanceof HTMLElement)) return
-  const vv = window.visualViewport
-  const height = vv?.height ?? window.innerHeight
-  const top = vv?.offsetTop ?? 0
-  const bottom = top + height
-  // iOS often shrinks window.innerHeight with the keyboard, so
-  // innerHeight − vv.bottom stays ~0. Diff against a resting vv height instead.
-  if (height >= folioVvRestHeight - 1) folioVvRestHeight = height
-  else if (folioVvRestHeight - height < FOLIO_KEYBOARD_INSET) folioVvRestHeight = height
-  const inset = Math.max(0, folioVvRestHeight - height)
-  root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
-  root.style.setProperty('--folio-vv-height', `${height}px`)
-  root.style.setProperty('--folio-vv-top', `${top}px`)
-  root.style.setProperty('--folio-vv-bottom', `${bottom}px`)
-  if (inset >= FOLIO_KEYBOARD_INSET) root.dataset.folioKeyboard = 'true'
-  else delete root.dataset.folioKeyboard
-}
-
-export function folioKeyboardOpen() {
-  return Boolean(page()?.hasAttribute('data-folio-keyboard'))
-}
-
-export function bindFolioVisualViewport(onChange?: () => void) {
-  const run = () => {
-    syncFolioVisualViewport()
-    onChange?.()
-  }
-  const onOrient = () => {
-    folioVvRestHeight = 0
-    run()
-  }
-  run()
-  const vv = window.visualViewport
-  window.addEventListener('resize', run)
-  window.addEventListener('orientationchange', onOrient)
-  vv?.addEventListener('resize', run)
-  vv?.addEventListener('scroll', run)
-  return () => {
-    window.removeEventListener('resize', run)
-    window.removeEventListener('orientationchange', onOrient)
-    vv?.removeEventListener('resize', run)
-    vv?.removeEventListener('scroll', run)
-  }
 }
 
 function savedStyles(nodes: HTMLElement[]): SavedStyle[] {
@@ -177,12 +94,6 @@ function restoreStyles(saved: SavedStyle[]) {
     if (style == null) el.removeAttribute('style')
     else el.setAttribute('style', style)
   }
-}
-
-function scrollToNode(node: Element) {
-  const rect = node.getBoundingClientRect()
-  const top = window.scrollY + rect.top - 120
-  window.scrollTo(0, Math.max(0, top))
 }
 
 let motionToken = 0
@@ -263,8 +174,6 @@ let carouselGlassDispose: (() => void) | null = null
 export const ORBIT_INTRO_MS = 900
 export const ORBIT_HOLD_MS = 2000
 export const ORBIT_TRAVEL_MS = 1500
-export const ORBIT_ENLARGE_MS = 700
-export const ORBIT_REVEAL_MS = ORBIT_TRAVEL_MS + ORBIT_ENLARGE_MS
 /** Response → loader inverse — snappier so the ring meets the logo pop. */
 const ORBIT_REORBIT_CULL_MS = 160
 const ORBIT_REORBIT_MS = 400
@@ -441,12 +350,6 @@ function thumbCard(card: HTMLElement) {
     inner.style.width = '0%'
     inner.style.opacity = '0'
   }
-}
-
-function featuredTransform(index: number, total: number) {
-  if (total < 2) return 'none'
-  const scale = index > 2 ? 1 - ((index - 2) / Math.min(total - 2, 97)) * 0.25 : 1
-  return `rotate(${FAN_ROTATION[index] ?? 0}deg) scale(${scale.toFixed(2)})`
 }
 
 export function cardsForAnswer(urls: string[]): HTMLElement[] {
@@ -1264,7 +1167,6 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
 
   const onResize = () => {
     if (!carousel) return
-    syncFolioVisualViewport()
     const next = carouselMetrics(carousel.cards.length)
     const active = activeCarouselIndex()
     carousel.size = next.size
@@ -1287,10 +1189,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
   grid.addEventListener('pointercancel', endDrag)
   grid.addEventListener('lostpointercapture', endDrag)
   grid.addEventListener('click', onClickCapture, true)
-  window.addEventListener('resize', onResize)
-  const vv = window.visualViewport
-  vv?.addEventListener('resize', onResize)
-  vv?.addEventListener('scroll', onResize)
+  const unbindViewport = bindFolioVisualViewport(onResize)
 
   carousel = {
     cards,
@@ -1320,9 +1219,7 @@ function mountCarousel(grid: HTMLElement, cards: HTMLElement[]) {
       grid.removeEventListener('pointercancel', endDrag)
       grid.removeEventListener('lostpointercapture', endDrag)
       grid.removeEventListener('click', onClickCapture, true)
-      window.removeEventListener('resize', onResize)
-      vv?.removeEventListener('resize', onResize)
-      vv?.removeEventListener('scroll', onResize)
+      unbindViewport()
       grid.classList.remove('is-carousel')
     },
   }
@@ -1558,18 +1455,12 @@ function animateMs(duration: number, token: number, step: (t: number) => void) {
 }
 
 export type RevealSessionOptions = {
-  /** Fires when rejects start culling — blurb stream syncs here. */
   onCull?: () => void
-  /** Runs after the circle settles into the result pose. */
-  afterTravel?: () => Promise<void>
-  /** Re-read gather top after afterTravel (single-card path). */
-  gatherTop?: () => number
 }
 
 export function revealSessionCards(
   grid: HTMLElement,
   chosen: HTMLElement[],
-  top: number,
   options?: RevealSessionOptions,
 ) {
   const token = ++motionToken
@@ -1603,7 +1494,6 @@ export function revealSessionCards(
       card.style.display = 'none'
     }
     options?.onCull?.()
-    void options?.afterTravel?.()
     return
   }
 
@@ -1750,393 +1640,20 @@ export function revealSessionCards(
       const align = Math.cos(angle + Math.PI / 2)
       placeOnRing(card, endRing, angle, multi ? 0.9 + 0.1 * Math.max(0, align) : 1)
     })
-    if (options?.afterTravel) {
-      await options.afterTravel()
-      if (token !== motionToken) return
-    }
     mountCarousel(grid, kept)
   })()
 }
 
 export function releaseFolioFocus() {
-  generation += 1
   motionToken += 1
   disposeCarousel()
   stopOrbit()
-  page()?.classList.remove('is-folio-focus')
-  document.querySelectorAll('.Card.is-picked, .is-scanning').forEach((el) => {
-    el.classList.remove('is-picked', 'is-scanning')
-  })
   if (sessionUndo) {
     const undo = sessionUndo
     sessionUndo = null
     undo()
   }
-  if (undoPile) {
-    const undo = undoPile
-    undoPile = null
-    undo()
-    return
-  }
   if (document.querySelector('.CardStackLabelContainer.expanded')) {
     window.collapseExpandedStack?.()
   }
-}
-
-export async function stageFolioFocus(
-  target: FolioTarget,
-  live: () => boolean,
-): Promise<FolioFocus | null> {
-  await whenFolioReady()
-  if (!live()) return null
-  const pile = findPile(target.pile) as HTMLElement | null
-  const expand = window.expandCardStackLabelContainer
-  if (!pile || !expand) throw new Error('folio card missing')
-
-  if (!target.title) {
-    scrollToNode(pile)
-    if (!motion()) await wait(550)
-    if (!live()) return null
-    return { mode: 'pile', pile, card: null }
-  }
-
-  page()?.classList.add('is-folio-focus')
-  const expanded = document.querySelector('.CardStackLabelContainer.expanded')
-  if (expanded && expanded !== pile) {
-    window.collapseExpandedStack?.()
-    await wait(motion() ? 20 : 450)
-    if (!live()) return null
-  }
-  if (!pile.classList.contains('expanded')) {
-    expand(pile)
-    await wait(motion() ? 40 : 700)
-    if (!live()) return null
-  }
-
-  const card = (findCard(pile, target.title, target.badge) ?? pile.querySelector('.Card')) as HTMLElement | null
-  if (!card) return { mode: 'pile', pile, card: null }
-  scrollToNode(card)
-  if (!motion()) await wait(550)
-  if (!live()) return null
-  return { mode: 'card', pile, card }
-}
-
-export async function stageFolioAnswer(
-  urls: string[],
-  live: () => boolean,
-): Promise<FolioFocus | null> {
-  const titled: FolioTarget[] = []
-  const seen = new Set<string>()
-  for (const url of urls.slice(0, 6)) {
-    const target = targetForCardUrl(url)
-    if (!target?.title) continue
-    const key = `${target.pile}\0${target.title}\0${target.badge ?? ''}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    titled.push(target)
-  }
-  if (titled.length > 1) {
-    await whenFolioReady()
-    if (!live()) return null
-    const cards = titled.flatMap((target) => {
-      const pile = findPile(target.pile)
-      const card = pile ? findCard(pile, target.title ?? '', target.badge) : null
-      return card ? [card as HTMLElement] : []
-    })
-    if (cards.length > 1) {
-      const pile = cards[0].closest('.CardStackLabelContainer') as HTMLElement | null
-      if (!pile) return null
-      scrollToNode(pile)
-      if (!motion()) await wait(400)
-      if (!live()) return null
-      return { mode: 'stack', pile, card: null, cards }
-    }
-  }
-  const target = titled[0] ?? targetForCardUrl(urls[0])
-  if (!target) return null
-  return stageFolioFocus(target, live)
-}
-
-let playedGeneration = -1
-
-function play(change: () => void) {
-  const token = generation
-  let played = false
-  const run = () => {
-    if (played || token !== generation) return
-    played = true
-    change()
-    playedGeneration = token
-  }
-  // rAF does not run while the tab is in the background, so a timeout applies the same change.
-  requestAnimationFrame(run)
-  window.setTimeout(run, 40)
-}
-
-export function focusHasSettled() {
-  return playedGeneration === generation
-}
-
-function zeroCard(card: HTMLElement, duration: string) {
-  card.style.transition = `all ${duration} ease`
-  card.style.width = '0px'
-  card.style.height = '0px'
-  card.style.margin = '0px'
-  card.style.transform = 'none'
-  card.style.border = '0px solid transparent'
-  card.style.boxShadow = 'none'
-}
-
-export function settleFolioFocus(focus: FolioFocus, viewportTop: number) {
-  page()?.classList.add('is-folio-focus')
-  const reduce = motion()
-  const duration = reduce ? '0.01s' : '0.35s'
-  if (focus.mode === 'card' && focus.card) {
-    settleCard(focus.pile, focus.card, viewportTop, duration)
-    return
-  }
-  if (focus.mode === 'stack' && focus.cards && focus.cards.length > 1) {
-    settleStack(focus.pile, focus.cards, viewportTop, duration)
-    return
-  }
-  settlePile(focus.pile, viewportTop, duration)
-}
-
-function pinMargin(el: HTMLElement, anchor: HTMLElement, viewportTop: number) {
-  el.style.transition = 'none'
-  for (let i = 0; i < 4; i++) {
-    const delta = viewportTop - anchor.getBoundingClientRect().top
-    if (Math.abs(delta) < 1) return
-    const margin = parseFloat(getComputedStyle(el).marginTop) || 0
-    el.style.marginTop = `${margin + delta}px`
-  }
-}
-
-function settleCard(pile: HTMLElement, card: HTMLElement, viewportTop: number, duration: string) {
-  const stack = card.closest('.CardStack') as HTMLElement | null
-  if (!stack) return
-  const cards = [...pile.querySelectorAll<HTMLElement>('.Card')]
-
-  play(() => {
-    const first = card.getBoundingClientRect()
-    pile.style.justifyContent = 'flex-start'
-    cards.forEach((el) => {
-      if (el === card) return
-      zeroCard(el, '0s')
-      el.style.transition = 'none'
-    })
-    stack.style.gap = '0px'
-    stack.style.marginLeft = '0px'
-    stack.style.marginRight = '0px'
-    stack.style.marginBottom = '0px'
-    pinMargin(stack, card, viewportTop)
-    const last = card.getBoundingClientRect()
-    const dx = first.left - last.left
-    const dy = first.top - last.top
-    card.style.transition = 'none'
-    card.style.transform = `translate(${dx}px, ${dy}px)`
-    window.setTimeout(() => {
-      card.style.transition = `transform ${duration} ease`
-      card.style.transform = 'translate(0px, 0px) rotate(0deg)'
-    }, 30)
-  })
-}
-
-function settlePile(pile: HTMLElement, viewportTop: number, duration: string) {
-  const anchor = (pile.querySelector('.CardStack') as HTMLElement | null) ?? pile
-  const piles = [...document.querySelectorAll<HTMLElement>('.CardStackLabelContainer')]
-  const stacks = [...document.querySelectorAll<HTMLElement>('.CardStack')]
-  const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
-  const extras = ['.AllStacks', '.TitleBlock3', '.appStore']
-    .map((selector) => document.querySelector<HTMLElement>(selector))
-    .filter((el): el is HTMLElement => !!el)
-  const touched = [...extras, ...piles, ...stacks, ...cards]
-  const saved = savedStyles(touched)
-  const scrollY = window.scrollY
-  undoPile = () => {
-    for (const { el } of saved) el.style.transition = `all ${duration} ease`
-    requestAnimationFrame(() => {
-      restoreStyles(saved)
-      window.scrollTo({ top: scrollY, behavior: motion() ? 'auto' : 'smooth' })
-    })
-  }
-
-  const apply = (animated: boolean) => {
-    const transition = animated ? `all ${duration} ease` : 'none'
-    for (const el of extras) {
-      el.style.transition = transition
-      if (el.classList.contains('AllStacks')) {
-        el.style.maxWidth = '100vw'
-        el.style.gap = '0px'
-        el.style.margin = '0px'
-        el.style.alignItems = 'flex-start'
-        el.style.justifyContent = 'flex-start'
-        continue
-      }
-      el.style.opacity = '0'
-      el.style.height = '0px'
-      el.style.width = '0px'
-      el.style.marginTop = '0px'
-      el.style.marginBottom = '0px'
-      el.style.overflow = 'hidden'
-    }
-    for (const other of piles) {
-      if (other === pile) continue
-      other.style.transition = transition
-      other.style.width = '0px'
-      other.style.height = '0px'
-      other.style.overflow = 'hidden'
-    }
-    for (const stack of stacks) {
-      if (pile.contains(stack)) continue
-      stack.style.transition = transition
-      stack.style.width = '0px'
-      stack.style.height = '0px'
-    }
-    for (const card of cards) {
-      if (pile.contains(card)) continue
-      zeroCard(card, animated ? duration : '0s')
-      if (!animated) card.style.transition = 'none'
-    }
-  }
-
-  play(() => {
-    apply(false)
-    pile.style.justifyContent = 'flex-start'
-    pinMargin(pile, anchor, viewportTop)
-  })
-}
-
-function holdCard(card: HTMLElement) {
-  const stop = (event: Event) => event.stopPropagation()
-  card.addEventListener('click', stop)
-  card.addEventListener('mouseover', stop)
-  card.addEventListener('mouseout', stop)
-  return () => {
-    card.removeEventListener('click', stop)
-    card.removeEventListener('mouseover', stop)
-    card.removeEventListener('mouseout', stop)
-  }
-}
-
-function settleStack(
-  pile: HTMLElement,
-  chosen: HTMLElement[],
-  viewportTop: number,
-  duration: string,
-) {
-  const stack = (pile.querySelector('.CardStack') as HTMLElement | null) ?? pile
-  const parentOrder = new Map<HTMLElement, Node[]>()
-  for (const card of chosen) {
-    const parent = card.parentElement
-    if (parent && !parentOrder.has(parent)) parentOrder.set(parent, [...parent.childNodes])
-  }
-  const piles = [...document.querySelectorAll<HTMLElement>('.CardStackLabelContainer')]
-  const stacks = [...document.querySelectorAll<HTMLElement>('.CardStack')]
-  const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
-  const labels = [...document.querySelectorAll<HTMLElement>('.CardStackLabelContainerValue')]
-  const extras = ['.AllStacks', '.TitleBlock3', '.appStore']
-    .map((selector) => document.querySelector<HTMLElement>(selector))
-    .filter((el): el is HTMLElement => !!el)
-  const saved = savedStyles([...extras, ...piles, ...stacks, ...cards, ...labels])
-  const scrollY = window.scrollY
-  const release = chosen.map(holdCard)
-  undoPile = () => {
-    release.forEach((undo) => undo())
-    // The saved list is the parent’s children before the fan moved any of them.
-    for (const [parent, nodes] of parentOrder) {
-      for (const node of nodes) parent.appendChild(node)
-    }
-    for (const { el } of saved) el.style.transition = `all ${duration} ease`
-    requestAnimationFrame(() => {
-      restoreStyles(saved)
-      window.scrollTo({ top: scrollY, behavior: motion() ? 'auto' : 'smooth' })
-    })
-  }
-
-  play(() => {
-    for (const card of chosen) stack.appendChild(card)
-    for (const el of extras) {
-      el.style.transition = 'none'
-      if (el.classList.contains('AllStacks')) {
-        el.style.maxWidth = '100vw'
-        el.style.gap = '0px'
-        el.style.margin = '0px'
-        el.style.alignItems = 'flex-start'
-        el.style.justifyContent = 'flex-start'
-        continue
-      }
-      el.style.opacity = '0'
-      el.style.height = '0px'
-      el.style.width = '0px'
-      el.style.marginTop = '0px'
-      el.style.marginBottom = '0px'
-      el.style.overflow = 'hidden'
-    }
-    for (const other of piles) {
-      if (other === pile) continue
-      other.style.transition = 'none'
-      other.style.width = '0px'
-      other.style.height = '0px'
-      other.style.overflow = 'hidden'
-    }
-    for (const other of stacks) {
-      if (other === stack) continue
-      other.style.transition = 'none'
-      other.style.width = '0px'
-      other.style.height = '0px'
-    }
-    for (const card of cards) {
-      if (chosen.includes(card)) continue
-      zeroCard(card, '0s')
-      card.style.transition = 'none'
-    }
-    for (const label of labels) {
-      label.style.transition = 'none'
-      label.style.opacity = '0'
-      label.style.height = '0px'
-      label.style.width = '0px'
-      label.style.padding = '0px'
-      label.style.overflow = 'hidden'
-    }
-    pile.style.justifyContent = 'flex-start'
-    pile.style.alignItems = 'center'
-    pile.style.width = '450px'
-    pile.style.height = '450px'
-    pile.style.minHeight = '450px'
-    pile.style.overflow = 'visible'
-    stack.style.transition = 'none'
-    stack.style.width = '400px'
-    stack.style.height = '400px'
-    stack.style.margin = '0px'
-    stack.style.opacity = '1'
-    stack.style.filter = 'none'
-    chosen.forEach((card, index) => {
-      const scale =
-        index > 2 ? 1 - ((index - 2) / Math.min(chosen.length - 2, 97)) * 0.25 : 1
-      card.style.transition = `all ${duration} ease`
-      card.style.width = '300px'
-      card.style.height = '300px'
-      card.style.margin = '-160px'
-      card.style.border = '10px solid #ffffff'
-      card.style.borderRadius = '24px'
-      card.style.boxShadow = '0 0px 30px rgba(0, 0, 0, 0.15)'
-      card.style.transform = `rotate(${FAN_ROTATION[index] ?? 0}deg) scale(${scale.toFixed(2)})`
-      card.style.zIndex = String(Math.min(chosen.length, 6) - index)
-      card.style.pointerEvents = 'auto'
-      card.style.opacity = '1'
-    })
-    pinMargin(pile, stack, viewportTop)
-  })
-}
-
-export function nudgeFolioFocus(focus: FolioFocus, viewportTop: number) {
-  const anchor =
-    focus.card ?? (focus.pile.querySelector('.CardStack') as HTMLElement | null) ?? focus.pile
-  const moved = (
-    focus.mode === 'card' ? focus.card?.closest('.CardStack') : focus.pile
-  ) as HTMLElement | null
-  if (!moved) return
-  focus.pile.style.justifyContent = 'flex-start'
-  pinMargin(moved, anchor, viewportTop)
 }

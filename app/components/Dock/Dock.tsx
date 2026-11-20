@@ -268,7 +268,7 @@ export function Dock({
             <button type="button" onClick={() => openPanel('info')} aria-label="Open info menu">
               <LottieMark
                 path="/assets/LogoSpin2026.json"
-                fallback="/assets/LogoSpin2024.SML.gif"
+                fallback="/assets/LogoMark.fallback.png"
                 className="lottieMark lottieMark--dock"
                 label="Open info menu"
               />
@@ -343,7 +343,7 @@ export function Dock({
           <div className="infoLogo">
             <LottieMark
               path="/assets/Sig2026.json"
-              fallback="/assets/Sig2026.gif"
+              fallback="/assets/LogoMark.fallback.png"
               className="lottieMark lottieMark--sig"
               label="MXMLLN logo"
             />
