@@ -49,8 +49,8 @@
 
 .mx-dock .dockCluster {
   position: fixed;
-  z-index: 900;
-  /* Bottom-anchored so info/contact grow upward; gap tracks the live visible bottom. */
+  /* Above carousel chrome (910). */
+  z-index: 960;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-dock-bottom, 0px));
   top: auto;
   left: 0;

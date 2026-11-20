@@ -1,11 +1,9 @@
-/** Visible frame — visualViewport when it diverges (iOS keyboard / URL bar). */
 export function folioViewport() {
   const vv = window.visualViewport
   const height = vv?.height ?? window.innerHeight
   const top = vv?.offsetTop ?? 0
   const left = vv?.offsetLeft ?? 0
   const width = vv?.width ?? window.innerWidth
-  // Match syncFolioVisualViewport: keyboard shrinks dock gap only — layout stays at rest.
   const liveRest = restHeight || height
   const inset = Math.max(0, liveRest - height)
   if (inset >= KEYBOARD_INSET_MIN) {
@@ -19,9 +17,8 @@ export function folioViewport() {
   return { width, height, top, left }
 }
 
-/** Ignore tiny URL-bar jitter when tracking resting height. */
+/** URL-bar jitter stays under this; larger shrinks are treated as the keyboard. */
 const REST_HEIGHT_SLACK = 120
-/** Inset at/above this is treated as the software keyboard (not URL-bar chrome). */
 const KEYBOARD_INSET_MIN = REST_HEIGHT_SLACK
 
 type Listener = () => void
@@ -33,20 +30,13 @@ let layoutHeightWritten = -1
 let layoutTopWritten = -1
 let attached = false
 let detachBus: (() => void) | null = null
-/** While the dock composer is focused, fight iOS scroll-into-view. */
+let syncRaf = 0
 let composerFocus = false
 
 function page() {
   return document.querySelector('.folio-page')
 }
 
-function holdDocumentScroll() {
-  if (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop) {
-    window.scrollTo(0, 0)
-  }
-}
-
-/** Dock composer open — keep document at 0 and expose offsetTop for content counter-translate. */
 export function setFolioComposerFocus(open: boolean) {
   composerFocus = open
   const root = page()
@@ -54,16 +44,10 @@ export function setFolioComposerFocus(open: boolean) {
     if (open) root.dataset.folioComposer = 'true'
     else delete root.dataset.folioComposer
   }
-  if (open) holdDocumentScroll()
+  if (open) window.scrollTo(0, 0)
   syncFolioVisualViewport()
 }
 
-/**
- * Two buses on one vv tick:
- * - Layout (`--folio-vv-height/top/bottom`) freezes while the keyboard is open.
- * - Dock (`--folio-dock-bottom`) always tracks the live visible bottom edge.
- * Layout listeners only run when layout vars change — not on pure keyboard ticks.
- */
 export function syncFolioVisualViewport() {
   const root = page()
   if (!(root instanceof HTMLElement)) return false
@@ -83,13 +67,9 @@ export function syncFolioVisualViewport() {
   const layoutHeight = keyboardOpen ? restHeight : height
   const layoutTop = keyboardOpen ? restTop : top
   const layoutBottom = layoutTop + layoutHeight
-  // Gap under the visible band — accounts for offsetTop when Safari shifts the page.
   const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
-  if (composerFocus) holdDocumentScroll()
-
   root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
-  // Content counter-translates by this so iOS vv scroll doesn’t drag the folio up.
   root.style.setProperty('--folio-vv-offset-top', composerFocus ? `${top}px` : '0px')
 
   const layoutChanged =
@@ -107,10 +87,15 @@ export function syncFolioVisualViewport() {
 function attach() {
   if (attached || typeof window === 'undefined') return
   attached = true
-  const run = () => {
+  const flush = () => {
+    syncRaf = 0
     const layoutChanged = syncFolioVisualViewport()
     if (!layoutChanged) return
     for (const fn of [...listeners]) fn()
+  }
+  const run = () => {
+    if (syncRaf) return
+    syncRaf = requestAnimationFrame(flush)
   }
   const onOrient = () => {
     restHeight = 0
@@ -125,6 +110,8 @@ function attach() {
   vv?.addEventListener('resize', run)
   vv?.addEventListener('scroll', run)
   detachBus = () => {
+    if (syncRaf) cancelAnimationFrame(syncRaf)
+    syncRaf = 0
     window.removeEventListener('resize', run)
     window.removeEventListener('orientationchange', onOrient)
     vv?.removeEventListener('resize', run)
@@ -134,10 +121,7 @@ function attach() {
   }
 }
 
-/**
- * Layout-bus subscription. Fires when layout vars change — not on dock-only keyboard ticks.
- * Imperative sync still updates the dock pin every call.
- */
+/** Layout listeners only — dock pin updates every sync regardless. */
 export function bindFolioVisualViewport(onChange?: Listener) {
   attach()
   syncFolioVisualViewport()

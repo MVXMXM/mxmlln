@@ -600,9 +600,10 @@ function mountPageGlass(dock: HTMLElement) {
     if (!canvas) return;
     if (!canvas.isConnected) document.body.appendChild(canvas);
     const cluster = dock.closest('.dockCluster');
-    const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 900;
-        // Keep under the dock even after extra lenses (carousel) tempt a higher z.
-    canvas.style.zIndex = String(Number.isFinite(z) && z > 1 ? z - 1 : 899);
+    const z = cluster ? Number.parseInt(getComputedStyle(cluster).zIndex, 10) : 960;
+    // Cap under carousel cards (905).
+    const underDock = Number.isFinite(z) && z > 1 ? z - 1 : 899;
+    canvas.style.zIndex = String(Math.min(underDock, 904));
     canvas.style.pointerEvents = 'none';
         // Match the visible frame — layout innerHeight lags URL-bar / keyboard churn.
     const vv = window.visualViewport;
