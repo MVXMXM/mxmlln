@@ -70,7 +70,7 @@ const initialStyles = {
         transition: 'all 0.15s ease'
     },
     StackBar: {
-        zIndex: '699',
+        zIndex: '9998',
         position: 'fixed',
         top: '-124px',
         left: '50%',
@@ -508,6 +508,20 @@ function loadCards(cardStack = document.querySelector('.CardStack')) {
     });
 }
 
+function whenFolioIn(callback) {
+    if (document.body.classList.contains('folio-in') || !document.getElementById('introLoader')) {
+        callback();
+        return;
+    }
+    const observer = new MutationObserver(() => {
+        if (document.body.classList.contains('folio-in')) {
+            observer.disconnect();
+            callback();
+        }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+}
+
 function observeCardStackMedia() {
     const stacks = document.querySelectorAll('.CardStack');
     if (!('IntersectionObserver' in window)) {
@@ -683,6 +697,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         document.getElementById('stackBarSectionName').textContent = sectionName;
         const StackBar = document.getElementById('StackBar');
         StackBar.style.transition = 'top 0.5s, opacity 0.5s, visibility 0.5s';
+        StackBar.style.zIndex = initialStyles.StackBar.zIndex;
         StackBar.style.top = '24px';
         StackBar.style.opacity = '1';
         StackBar.style.visibility = 'visible';
@@ -789,55 +804,107 @@ function skipIntroAnimation() {
     gradeFront.style.height = '100%';
     gradeFront.style.borderRadius = '0px';
     gradeFront.style.opacity = '1';
+    gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+    gradeFront.style.transition = '';
   }
 
   const content = document.querySelector('.ContentContainer');
   if (content) {
-    content.style.top = '0px';
     content.style.display = 'flex';
+    content.style.top = '0px';
+    content.style.visibility = 'visible';
+    content.style.transform = 'none';
+    content.style.transition = '';
   }
 
   const nav = document.querySelector('.navDynamicContainer');
   if (nav) {
-    nav.style.display = '';
-    nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+    nav.style.opacity = '1';
+    nav.style.transform = 'none';
+    nav.style.pointerEvents = '';
+    nav.style.transition = '';
+    nav.style.bottom = NAV_DOCK_BOTTOM;
   }
 
   document.body.classList.add('folio-in');
   document.body.style.overflowY = 'auto';
+  document.querySelector('.folio-dock')?.classList.add('is-in');
 }
 
 function initIntroAnimation() {
-  $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
-    $('.IntroLoader')
-      .delay(1000)
-      .animate({top:'-100%'}, 250);
-  });
-  $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-    .delay(1250)
-    .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+  const loader = document.querySelector('.IntroLoader');
+  if (loader) {
+    loader.style.transition = 'transform 500ms ease';
+    loader.getBoundingClientRect();
+    loader.style.transform = 'translate(-50%, -50%) scale(1)';
+    setTimeout(function() {
+      loader.style.transition = 'transform 250ms ease';
+      loader.getBoundingClientRect();
+      loader.style.transform = 'translate(-50%, calc(-50% - 100vh)) scale(1)';
+    }, 1500);
+  }
+
+  const gradeFront = document.querySelector('.gradeFront');
+  if (gradeFront) {
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      gradeFront.style.width = '100%';
+      gradeFront.style.height = '100%';
+      gradeFront.style.borderRadius = '0px';
+      gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+      gradeFront.style.opacity = '1';
+    } else {
+      const sx = 525 / Math.max(window.innerWidth, 1);
+      const sy = 525 / Math.max(window.innerHeight, 1);
+      gradeFront.style.borderRadius = '400px';
+      gradeFront.style.transform = `translate(-50%, -50%) scale(${sx}, ${sy})`;
+      gradeFront.style.opacity = '1';
+      setTimeout(function() {
+        gradeFront.style.transition = 'transform 500ms ease, border-radius 500ms ease';
+        gradeFront.getBoundingClientRect();
+        gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+        gradeFront.style.borderRadius = '0px';
+        setTimeout(function() {
+          gradeFront.style.transition = '';
+        }, 500);
+      }, 1250);
+    }
+  }
+
   setTimeout(function() {
-    // Leave the about pane put. It shares the page and should not rise with work.
-    const $content = $('.ContentContainer').not('.folio-about');
-    $content.css('top', '200%').fadeIn(0, function() {
-      $content.animate({top: '0px'}, 1000, function() {
-        document.body.classList.add('folio-in');
-      });
-    });
+    const content = document.querySelector('.ContentContainer');
+    if (!content) return;
+    content.style.visibility = 'visible';
+    content.style.transition = 'transform 1000ms ease';
+    content.getBoundingClientRect();
+    content.style.transform = 'translateY(0)';
+    setTimeout(function() {
+      content.style.transition = '';
+      document.body.classList.add('folio-in');
+    }, 1000);
   }, 1000);
 
   setTimeout(function() {
-    $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
-      $('.navDynamicContainer').animate({bottom: '24px'}, 250, function() {
-        this.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
-      });
-    });
+    const nav = document.querySelector('.navDynamicContainer');
+    if (!nav) return;
+    nav.style.transition = 'opacity 250ms ease';
+    nav.getBoundingClientRect();
+    nav.style.opacity = '1';
+    setTimeout(function() {
+      nav.style.transition = 'transform 250ms ease';
+      nav.getBoundingClientRect();
+      nav.style.transform = 'translateY(0)';
+      setTimeout(function() {
+        nav.style.transition = '';
+        nav.style.pointerEvents = '';
+        nav.style.bottom = NAV_DOCK_BOTTOM;
+      }, 250);
+    }, 250);
     document.querySelector('.folio-dock')?.classList.add('is-in');
   }, 1250);
 
-  $('body').css('overflow-y', 'hidden');
+  document.body.style.overflowY = 'hidden';
   setTimeout(function() {
-    $('body').css('overflow-y', 'auto');
+    document.body.style.overflowY = 'auto';
   }, 2500);
 }
 
@@ -1063,7 +1130,7 @@ function bootFolioDocument() {
     document.querySelectorAll('.CardStack').forEach(stack => {
         loadCards(stack);
     });
-    observeCardStackMedia();
+    whenFolioIn(observeCardStackMedia);
     bindFolioCards();
     window.__folioReady = true;
 }

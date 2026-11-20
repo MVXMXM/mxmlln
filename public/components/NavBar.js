@@ -1,4 +1,5 @@
-
+// Keep in sync with .navDynamicContainer bottom in NavBar.css.
+var NAV_DOCK_BOTTOM = 'calc(24px + env(safe-area-inset-bottom, 0px))';
 
 //INFO VIEW
     //OPEN INFO VIEW
@@ -38,7 +39,7 @@
 
         document.getElementById('navDynamicContainer').style.transition = 'left 0.2s, bottom 0.2s, width 0.15s, height 0.15s';
         document.getElementById('navDynamicContainer').style.left = 'calc(50% - 232px)'; 
-        document.getElementById('navDynamicContainer').style.bottom = '24px';   
+        document.getElementById('navDynamicContainer').style.bottom = NAV_DOCK_BOTTOM;   
         document.getElementById('navDynamicContainer').style.width = '458px';
         document.getElementById('navDynamicContainer').style.height = '64px';
         document.getElementById('navDynamicContainer').style.borderRadius = '40px';
@@ -133,7 +134,7 @@
 
         document.getElementById('navDynamicContainer').style.transition = 'left 0.2s, bottom 0.2s, width 0.15s, height 0.15s';
         document.getElementById('navDynamicContainer').style.left = 'calc(50% - 232px)'; 
-        document.getElementById('navDynamicContainer').style.bottom = '24px';   
+        document.getElementById('navDynamicContainer').style.bottom = NAV_DOCK_BOTTOM;   
         document.getElementById('navDynamicContainer').style.width = '458px';
         document.getElementById('navDynamicContainer').style.height = '64px';
         document.getElementById('navDynamicContainer').style.borderRadius = '40px';
@@ -231,7 +232,7 @@
 
         document.getElementById('navDynamicContainer').style.transition = 'left 0.2s, bottom 0.2s, width 0.15s, height 0.15s';
         document.getElementById('navDynamicContainer').style.left = 'calc(50% - 232px)'; 
-        document.getElementById('navDynamicContainer').style.bottom = '24px';   
+        document.getElementById('navDynamicContainer').style.bottom = NAV_DOCK_BOTTOM;   
         document.getElementById('navDynamicContainer').style.width = '458px';
         document.getElementById('navDynamicContainer').style.height = '64px';
         document.getElementById('navDynamicContainer').style.borderRadius = '40px';

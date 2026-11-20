@@ -18,25 +18,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.75, viewport-fit=cover" />
   <link rel="icon" href="https://www.maximin.design/MXMLLN.ico" />
 
-  <link rel="stylesheet" href="css/StyleMatters.2024.css">
-  <link rel="stylesheet" href="./components/NavBar.css">
-  <link rel="stylesheet" href="css/ProgressiveBlur.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="./js/IntenseImages/intense.js"></script>
-    
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
-  <!-- Lottie player (light version - 40% smaller) -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
-  
   <style>
-    /* Note: .IntroLoader base styles come from StyleMatters.2024.css */
-    /* jQuery animates it to 300x300, so we don't set size here */
+    /* Keep in sync with StyleMatters.2024.css (.gradeBG lean / no noise
+       filter, body::before) and NavBar.css fades. */
+    html {
+      background-color: oklch(0.86 0.04 260);
+    }
+    @keyframes gradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradeBG {
+      position: fixed;
+      z-index: 1;
+      inset: 0;
+      overflow: hidden;
+      background: linear-gradient(10deg, oklch(0.86 0.063 220), oklch(0.82 0.059 275), oklch(0.84 0.048 345), oklch(0.93 0.034 285));
+      background-size: 400% 400%;
+      animation: gradient 5s ease infinite;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      z-index: 3;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle at center, #0f172b 0.85px, transparent 1px);
+      background-size: 16px 16px;
+      background-position: center var(--dot-shift, -8px);
+      mix-blend-mode: multiply;
+      opacity: 0.2;
+    }
+    body.folio-in::before {
+      opacity: 0;
+    }
+    /* Keep in sync with StyleMatters.2024.css @media (max-width: 768px). */
+    @media (max-width: 768px) {
+      /* Keep in sync with .bottomFade opaque stop. */
+      html,
+      body {
+        background-color: oklch(0.93 0.034 285);
+      }
+      body > .gradeFront {
+        position: fixed;
+        z-index: 2;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.85);
+        filter: blur(150px);
+        overflow: hidden;
+        pointer-events: none;
+      }
+    }
+    .bottomFade,
+    .topFade {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .bottomFade,
+      .topFade {
+        display: block;
+        position: fixed;
+        z-index: 898;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+      .bottomFade {
+        bottom: -2px;
+        height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
+        background-image: linear-gradient(
+          to bottom,
+          oklch(0.93 0.034 285 / 0) 0%,
+          oklch(0.93 0.034 285 / 0.75) 50%,
+          oklch(0.93 0.034 285 / 0.9) 75%,
+          oklch(0.93 0.034 285 / 1) 100%
+        );
+      }
+      .topFade {
+        top: -2px;
+        height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
+        background-image: linear-gradient(
+          to top,
+          oklch(0.96 0.024 345 / 0) 0%,
+          oklch(0.96 0.024 345 / 0.5) 50%,
+          oklch(0.96 0.024 345 / 0.75) 75%,
+          oklch(0.96 0.024 345 / 1) 100%
+        );
+      }
+    }
+
     .IntroLoader svg, .IntroLoader img {
       width: 100%;
       height: 100%;
@@ -57,15 +134,35 @@
     }
   </style>
 
+  <link rel="stylesheet" href="css/StyleMatters.2024.css">
+  <link rel="stylesheet" href="./components/NavBar.css">
+  <link rel="stylesheet" href="css/ProgressiveBlur.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="./js/IntenseImages/intense.js"></script>
+    
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Playfair+Display+SC:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+
+  <!-- Lottie player (light version - 40% smaller) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie_light.min.js"></script>
+
 </head>
 
 <body>
-  
+  <div class="gradeBG"></div>
+  <div class="gradeFront"></div>
+  <div class="topFade" id="topFade"></div>
+  <div class="bottomFade" id="bottomFade"></div>
+
   <!-- Intro Graphic -->
   <div id="introLoader" class="IntroLoader" aria-hidden="true"></div>
 
   <!-- Nav Bar -->
-  <div id="navDynamicContainer" class="navDynamicContainer" style="display:none;">
+  <div id="navDynamicContainer" class="navDynamicContainer" style="opacity:0;transform:translateY(124px);pointer-events:none;">
     <div class="navBar" id="navBar">
         <div class="navBarSegController" id="navBarSegController">
             <div id="navLogoSpin" onclick="openNavInfoView()" class="openNavInfoView" style="width:40px;height:40px;cursor:pointer;">
@@ -256,14 +353,11 @@
         </div>    
     </div>
   </div>
-  <div class="bottomFade" id="bottomFade"></div>
   <div class="navBarOverlay" id="navBarOverlay" onclick="document.getElementById('chatViewContent').style.visibility === 'visible' ? closeNavChatView() : (document.getElementById('contactViewContent').style.visibility === 'visible' ? closeNavContactView() : document.getElementById('infoViewContent').style.visibility === 'visible' ? closeNavInfoView() : null)">
   </div>
-  <div class="gradeFront"></div>
-  <div class="gradeBG"></div>
 
   <!-- Main Content -->
-  <div class="ContentContainer" style="display:none;"> 
+  <div class="ContentContainer" style="display:flex;top:0;transform:translateY(200%);visibility:hidden;">
     <div class="TitleBlock2">
       <div class="Text" style="text-align:center;">
         <div class="Name" id="Siggy" style="padding:0px;font-size:20px;">
@@ -510,40 +604,100 @@
       gradeFront.style.height = '100%';
       gradeFront.style.borderRadius = '0px';
       gradeFront.style.opacity = '1';
+      gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+      gradeFront.style.transition = '';
     }
     var content = document.querySelector('.ContentContainer');
     if (content) {
-      content.style.top = '0px';
       content.style.display = 'flex';
+      content.style.top = '0px';
+      content.style.visibility = 'visible';
+      content.style.transform = 'none';
+      content.style.transition = '';
     }
     var nav = document.querySelector('.navDynamicContainer');
     if (nav) {
-      nav.style.display = '';
-      nav.style.bottom = 'calc(24px + env(safe-area-inset-bottom, 0px))';
+      nav.style.opacity = '1';
+      nav.style.transform = 'none';
+      nav.style.pointerEvents = '';
+      nav.style.transition = '';
+      nav.style.bottom = NAV_DOCK_BOTTOM;
     }
+    document.body.classList.add('folio-in');
     document.body.style.overflowY = 'auto';
   }
 
   function initIntroAnimation() {
-    $('.IntroLoader').animate({width:'300px',height:'300px'}, 500, function() {
-      $('.IntroLoader').delay(1000).animate({top:'-100%'}, 250);
-    });
-    $('.gradeFront').css({width: '525px', height: '525px', borderRadius: '400px', opacity: '1'})
-      .delay(1250)
-      .animate({width:'100%',height:'100%',borderRadius:'0px'}, 500);
+    var loader = document.querySelector('.IntroLoader');
+    if (loader) {
+      loader.style.transition = 'transform 500ms ease';
+      loader.getBoundingClientRect();
+      loader.style.transform = 'translate(-50%, -50%) scale(1)';
+      setTimeout(function() {
+        loader.style.transition = 'transform 250ms ease';
+        loader.getBoundingClientRect();
+        loader.style.transform = 'translate(-50%, calc(-50% - 100vh)) scale(1)';
+      }, 1500);
+    }
+
+    var gradeFront = document.querySelector('.gradeFront');
+    if (gradeFront) {
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        gradeFront.style.width = '100%';
+        gradeFront.style.height = '100%';
+        gradeFront.style.borderRadius = '0px';
+        gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+        gradeFront.style.opacity = '1';
+      } else {
+        var sx = 525 / Math.max(window.innerWidth, 1);
+        var sy = 525 / Math.max(window.innerHeight, 1);
+        gradeFront.style.borderRadius = '400px';
+        gradeFront.style.transform = 'translate(-50%, -50%) scale(' + sx + ', ' + sy + ')';
+        gradeFront.style.opacity = '1';
+        setTimeout(function() {
+          gradeFront.style.transition = 'transform 500ms ease, border-radius 500ms ease';
+          gradeFront.getBoundingClientRect();
+          gradeFront.style.transform = 'translate(-50%, -50%) scale(1)';
+          gradeFront.style.borderRadius = '0px';
+          setTimeout(function() {
+            gradeFront.style.transition = '';
+          }, 500);
+        }, 1250);
+      }
+    }
+
     setTimeout(function() {
-      $('.ContentContainer').css('top', '200%').fadeIn(0, function() {
-        $('.ContentContainer').animate({top: '0px'}, 1000);
-      });
+      var content = document.querySelector('.ContentContainer');
+      if (!content) return;
+      content.style.visibility = 'visible';
+      content.style.transition = 'transform 1000ms ease';
+      content.getBoundingClientRect();
+      content.style.transform = 'translateY(0)';
+      setTimeout(function() {
+        content.style.transition = '';
+        document.body.classList.add('folio-in');
+      }, 1000);
     }, 1000);
     setTimeout(function() {
-      $('.navDynamicContainer').css('bottom', '-100px').fadeIn(250, function() {
-        $('.navDynamicContainer').animate({bottom: '24px'}, 250);
-      });
+      var nav = document.querySelector('.navDynamicContainer');
+      if (!nav) return;
+      nav.style.transition = 'opacity 250ms ease';
+      nav.getBoundingClientRect();
+      nav.style.opacity = '1';
+      setTimeout(function() {
+        nav.style.transition = 'transform 250ms ease';
+        nav.getBoundingClientRect();
+        nav.style.transform = 'translateY(0)';
+        setTimeout(function() {
+          nav.style.transition = '';
+          nav.style.pointerEvents = '';
+          nav.style.bottom = NAV_DOCK_BOTTOM;
+        }, 250);
+      }, 250);
     }, 1250);
-    $('body').css('overflow-y', 'hidden');
+    document.body.style.overflowY = 'hidden';
     setTimeout(function() {
-      $('body').css('overflow-y', 'auto');
+      document.body.style.overflowY = 'auto';
     }, 2500);
   }
 
