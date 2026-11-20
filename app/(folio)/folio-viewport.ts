@@ -5,7 +5,7 @@ export function folioViewport() {
   const top = vv?.offsetTop ?? 0
   const left = vv?.offsetLeft ?? 0
   const width = vv?.width ?? window.innerWidth
-  // Match syncFolioVisualViewport: keyboard shrinks inset only — layout stays at rest.
+  // Match syncFolioVisualViewport: keyboard shrinks dock gap only — layout stays at rest.
   const liveRest = restHeight || height
   const inset = Math.max(0, liveRest - height)
   if (inset >= KEYBOARD_INSET_MIN) {
@@ -29,6 +29,8 @@ type Listener = () => void
 const listeners = new Set<Listener>()
 let restHeight = 0
 let restTop = 0
+let layoutHeightWritten = -1
+let layoutTopWritten = -1
 let attached = false
 let detachBus: (() => void) | null = null
 
@@ -37,15 +39,18 @@ function page() {
 }
 
 /**
- * Dock rides `--folio-vv-inset-bottom`. Layout vars (`height` / `top` / `bottom`)
- * freeze while the keyboard is open so orbit, session shell, and cards don’t reflow.
+ * Two buses on one vv tick:
+ * - Layout (`--folio-vv-height/top/bottom`) freezes while the keyboard is open.
+ * - Dock (`--folio-dock-bottom`) always tracks the live visible bottom edge.
+ * Layout listeners only run when layout vars change — not on pure keyboard ticks.
  */
 export function syncFolioVisualViewport() {
   const root = page()
-  if (!(root instanceof HTMLElement)) return
+  if (!(root instanceof HTMLElement)) return false
   const vv = window.visualViewport
   const height = vv?.height ?? window.innerHeight
   const top = vv?.offsetTop ?? 0
+  const layoutInnerHeight = window.innerHeight
   // iOS often shrinks window.innerHeight with the keyboard, so
   // innerHeight − vv.bottom stays ~0. Diff against a resting vv height instead.
   if (height >= restHeight - 1) restHeight = height
@@ -58,23 +63,36 @@ export function syncFolioVisualViewport() {
   const layoutHeight = keyboardOpen ? restHeight : height
   const layoutTop = keyboardOpen ? restTop : top
   const layoutBottom = layoutTop + layoutHeight
+  // Gap under the visible band — accounts for offsetTop when Safari shifts the page.
+  const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
-  root.style.setProperty('--folio-vv-inset-bottom', `${inset}px`)
-  root.style.setProperty('--folio-vv-height', `${layoutHeight}px`)
-  root.style.setProperty('--folio-vv-top', `${layoutTop}px`)
-  root.style.setProperty('--folio-vv-bottom', `${layoutBottom}px`)
+  root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
+
+  const layoutChanged =
+    layoutHeight !== layoutHeightWritten || layoutTop !== layoutTopWritten
+  if (layoutChanged) {
+    layoutHeightWritten = layoutHeight
+    layoutTopWritten = layoutTop
+    root.style.setProperty('--folio-vv-height', `${layoutHeight}px`)
+    root.style.setProperty('--folio-vv-top', `${layoutTop}px`)
+    root.style.setProperty('--folio-vv-bottom', `${layoutBottom}px`)
+  }
+  return layoutChanged
 }
 
 function attach() {
   if (attached || typeof window === 'undefined') return
   attached = true
   const run = () => {
-    syncFolioVisualViewport()
+    const layoutChanged = syncFolioVisualViewport()
+    if (!layoutChanged) return
     for (const fn of [...listeners]) fn()
   }
   const onOrient = () => {
     restHeight = 0
     restTop = 0
+    layoutHeightWritten = -1
+    layoutTopWritten = -1
     run()
   }
   const vv = window.visualViewport
@@ -93,8 +111,8 @@ function attach() {
 }
 
 /**
- * One window / visualViewport binding for the folio shell.
- * Imperative sync still works with zero subscribers.
+ * Layout-bus subscription. Fires when layout vars change — not on dock-only keyboard ticks.
+ * Imperative sync still updates the dock pin every call.
  */
 export function bindFolioVisualViewport(onChange?: Listener) {
   attach()

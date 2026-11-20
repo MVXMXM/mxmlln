@@ -50,8 +50,8 @@
 .mx-dock .dockCluster {
   position: fixed;
   z-index: 900;
-  /* Bottom-anchored so info/contact grow upward; inset tracks the OSK every frame. */
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-vv-inset-bottom, 0px));
+  /* Bottom-anchored so info/contact grow upward; gap tracks the live visible bottom. */
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-dock-bottom, 0px));
   top: auto;
   left: 0;
   right: 0;
