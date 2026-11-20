@@ -908,13 +908,14 @@ function mountPageGlass(dock: HTMLElement) {
     }, delay);
   };
 
-  let touchDepth = 0;
+  // Touch identifiers currently down on the page (not ++/-- — that desyncs on cancel).
+  const pageTouches = new Set<number>();
 
   const releaseScroll = (force = false) => {
     scrollTimer = 0;
     if (!dock.dataset.dockScrolling) return;
     // Finger still down — expanding mid-gesture re-minifies on the next move.
-    if (!force && touchDepth > 0) return;
+    if (!force && pageTouches.size > 0) return;
     scrollingClips = null;
     if (mediaFrame) {
       cancelAnimationFrame(mediaFrame);
@@ -940,8 +941,8 @@ function mountPageGlass(dock: HTMLElement) {
 
   const scheduleScrollRelease = () => {
     window.clearTimeout(scrollTimer);
-    if (touchDepth > 0) return;
-    scrollTimer = window.setTimeout(releaseScroll, 400);
+    if (pageTouches.size > 0) return;
+    scrollTimer = window.setTimeout(() => releaseScroll(), 400);
   };
 
   const armScrollMinify = () => {
@@ -979,13 +980,25 @@ function mountPageGlass(dock: HTMLElement) {
 
   const onTouchStart = (event: TouchEvent) => {
     if (scrollFromDock(event.target)) return;
-    touchDepth += 1;
+    for (const touch of event.changedTouches) pageTouches.add(touch.identifier);
     armScrollMinify();
   };
 
-  const onTouchEnd = () => {
-    touchDepth = Math.max(0, touchDepth - 1);
-    if (touchDepth === 0 && dock.dataset.dockScrolling) scheduleScrollRelease();
+  const onTouchEnd = (event: TouchEvent) => {
+    for (const touch of event.changedTouches) pageTouches.delete(touch.identifier);
+    // Absolute sync — missed cancels otherwise leave ids and never expand.
+    if (event.touches.length === 0) pageTouches.clear();
+    if (pageTouches.size === 0 && dock.dataset.dockScrolling) scheduleScrollRelease();
+  };
+
+  const forceClearTouches = () => {
+    pageTouches.clear();
+    if (dock.dataset.dockScrolling) releaseScroll(true);
+  };
+
+  const onVisibility = () => {
+    if (document.visibilityState !== 'hidden') return;
+    forceClearTouches();
   };
 
   const sceneTransition = (target: EventTarget | null) =>
@@ -1068,6 +1081,8 @@ function mountPageGlass(dock: HTMLElement) {
   document.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
   document.addEventListener('touchend', onTouchEnd, { passive: true, capture: true });
   document.addEventListener('touchcancel', onTouchEnd, { passive: true, capture: true });
+  window.addEventListener('pagehide', forceClearTouches);
+  document.addEventListener('visibilitychange', onVisibility);
   document.addEventListener('transitionrun', onTransitionRun, true);
   const onPlaying = (event: Event) => {
     if (!started || mediaFrame || !(event.target instanceof HTMLVideoElement)) return;
@@ -1171,6 +1186,8 @@ function mountPageGlass(dock: HTMLElement) {
     document.removeEventListener('touchstart', onTouchStart, { capture: true });
     document.removeEventListener('touchend', onTouchEnd, { capture: true });
     document.removeEventListener('touchcancel', onTouchEnd, { capture: true });
+    window.removeEventListener('pagehide', forceClearTouches);
+    document.removeEventListener('visibilitychange', onVisibility);
     unbindViewport();
     undoRenderLens?.();
     undoOverscroll?.();
