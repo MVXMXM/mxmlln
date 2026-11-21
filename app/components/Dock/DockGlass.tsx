@@ -1166,6 +1166,14 @@ function mountPageGlass(dock: HTMLElement) {
           delete dock.dataset.dockPaging;
           if (started) refresh();
         }
+        // Empty chat: nothing under the lens yet — wait for orbit/loading.
+        if (
+          page instanceof HTMLElement &&
+          page.classList.contains('is-chat-session') &&
+          !page.querySelector('.folio-masonry.is-orbit')
+        ) {
+          return;
+        }
         schedule(360);
       })
     : null;
