@@ -2,16 +2,20 @@
   "name": "maximin-portfolio",
   "version": "1.0.0",
   "private": true,
+  "workspaces": ["packages/maxos"],
   "engines": {
     "node": "24.x"
   },
   "scripts": {
+    "predev": "npm run build --workspace @mvxmxm/maxos",
     "dev": "next dev --port 3000",
+    "prebuild": "npm run build --workspace @mvxmxm/maxos",
     "build": "next build",
     "start": "next start",
     "lint": "eslint ."
   },
   "dependencies": {
+    "@mvxmxm/maxos": "0.1.0",
     "@ai-sdk/openai": "^2.0.67",
     "@ai-sdk/react": "^3.0.29",
     "@codedgar/glassworks": "^2.0.0",

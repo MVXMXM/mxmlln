@@ -15,6 +15,7 @@ out/
 # production
 /build
 /dist/
+/packages/maxos/dist/
 
 # env files
 .env
