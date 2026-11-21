@@ -286,6 +286,8 @@ export function HomeDock() {
   const shellTimer = useRef(0)
   const shellVvOff = useRef<(() => void) | null>(null)
   const logoFromRef = useRef<DOMRect | null>(null)
+  const chatMountedRef = useRef(chatMounted)
+  chatMountedRef.current = chatMounted
   const browsing = !!answers
   const waiting = !browsing
   const loading = !answers && !!userMessage
@@ -451,14 +453,7 @@ export function HomeDock() {
     }
     setChatOpen(true)
     cancelPendingShell()
-    if (!window.matchMedia('(max-width: 768px)').matches) {
-      mountChatShell()
-      return
-    }
-    shellTimer.current = window.setTimeout(() => {
-      shellTimer.current = 0
-      mountChatShell()
-    }, 700)
+    if (!window.matchMedia('(max-width: 768px)').matches) mountChatShell()
   }
 
   function closeChat() {
@@ -537,6 +532,11 @@ export function HomeDock() {
       const cards = fromResult && grid ? reorbitSession(grid) : Promise.resolve()
 
       skipBegin.current = true
+      if (!chatMountedRef.current) {
+        setChatOpen(true)
+        setChatMounted(true)
+        setLogoIn(true)
+      }
       setDockLaunch(true)
       setAnswers(null)
       setUserMessage(value)
