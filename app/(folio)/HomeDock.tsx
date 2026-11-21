@@ -37,7 +37,11 @@ const X_PROFILE = 'https://x.com/MVXMXM'
 /** Outlasts reorbit so the pop can meet the ring. */
 const LOGO_POP_MS = 720
 
-function ChatResponseMark({ spinning }: { spinning: boolean }) {
+function folioMobile() {
+  return window.matchMedia('(max-width: 768px)').matches
+}
+
+function ChatResponseMark({ spinning, animated = true }: { spinning: boolean; animated?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const animRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null)
   const spinningRef = useRef(spinning)
@@ -46,6 +50,10 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
   spinningRef.current = spinning
 
   useEffect(() => {
+    if (!animated) {
+      setReady(false)
+      return
+    }
     const container = ref.current
     if (!container) return
     const anim = lottie.loadAnimation({
@@ -77,7 +85,7 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
       anim.destroy()
       animRef.current = null
     }
-  }, [])
+  }, [animated])
 
   useEffect(() => {
     const anim = animRef.current
@@ -97,8 +105,8 @@ function ChatResponseMark({ spinning }: { spinning: boolean }) {
 
   return (
     <div className="chatResponseLogo">
-      <div ref={ref} className="chatResponseLogoLottie" aria-hidden />
-      {!ready && <img src="/assets/LogoMark.fallback.png" alt="" />}
+      {animated ? <div ref={ref} className="chatResponseLogoLottie" aria-hidden /> : null}
+      {(!animated || !ready) && <img src="/assets/LogoMark.fallback.png" alt="" />}
     </div>
   )
 }
@@ -300,7 +308,6 @@ export function HomeDock() {
   useLayoutEffect(() => {
     if (!chatMounted) return
     const grid = masonry.current
-    if (!grid) return
     const frame = column.current
 
     if (!browsing) {
@@ -320,12 +327,12 @@ export function HomeDock() {
         skipBegin.current = false
         return
       }
-      const mobile = window.matchMedia('(max-width: 768px)').matches
-      if (mobile && !userMessage) {
+      if (folioMobile() && !userMessage) {
         enterChatSessionMobile()
-      } else if (!grid.classList.contains('is-orbit')) {
-        beginFolioSession(grid)
+        return
       }
+      if (!grid) return
+      if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
       if (userMessage) setOrbitLoading(true)
       return
     }
@@ -618,7 +625,10 @@ export function HomeDock() {
             >
               <div className="chatBlurb">
                 <div className="chatResponseLogoContainer">
-                  <ChatResponseMark spinning={loading && !reducedMotion()} />
+                  <ChatResponseMark
+                    spinning={loading && !reducedMotion()}
+                    animated={!(folioMobile() && waiting && !loading)}
+                  />
                 </div>
                 {waiting ? (
                   <p className="Title folio-empty-prompt" aria-hidden={loading}>
@@ -635,7 +645,9 @@ export function HomeDock() {
           ) : null}
         </div>
       ) : null}
-      {chatMounted ? <div className="folio-masonry" ref={masonry} /> : null}
+      {chatMounted && !(folioMobile() && waiting && !loading) ? (
+        <div className="folio-masonry" ref={masonry} />
+      ) : null}
       {chatMounted && failure ? (
         <p className="folio-chat-failure" role="status">
           {failure}
