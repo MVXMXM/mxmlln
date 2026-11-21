@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     ".next/**",
     "out/**",
+    "packages/maxos/dist/**",
     "archive/**",
     "public/**",
     "next-env.d.ts",

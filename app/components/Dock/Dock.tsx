@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
-import { SegmentedController } from '../SegmentedController/SegmentedController';
+import { SegmentedController } from '@mvxmxm/maxos';
+import '@mvxmxm/maxos/segmented-controller.css';
 import './dock.css';
 
 export type DockItem = 'about' | 'work' | 'chat';

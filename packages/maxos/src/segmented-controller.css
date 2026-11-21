@@ -7,7 +7,7 @@
 
 .segmented-controller[data-bordered] {
   padding: 4px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--hairline, #e2e8f0);
   border-radius: 40px;
 }
 
@@ -19,7 +19,7 @@
   z-index: 1;
   overflow: hidden;
   border-radius: 40px;
-  background: var(--slate-950);
+  background: var(--slate-950, #020618);
   pointer-events: none;
 }
 
@@ -48,13 +48,13 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-family: var(--font-archivo, 'Archivo'), sans-serif;
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.2px;
   padding: 13px 22px;
-  color: var(--surface);
+  color: var(--surface, #fcfcfc);
 }
 
 .segmented-controller .segmented-controller-button {
@@ -64,7 +64,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-family: var(--font-archivo, 'Archivo'), sans-serif;
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
@@ -75,7 +75,7 @@
   cursor: pointer;
   border-radius: 40px;
   background: transparent;
-  color: var(--slate-950);
+  color: var(--slate-950, #020618);
 }
 
 .segmented-controller-button::before {
@@ -84,7 +84,7 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: var(--slate-100);
+  background: var(--slate-100, #f1f5f9);
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;

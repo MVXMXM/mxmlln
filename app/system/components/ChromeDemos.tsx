@@ -3,7 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import { Dock, type DockItem } from '../../components/Dock/Dock';
-import { SegmentedController } from '../../components/SegmentedController/SegmentedController';
+import { SegmentedController } from '@mvxmxm/maxos';
+import '@mvxmxm/maxos/segmented-controller.css';
 import { ComponentPreview } from './ComponentPreview';
 
 /**

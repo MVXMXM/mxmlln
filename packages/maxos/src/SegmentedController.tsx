@@ -1,5 +1,6 @@
+'use client';
+
 import { useLayoutEffect, useRef } from 'react';
-import './segmented-controller.css';
 
 export function SegmentedController<T extends string>({
   label,
