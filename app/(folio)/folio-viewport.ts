@@ -58,7 +58,6 @@ export function syncFolioVisualViewport() {
   const dockBottom = Math.max(0, layoutInnerHeight - (top + height))
 
   root.style.setProperty('--folio-dock-bottom', `${dockBottom}px`)
-  root.style.setProperty('--folio-vv-offset-top', `${top}px`)
 
   const layoutChanged =
     layoutHeight !== layoutHeightWritten || layoutTop !== layoutTopWritten

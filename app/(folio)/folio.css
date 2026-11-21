@@ -72,9 +72,8 @@ html:has(.folio-page.is-folio-session) body {
   }
 
   .folio-page .bottomFade {
-    /* -2px: iOS can leave a 1px seam at bottom:0 while the URL bar animates.
-       --folio-dock-bottom keeps the fade on the visible edge above the OSK. */
-    bottom: calc(-2px + var(--folio-dock-bottom, 0px));
+    /* -2px: iOS can leave a 1px seam at bottom:0 while the URL bar animates. */
+    bottom: -2px;
     height: calc(160px + env(safe-area-inset-bottom, 0px) + 2px);
     background-image: linear-gradient(
       to bottom,
@@ -86,7 +85,7 @@ html:has(.folio-page.is-folio-session) body {
   }
 
   .folio-page .topFade {
-    top: calc(-2px + var(--folio-vv-offset-top, 0px));
+    top: -2px;
     height: calc(80px + env(safe-area-inset-top, 0px) + 2px);
     background-image: linear-gradient(
       to top,
