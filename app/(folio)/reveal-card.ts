@@ -1589,7 +1589,7 @@ export function revealSessionCards(
   })()
 }
 
-export function releaseFolioFocus() {
+export function exitChatSession() {
   motionToken += 1
   disposeCarousel()
   stopOrbit()

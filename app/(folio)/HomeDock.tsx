@@ -13,7 +13,7 @@ import {
   chatSessionOpen,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
-  releaseFolioFocus,
+  exitChatSession,
   reorbitSession,
   revealSessionCards,
   setOrbitLoading,
@@ -420,7 +420,7 @@ export function HomeDock() {
     setDockLaunch(false)
     setLogoIn(false)
     setOrbitLoading(false)
-    releaseFolioFocus()
+    exitChatSession()
   }
 
   function mountChatShell() {
@@ -480,7 +480,7 @@ export function HomeDock() {
     const id = ++turnId.current
     if (!chatSessionOpen()) {
       const restoring = !!document.querySelector('.CardStackLabelContainer.expanded')
-      releaseFolioFocus()
+      exitChatSession()
       if (restoring) await new Promise((resolve) => window.setTimeout(resolve, 420))
       if (turnId.current !== id) return
     }
