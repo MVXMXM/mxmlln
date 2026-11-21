@@ -3,11 +3,16 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import lottie from 'lottie-web'
 import { Dock, type DockItem } from '@/app/components/Dock/Dock'
-import { bindFolioVisualViewport, folioViewport } from './folio-viewport'
+import {
+  bindFolioVisualViewport,
+  folioKeyboardLatched,
+  folioViewport,
+} from './folio-viewport'
 import {
   armOrbitHold,
   beginFolioSession,
   cardsForAnswer,
+  enterChatSessionMobile,
   folioFocusMetrics,
   chatSessionOpen,
   ORBIT_TRAVEL_MS,
@@ -453,7 +458,23 @@ export function HomeDock() {
     }
     setChatOpen(true)
     cancelPendingShell()
-    if (!window.matchMedia('(max-width: 768px)').matches) mountChatShell()
+    if (!window.matchMedia('(max-width: 768px)').matches) {
+      mountChatShell()
+      return
+    }
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      cancelPendingShell()
+      enterChatSessionMobile()
+      mountChatShell()
+    }
+    const unbind = bindFolioVisualViewport(() => {
+      if (folioKeyboardLatched()) finish()
+    })
+    shellVvOff.current = () => unbind()
+    shellTimer.current = window.setTimeout(finish, 900)
   }
 
   function closeChat() {

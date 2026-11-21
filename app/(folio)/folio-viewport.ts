@@ -108,6 +108,10 @@ function attach() {
   }
 }
 
+export function folioKeyboardLatched() {
+  return keyboardLatched
+}
+
 /** `layoutChanged` is false while the keyboard is latched — gate reflows on it. */
 export function bindFolioVisualViewport(onChange?: Listener) {
   attach()
