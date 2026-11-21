@@ -319,8 +319,10 @@ export function HomeDock() {
         skipBegin.current = false
         return
       }
-      if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
-      // beginFolioSession resets tighten — re-apply on a loading mount.
+      const mobile = window.matchMedia('(max-width: 768px)').matches
+      if ((!mobile || userMessage) && !grid.classList.contains('is-orbit')) {
+        beginFolioSession(grid)
+      }
       if (userMessage) setOrbitLoading(true)
       return
     }
