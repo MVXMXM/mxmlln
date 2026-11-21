@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
+import { SegmentedController } from '../SegmentedController/SegmentedController';
 import './dock.css';
 
 export type DockItem = 'about' | 'work' | 'chat';
@@ -106,8 +107,6 @@ export function Dock({
   const composerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const clusterRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const segmentsRef = useRef<HTMLDivElement>(null);
-  const indicatorRef = useRef<HTMLSpanElement>(null);
   const activeItem = activeItemProp ?? uncontrolledItem;
 
   const closeComposer = useCallback(() => {
@@ -142,42 +141,6 @@ export function Dock({
     observer.observe(content);
     return () => observer.disconnect();
   }, []);
-
-  useLayoutEffect(() => {
-    const root = segmentsRef.current;
-    const indicator = indicatorRef.current;
-    if (!root || !indicator) return;
-    const place = () => {
-      const active = root.querySelector<HTMLElement>('.dockBarItem_OnState');
-      const labels = indicator.querySelector<HTMLElement>('.dockBarIndicatorLabels');
-      if (!active || !labels) return;
-      indicator.style.width = `${active.offsetWidth}px`;
-      indicator.style.height = `${active.offsetHeight}px`;
-      indicator.style.transform = `translate3d(${active.offsetLeft}px, ${active.offsetTop}px, 0)`;
-      labels.style.transform = `translate3d(${-active.offsetLeft}px, ${-active.offsetTop}px, 0)`;
-      const buttons = [...root.querySelectorAll<HTMLElement>('button')];
-      const copies = [...labels.querySelectorAll<HTMLElement>('.dockBarIndicatorLabel')];
-      buttons.forEach((button, index) => {
-        const copy = copies[index];
-        if (!copy) return;
-        copy.style.left = `${button.offsetLeft}px`;
-        copy.style.top = `${button.offsetTop}px`;
-        copy.style.width = `${button.offsetWidth}px`;
-        copy.style.height = `${button.offsetHeight}px`;
-      });
-    };
-    place();
-    // The first placement should not travel in from 0,0.
-    if (!indicator.dataset.ready) {
-      requestAnimationFrame(() => {
-        indicator.dataset.ready = 'true';
-      });
-    }
-    const observer = new ResizeObserver(place);
-    observer.observe(root);
-    for (const button of root.querySelectorAll('button')) observer.observe(button);
-    return () => observer.disconnect();
-  }, [activeItem]);
 
   useEffect(() => {
     if (!panel) return;
@@ -261,28 +224,14 @@ export function Dock({
                 label="Open info menu"
               />
             </button>
-            <div className="dockBarSegments" ref={segmentsRef}>
-              <span className="dockBarIndicator" ref={indicatorRef} aria-hidden="true">
-                <span className="dockBarIndicatorLabels">
-                  {ITEMS.map((item) => (
-                    <span key={item.id} className="dockBarIndicatorLabel">
-                      {item.label}
-                    </span>
-                  ))}
-                </span>
-              </span>
-              {ITEMS.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={activeItem === item.id ? 'dockBarItem_OnState' : 'dockBarItem'}
-                  aria-expanded={item.id === 'chat' ? composer : undefined}
-                  onClick={() => selectItem(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+            <SegmentedController
+              label="Portfolio sections"
+              items={ITEMS.map((item) => item.id === 'chat' ? { ...item, expanded: composer } : item)}
+              value={activeItem}
+              onChange={selectItem}
+              animate={!composerClosing}
+              bordered={false}
+            />
             <button type="button" onClick={() => openPanel('contact')} aria-label="Open contact menu">
               <img className="openDockContactView" src="/assets/ContactSML.png" alt="" />
             </button>

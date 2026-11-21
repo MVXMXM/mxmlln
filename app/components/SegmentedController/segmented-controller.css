@@ -1,0 +1,103 @@
+.segmented-controller {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.segmented-controller[data-bordered] {
+  padding: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: 40px;
+}
+
+/* Keep both transform transitions in sync so the clipped labels stay over their buttons. */
+.segmented-controller-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 40px;
+  background: var(--slate-950);
+  pointer-events: none;
+}
+
+.segmented-controller-indicator[data-ready='true'],
+.segmented-controller-indicator[data-ready='true'] .segmented-controller-labels {
+  transition:
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.segmented-controller[data-static] .segmented-controller-indicator,
+.segmented-controller[data-static] .segmented-controller-indicator .segmented-controller-labels {
+  transition: none;
+}
+
+.segmented-controller-labels {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.segmented-controller .segmented-controller-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  padding: 13px 22px;
+  color: var(--surface);
+}
+
+.segmented-controller .segmented-controller-button {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-family: var(--font-archivo), 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  margin: 0;
+  border: 0;
+  padding: 13px 22px;
+  cursor: pointer;
+  border-radius: 40px;
+  background: transparent;
+  color: var(--slate-950);
+}
+
+.segmented-controller-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--slate-100);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.segmented-controller-button[aria-pressed="false"]:hover::before {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented-controller-indicator[data-ready='true'],
+  .segmented-controller-indicator[data-ready='true'] .segmented-controller-labels,
+  .segmented-controller-button::before {
+    transition: none;
+  }
+}
