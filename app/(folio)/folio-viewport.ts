@@ -80,6 +80,8 @@ function attach() {
     for (const fn of [...listeners]) fn(layoutChanged)
   }
   const run = () => {
+    // Pin the dock on the vv event — rAF coalescing made the OSK lead by a frame+.
+    syncFolioVisualViewport()
     if (syncRaf) return
     syncRaf = requestAnimationFrame(flush)
   }
