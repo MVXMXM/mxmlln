@@ -298,6 +298,13 @@ export function HomeDock() {
 
   useLayoutEffect(() => {
     if (!chatMounted) return
+    if (
+      !browsing &&
+      !userMessage &&
+      window.matchMedia('(max-width: 768px)').matches
+    ) {
+      return
+    }
     const grid = masonry.current
     if (!grid) return
     const frame = column.current
@@ -319,7 +326,6 @@ export function HomeDock() {
         skipBegin.current = false
         return
       }
-      if (window.matchMedia('(max-width: 768px)').matches && !userMessage) return
       if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
       if (userMessage) setOrbitLoading(true)
       return
