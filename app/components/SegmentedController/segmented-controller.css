@@ -11,9 +11,7 @@
   border-radius: 40px;
 }
 
-/* One pill for every item. Width and position share an ease so the
-   highlight stretches as it travels. The white copy inside is clipped to
-   the pill, so each letter flips as the pill crosses it. */
+/* Keep both transform transitions in sync so the clipped labels stay over their buttons. */
 .segmented-controller-indicator {
   position: absolute;
   left: 0;
