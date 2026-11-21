@@ -10,6 +10,11 @@ const cardSchema = z.object({
   cardHeader: z.string(),
   cardDescription: z.string(),
   cardURL: z.string(),
+  // Model sometimes over-lists a theme — keep six instead of failing the parse.
+  cardURLs: z
+    .array(z.string())
+    .min(1)
+    .transform((urls) => urls.slice(0, 6)),
 });
 
 export async function POST(req: NextRequest) {
@@ -23,13 +28,13 @@ export async function POST(req: NextRequest) {
       schema: cardSchema,
       system: folioMetaPrompt,
       prompt: defineProblem,
-      // This is a case-study lookup. Reasoning effort holds the card for seconds.
+      // Reasoning effort holds the card for seconds on this lookup.
       providerOptions: {
         openai: { reasoningEffort: "none" },
       },
     });
 
-    // ChatIntelligence.js JSON.parses this string. Keep it a string.
+    // HomeDock still JSON.parses AiResponse as a string.
     return NextResponse.json({ AiResponse: JSON.stringify(object) });
   } catch (error) {
     console.error(error);

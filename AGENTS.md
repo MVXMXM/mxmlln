@@ -24,9 +24,9 @@ Personal design portfolio of Maximillian Piras — product design (UX/UI) for te
 
 One Next.js app. New work goes in `app/` and `app/api/`.
 
-- **Next.js `app/`** — routes (`blog`, `decks`, `system`, `experiments`) and API routes. Homepage chat is `app/api/openai/meta` (returns `{ AiResponse }` as a JSON string for the legacy homepage). `app/api/submit` stores input in Postgres. `app/api/reading-list` serves the reader. `app/api/chat` is the separate streaming chat.
+- **Next.js `app/`** — routes (`blog`, `decks`, `system`, `experiments`) and API routes. Homepage chat is `app/api/openai/meta` (returns `{ AiResponse }` as a JSON string for the folio dock). `app/api/submit` stores input in Postgres. `app/api/reading-list` serves the reader. `app/api/chat` is the separate streaming chat.
 - **Design system** — `content/system.mdx` (doc) + `registry/` (primitives) + `app/globals.css` (canonical tokens). See the banner above.
-- **Legacy homepage** — the interactive card-stack at `/` is static on purpose, rewritten in `next.config.ts` to `public/portfolio.html`. Its logic lives in `public/` (`FolioEngine.js`, `NavBar.js`, `ChatIntelligence.js`) — vanilla JS + jQuery, no bundler. Leave it until a real redesign.
+- **Homepage** — `/` is the Next folio shell (`app/(folio)/`): React dock/chat/about over card-stack markup from `content/folio/portfolio.html` (`FolioMarkup`). Card-stack behavior still lives in `public/components/FolioEngine.js` (vanilla + jQuery) until a real redesign. `/portfolio.html` redirects to `/`.
 - **Experiments** — the Interaction Sketchbook at `/experiments` iframes published snapshots in `public/static/NNN` and Next pages under `app/experiments/`. New interactive work lives in `app/experiments/<name>`. A frozen piece is one HTML snapshot under `public/static/`. Do not add a `package.json` under `public/`. Older prototype source is archived in `archive/exp/` and is not deployed.
 
 ## Development

@@ -34,7 +34,6 @@ const initialStyles = {
         alignItems: 'center',
         gap: '80px',
         margin: '76px 0 200px',
-        //backgroundColor: 'green',
         transition: 'all 0.15s ease'
     },
     CardStackLabelContainer: {
@@ -46,7 +45,6 @@ const initialStyles = {
         height: '464px',
         minHeight: '464px',
         overflow: 'visible',
-        //backgroundColor: 'blue',
         margin: '0px',
         transition: 'all 0.25s ease'
     },
@@ -107,7 +105,6 @@ const initialStyles = {
         gap: '0px',
         cursor: 'pointer',
         margin: '0px',
-        //backgroundColor: 'red',
         transition: 'all 0.25s ease'
     },
     card: {
@@ -156,8 +153,6 @@ const initialStyles = {
         marginBottom: '10px',
         borderRadius: '10px',
         color: '#FFFFFF',
-        // backdropFilter: 'blur(10px)',
-        // webkitBackdropFilter: 'blur(10px)',
         backgroundColor: 'rgba(0, 0, 0, 0.35)'
     },
     BadgeText: {
@@ -257,36 +252,39 @@ function setDefaultCardStackStyles() {
     const titleCenter = parseFloat(initialStyles.TitleBlock3.marginTop) + parseFloat(initialStyles.TitleBlock3.height) / 2;
     document.documentElement.style.setProperty('--dot-shift', `${titleCenter - grid / 2}px`);
 }
-// Card controls
+// Touch synthesizes mouseover and leaves the fan open — skip under the mobile breakpoint.
+function stackHoverEnabled() {
+    return window.matchMedia('(min-width: 769px)').matches;
+}
+
 const cards = document.querySelectorAll('.Card');
 cards.forEach((card, index) => {
     Object.assign(card.style, initialStyles.card);
-    // Card child styles
     const cardStack = card.parentNode;
     const cardsInStack = cardStack.children;
     const cardIndexInStack = Array.prototype.indexOf.call(cardsInStack, card);
     setCardPosition(card, cardIndexInStack, cardsInStack.length, cardStack.id || `stack-${Math.random().toString(36).substr(2, 9)}`);
-    
-    // Card stack hover styles
+
     cardStack.addEventListener('mouseover', function(e) {
+        if (!stackHoverEnabled()) return;
         handleCardStackHover(e, cardStack);
     });
-    
-    // Card stack mouse out styles
+
     cardStack.addEventListener('mouseout', function() {
+        if (!stackHoverEnabled()) return;
         handleCardStackMouseOut(cardStack);
     });
 
-    // Existing card hover styles
     cardStack.addEventListener('mouseover', function() {
+        if (!stackHoverEnabled()) return;
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
             applyCardHoverStyles(cardStack, cardIndexInStack);
         }
     });
 
-    // Existing card mouse out styles
     cardStack.addEventListener('mouseout', function() {
+        if (!stackHoverEnabled()) return;
         const parentCardStackLabelContainer = cardStack.closest('.CardStackLabelContainer');
         if (!parentCardStackLabelContainer || !parentCardStackLabelContainer.classList.contains('expanded')) {
             resetCardStyles(cardStack, cardIndexInStack, cardsInStack.length);
@@ -458,22 +456,32 @@ function mountCardVideo(card) {
         height: 100%;
         object-fit: cover;
         pointer-events: none;
-        opacity: 0.999;
+        opacity: 0;
         transform: translateZ(0);
     `;
     video.muted = true;
+    video.defaultMuted = true;
     video.autoplay = true;
     video.loop = true;
     video.playsInline = true;
     video.controls = false;
     video.preload = 'auto';
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
     video.src = resolvedVideoSrc(videoSrc);
+
+    const reveal = () => {
+        video.style.opacity = '0.999';
+    };
+    video.addEventListener('playing', reveal, { once: true });
 
     wrap.appendChild(video);
     card.appendChild(wrap);
     ensureCardCursorHit(card);
-    video.play().catch(error => {
-        console.warn('Video autoplay failed:', error);
+    video.play().then(reveal).catch(() => {
+        // Paused <video> still paints Safari’s native play control.
+        unmountCardVideo(card);
     });
 }
 
@@ -523,47 +531,10 @@ function whenFolioIn(callback) {
 }
 
 function observeCardStackMedia() {
-    const stacks = document.querySelectorAll('.CardStack');
-    if (!('IntersectionObserver' in window)) {
-        stacks.forEach(stack => hydrateStackMedia(stack, { frontOnly: true }));
-        return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            const stack = entry.target;
-            const expanded = stack.closest('.CardStackLabelContainer')?.classList.contains('expanded');
-            if (StackIsExpanded) {
-                if (!expanded) dehydrateStackMedia(stack);
-                return;
-            }
-            if (entry.isIntersecting) {
-                hydrateStackMedia(stack, { frontOnly: true });
-            } else {
-                dehydrateStackMedia(stack);
-            }
-        });
-    }, { rootMargin: '120px 0px', threshold: 0.05 });
-
-    stacks.forEach(stack => {
-        observer.observe(stack);
-        const rect = stack.getBoundingClientRect();
-        if (rect.bottom > -120 && rect.top < window.innerHeight + 120) {
-            hydrateStackMedia(stack, { frontOnly: true });
-        }
-    });
+    // Collapsed stacks stay on posters; muted autoplay is blocked until a gesture
+    // and a paused <video> leaves Safari’s play control on the card.
+    document.querySelectorAll('.CardStack').forEach(dehydrateStackMedia);
 }
-
-// Initialize default styles
-document.addEventListener('DOMContentLoaded', function() {
-    setDefaultCardStackStyles();
-
-    const cardStacks = document.querySelectorAll('.CardStack');
-    cardStacks.forEach(stack => {
-        loadCards(stack);
-    });
-    whenFolioIn(observeCardStackMedia);
-});
 
 function collapseExpandedStack() {
     if (StackIsExpanded) {
@@ -575,14 +546,12 @@ function collapseExpandedStack() {
     }
 }
 
-// Collapse keyboard shortcut
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         collapseExpandedStack();
     }
 });
 
-// Expand stack trigger
 let StackIsExpanded = false;
 const CardStackLabelContainers = document.querySelectorAll('.CardStackLabelContainer');
 CardStackLabelContainers.forEach(CardStackLabelContainer => {
@@ -595,7 +564,6 @@ CardStackLabelContainers.forEach(CardStackLabelContainer => {
     });
 });
 
-// Expand stack controls
 function expandCardStackLabelContainer(CardStackLabelContainer) {
     const AllStacks = document.querySelector('.AllStacks');
     CardStackLabelContainer.classList.toggle('expanded');
@@ -703,7 +671,6 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
             }, 300);
 
         }, 0);
-        // StackBar Setup
         const sectionName = CardStackLabelContainer.querySelector('.CardStackLabelContainerValue').textContent.trim();
         document.getElementById('stackBarSectionName').textContent = sectionName;
         const StackBar = document.getElementById('StackBar');
@@ -714,7 +681,7 @@ function expandCardStackLabelContainer(CardStackLabelContainer) {
         StackBar.style.visibility = 'visible';
     } else {
         StackIsExpanded = false;
-        hydrateStackMedia(cardStack, { frontOnly: true });
+        dehydrateStackMedia(cardStack);
         const appStore = document.querySelector('.appStore');
         if (appStore) {
             Object.assign(appStore.style, initialStyles.appStore);
@@ -839,6 +806,7 @@ function skipIntroAnimation() {
 
   document.body.classList.add('folio-in');
   document.body.style.overflowY = 'auto';
+  document.querySelector('.folio-dock')?.classList.add('is-in');
 }
 
 function initIntroAnimation() {
@@ -894,6 +862,8 @@ function initIntroAnimation() {
   }, 1000);
 
   setTimeout(function() {
+    // Next has no .navDynamicContainer — arm the React dock before that early return.
+    document.querySelector('.folio-dock')?.classList.add('is-in');
     const nav = document.querySelector('.navDynamicContainer');
     if (!nav) return;
     nav.style.transition = 'opacity 250ms ease';
@@ -919,6 +889,10 @@ function initIntroAnimation() {
 
 window.initIntroAnimation = initIntroAnimation;
 window.skipIntroAnimation = skipIntroAnimation;
+window.unmountCardVideo = unmountCardVideo;
+window.mountCardVideo = mountCardVideo;
+window.dehydrateStackMedia = dehydrateStackMedia;
+window.hydrateStackMedia = hydrateStackMedia;
 
 function youtubeVideoId(href) {
     const match = String(href || '').match(
@@ -927,21 +901,30 @@ function youtubeVideoId(href) {
     return match ? match[1] : null;
 }
 
-function youtubeLightboxTitle(source) {
-    const title = source.querySelector?.('.CardTitle, .chatCardHeaderTitle');
+function lightboxTitle(sourceEl, fallback) {
+    const title = sourceEl?.querySelector?.('.CardTitle, .chatCardHeaderTitle');
     const text = title?.textContent?.replace(/\s+/g, ' ').trim();
-    return text || 'YouTube video';
+    return text || fallback || 'Media';
 }
 
-let youtubeLightbox = null;
+function cardStillSrc(card) {
+    const dataSrc = card.getAttribute('data-src');
+    if (dataSrc) return dataSrc;
+    const bg = window.getComputedStyle(card).backgroundImage;
+    const match = bg && bg !== 'none' ? bg.match(/url\(["']?(.*?)["']?\)/i) : null;
+    return match?.[1] || null;
+}
 
-function closeYouTubeLightbox() {
-    const lightbox = youtubeLightbox;
+let activeLightbox = null;
+
+function closeLightbox() {
+    const lightbox = activeLightbox;
     if (!lightbox) return;
-    youtubeLightbox = null;
+    activeLightbox = null;
     document.removeEventListener('keydown', lightbox.onKey, true);
     window.clearTimeout(lightbox.hintState.timer);
     document.body.style.overflow = lightbox.previousOverflow;
+    lightbox.root.querySelector('video')?.pause();
     lightbox.root.querySelector('iframe')?.remove();
     lightbox.root.classList.remove('is-open');
     const remove = (event) => {
@@ -956,31 +939,45 @@ function closeYouTubeLightbox() {
     window.setTimeout(remove, 250);
 }
 
-function openYouTubeLightbox(href, source) {
-    const id = youtubeVideoId(href);
-    if (!id || !source) return false;
-    closeYouTubeLightbox();
+function openLightbox(media) {
+    if (!media?.kind || !media.src) return false;
+    const youtubeId = media.kind === 'youtube' ? youtubeVideoId(media.src) : null;
+    if (media.kind === 'youtube' && !youtubeId) return false;
 
-    const rect = source.getBoundingClientRect();
+    closeLightbox();
+
+    const sourceEl = media.sourceEl || null;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const dx = rect.left + rect.width / 2 - window.innerWidth / 2;
-    const dy = rect.top + rect.height / 2 - window.innerHeight / 2;
+    const label =
+        media.title ||
+        lightboxTitle(
+            sourceEl,
+            media.kind === 'image' ? 'Image' : media.kind === 'video' ? 'Video' : 'YouTube video',
+        );
+
+    let dx = 0;
+    let dy = 0;
+    if (sourceEl?.getBoundingClientRect) {
+        const rect = sourceEl.getBoundingClientRect();
+        dx = rect.left + rect.width / 2 - window.innerWidth / 2;
+        dy = rect.top + rect.height / 2 - window.innerHeight / 2;
+    }
 
     const root = document.createElement('div');
-    root.className = 'yt-lightbox';
+    root.className = 'lightbox';
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
-    root.setAttribute('aria-label', youtubeLightboxTitle(source));
+    root.setAttribute('aria-label', label);
     root.tabIndex = -1;
 
     const stage = document.createElement('div');
-    stage.className = 'yt-lightbox-stage';
-    if (!reducedMotion) {
+    stage.className = 'lightbox-stage';
+    if (!reducedMotion && sourceEl) {
         stage.style.transform = `translate(${dx}px, ${dy}px) scale(0.4)`;
     }
 
     const hint = document.createElement('div');
-    hint.className = 'yt-lightbox-hint';
+    hint.className = 'lightbox-hint';
     hint.setAttribute('aria-hidden', 'true');
     const hintKey = document.createElement('kbd');
     hintKey.textContent = 'ESC';
@@ -989,16 +986,31 @@ function openYouTubeLightbox(href, source) {
     hint.append(hintKey, hintLabel);
 
     const player = document.createElement('div');
-    player.className = 'yt-lightbox-player';
+    player.className = media.kind === 'image' ? 'lightbox-player is-image' : 'lightbox-player';
 
-    const iframe = document.createElement('iframe');
-    iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
-    iframe.title = root.getAttribute('aria-label');
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.allowFullscreen = true;
+    if (media.kind === 'youtube') {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`;
+        iframe.title = label;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+        iframe.allowFullscreen = true;
+        player.appendChild(iframe);
+    } else if (media.kind === 'video') {
+        const video = document.createElement('video');
+        video.src = media.src;
+        video.controls = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', '');
+        player.appendChild(video);
+    } else {
+        const img = document.createElement('img');
+        img.src = media.src;
+        img.alt = label;
+        player.appendChild(img);
+    }
 
-    player.appendChild(iframe);
     stage.appendChild(hint);
     stage.appendChild(player);
     root.appendChild(stage);
@@ -1018,15 +1030,15 @@ function openYouTubeLightbox(href, source) {
     player.addEventListener('mouseenter', hideHint);
     player.addEventListener('mouseleave', showHint);
     root.addEventListener('click', (event) => {
-        if (event.target.closest('.yt-lightbox-player')) return;
-        closeYouTubeLightbox();
+        if (event.target.closest('.lightbox-player')) return;
+        closeLightbox();
     });
 
     const onKey = (event) => {
         if (event.key !== 'Escape') return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        closeYouTubeLightbox();
+        closeLightbox();
     };
     document.addEventListener('keydown', onKey, true);
 
@@ -1035,7 +1047,7 @@ function openYouTubeLightbox(href, source) {
     document.body.appendChild(root);
     root.focus({ preventScroll: true });
 
-    youtubeLightbox = { root, onKey, previousOverflow, hintState };
+    activeLightbox = { root, onKey, previousOverflow, hintState };
 
     if (reducedMotion) {
         root.classList.add('is-open');
@@ -1052,15 +1064,18 @@ function openYouTubeLightbox(href, source) {
     return true;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle card links
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+
+function bindFolioCards() {
     document.querySelectorAll('.Card[data-href]').forEach(card => {
         card.addEventListener('click', function() {
             const container = this.closest('.CardStackLabelContainer');
-            if (container && container.classList.contains('expanded')) {
+            const featured = this.closest('.folio-masonry.is-result');
+            if ((container && container.classList.contains('expanded')) || featured) {
                 const href = this.getAttribute('data-href');
                 if (!href) return;
-                if (openYouTubeLightbox(href, this)) return;
+                if (openLightbox({ kind: 'youtube', src: href, sourceEl: this })) return;
                 if (href.startsWith('/blog')) {
                     window.open(href, '_blank', 'noopener,noreferrer');
                 } else if (href.startsWith('/')) {
@@ -1075,59 +1090,57 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
         const link = event.target.closest?.('.chatCardURL a');
         if (!link) return;
-        if (openYouTubeLightbox(link.getAttribute('href'), link)) {
+        if (openLightbox({ kind: 'youtube', src: link.getAttribute('href'), sourceEl: link })) {
             event.preventDefault();
         }
     });
 
-    // Handle card zooms
     document.querySelectorAll('.Card#cardZoom').forEach(card => {
         card.addEventListener('click', function(event) {
             event.stopPropagation();
             const video = card.querySelector('video');
             if (video) {
-                // Handle video zoom
-                const videoModal = document.createElement('div');
-                videoModal.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    margin: 0;
-                    padding: 0;
-                    background: rgba(0,0,0,0.9);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 9999;
-                    cursor: url( "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo3Q0IyNDI3M0FFMkYxMUUzOEQzQUQ5NTMxMDAwQjJGRCIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo3Q0IyNDI3NEFFMkYxMUUzOEQzQUQ5NTMxMDAwQjJGRCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjdDQjI0MjcxQUUyRjExRTM4RDNBRDk1MzEwMDBCMkZEIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjdDQjI0MjcyQUUyRjExRTM4RDNBRDk1MzEwMDBCMkZEIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+soZ1WgAABp5JREFUeNrcWn9M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" ) 25 25, no-drop
-                `;
-                const videoClone = video.cloneNode(true);
-                videoClone.style.maxWidth = '100vw';
-                videoClone.style.maxHeight = '100vh';
-                videoModal.appendChild(videoClone);
-                
-                videoModal.addEventListener('click', () => {
-                    document.body.removeChild(videoModal);
-                });
-                
-                document.body.appendChild(videoModal);
-            } else {
-                // Existing image zoom functionality
-                const bgImage = window.getComputedStyle(this).backgroundImage;
-                const imageSrc = bgImage.slice(5, -2);
-                if (imageSrc && imageSrc !== 'none') {
-                    const img = document.createElement('img');
-                    img.style.display = 'none';
-                    img.src = imageSrc;
-                    document.body.appendChild(img);
-                    Intense(img);
-                    img.click();
-                    img.addEventListener('intense-close', () => document.body.removeChild(img));
-                }
+                const src = video.currentSrc || video.getAttribute('src') || card.getAttribute('data-video-src');
+                if (src) openLightbox({ kind: 'video', src, sourceEl: card });
+                return;
+            }
+            const imageSrc = cardStillSrc(card);
+            if (imageSrc) {
+                openLightbox({ kind: 'image', src: imageSrc, sourceEl: card });
             }
         });
     });
-});
+
+    document.querySelectorAll('.intense').forEach(el => {
+        el.addEventListener('click', function(event) {
+            event.preventDefault();
+            const src = el.getAttribute('data-image') || el.getAttribute('src') || el.getAttribute('href');
+            if (!src) return;
+            openLightbox({
+                kind: 'image',
+                src,
+                title: el.getAttribute('data-caption') || el.getAttribute('alt') || 'Image',
+                sourceEl: el,
+            });
+        });
+    });
+}
+
+// `/` injects this classic script after DOMContentLoaded. The same boot
+// has to run when that event has already passed.
+function bootFolioDocument() {
+    setDefaultCardStackStyles();
+    document.querySelectorAll('.CardStack').forEach(stack => {
+        loadCards(stack);
+    });
+    whenFolioIn(observeCardStackMedia);
+    bindFolioCards();
+    window.__folioReady = true;
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootFolioDocument);
+} else {
+    bootFolioDocument();
+}
 
