@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
 import { Dock, type DockItem } from '../../components/Dock/Dock';
+import { SegmentedController } from '../../components/SegmentedController/SegmentedController';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -62,6 +63,18 @@ export function LogoDemo() {
       </ComponentPreview>
     </>
   );
+}
+
+const SEGMENT_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'recent', label: 'Recent' },
+  { id: 'saved', label: 'Saved' },
+] as const;
+
+export function SegmentedControllerDemo() {
+  const [value, setValue] = useState<(typeof SEGMENT_OPTIONS)[number]['id']>('all');
+
+  return <SegmentedController label="Filter items" items={SEGMENT_OPTIONS} value={value} onChange={setValue} />;
 }
 
 function WorkSkeleton() {

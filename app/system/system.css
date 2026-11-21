@@ -701,7 +701,7 @@
 /* Secondary — hairline outline on white. */
 .ui-button--secondary {
   background: var(--surface);
-  border-color: #e5e7eb;
+  border-color: var(--hairline);
   color: #1a1a1a;
 }
 .ui-button--secondary:not(:disabled):hover {
