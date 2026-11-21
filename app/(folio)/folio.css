@@ -28,15 +28,15 @@ html:has(.folio-page) body {
 
 /* Chat/orbit owns vertical input — don’t let wheel/trackpad scroll the folio underneath.
    Height uses the resting layout band (keyboard only lifts the dock via inset). */
-html:has(.folio-page.is-folio-session),
-html:has(.folio-page.is-folio-session) body {
+html:has(.folio-page.is-chat-session),
+html:has(.folio-page.is-chat-session) body {
   overflow: hidden;
   overscroll-behavior: none;
   height: var(--folio-vv-height, 100%);
   max-height: var(--folio-vv-height, 100dvh);
 }
 
-.folio-page.is-folio-session {
+.folio-page.is-chat-session {
   overflow: hidden;
   overscroll-behavior: none;
   height: var(--folio-vv-height, 100%);
@@ -642,13 +642,13 @@ html:has(.folio-page.is-folio-session) body {
   }
 }
 
-.folio-page.is-folio-session .TitleBlock3 {
+.folio-page.is-chat-session .TitleBlock3 {
   animation: folio-header-out 0.55s ease forwards;
   pointer-events: none;
 }
 
-.folio-page.is-folio-session .AllStacks,
-.folio-page.is-folio-session #StackBar {
+.folio-page.is-chat-session .AllStacks,
+.folio-page.is-chat-session #StackBar {
   height: 0 !important;
   margin: 0 !important;
   overflow: hidden !important;
@@ -675,7 +675,7 @@ html:has(.folio-page.is-folio-session) body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .folio-page.is-folio-session .TitleBlock3 {
+  .folio-page.is-chat-session .TitleBlock3 {
     animation: none;
     opacity: 0;
     height: 0 !important;

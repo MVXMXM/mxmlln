@@ -10,7 +10,7 @@ import {
   cardsForAnswer,
   enterChatSession,
   folioFocusMetrics,
-  folioSessionOpen,
+  chatSessionOpen,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   releaseFolioFocus,
@@ -478,7 +478,7 @@ export function HomeDock() {
     // Drop the software keyboard before loading/results reflow.
     document.querySelector<HTMLInputElement>('.dockComposerField')?.blur()
     const id = ++turnId.current
-    if (!folioSessionOpen()) {
+    if (!chatSessionOpen()) {
       const restoring = !!document.querySelector('.CardStackLabelContainer.expanded')
       releaseFolioFocus()
       if (restoring) await new Promise((resolve) => window.setTimeout(resolve, 420))

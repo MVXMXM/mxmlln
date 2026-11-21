@@ -181,7 +181,7 @@ const ORBIT_REORBIT_CULL_MS = 160
 const ORBIT_REORBIT_MS = 400
 const ORBIT_REORBIT_FOCUS_MS = 280
 
-export function folioSessionOpen() {
+export function chatSessionOpen() {
   return sessionUndo !== null
 }
 
@@ -347,7 +347,7 @@ export function cardsForAnswer(urls: string[]): HTMLElement[] {
 }
 
 export function enterChatSession(grid: HTMLElement) {
-  page()?.classList.add('is-folio-session')
+  page()?.classList.add('is-chat-session')
   if (sessionUndo) return
   const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
   const parents = new Map<HTMLElement, Node[]>()
@@ -375,7 +375,7 @@ export function enterChatSession(grid: HTMLElement) {
     orbitTighten = 0
     orbitTightenTarget = 0
     grid.classList.remove('is-result', 'is-orbit', 'is-carousel')
-    page()?.classList.remove('is-folio-session')
+    page()?.classList.remove('is-chat-session')
     refreshStackMedia()
   }
 }
