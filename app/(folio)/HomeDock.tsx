@@ -8,6 +8,7 @@ import {
   armOrbitHold,
   beginFolioSession,
   cardsForAnswer,
+  enterFolioSession,
   folioFocusMetrics,
   folioSessionOpen,
   ORBIT_TRAVEL_MS,
@@ -320,7 +321,9 @@ export function HomeDock() {
         return
       }
       const mobile = window.matchMedia('(max-width: 768px)').matches
-      if ((!mobile || userMessage) && !grid.classList.contains('is-orbit')) {
+      if (mobile && !userMessage) {
+        enterFolioSession(grid)
+      } else if (!grid.classList.contains('is-orbit')) {
         beginFolioSession(grid)
       }
       if (userMessage) setOrbitLoading(true)
