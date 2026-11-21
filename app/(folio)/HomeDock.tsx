@@ -10,7 +10,6 @@ import {
   cardsForAnswer,
   folioFocusMetrics,
   chatSessionOpen,
-  enterChatSessionMobile,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   exitChatSession,
@@ -37,11 +36,7 @@ const X_PROFILE = 'https://x.com/MVXMXM'
 /** Outlasts reorbit so the pop can meet the ring. */
 const LOGO_POP_MS = 720
 
-function folioMobile() {
-  return window.matchMedia('(max-width: 768px)').matches
-}
-
-function ChatResponseMark({ spinning, animated = true }: { spinning: boolean; animated?: boolean }) {
+function ChatResponseMark({ spinning }: { spinning: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
   const animRef = useRef<ReturnType<typeof lottie.loadAnimation> | null>(null)
   const spinningRef = useRef(spinning)
@@ -50,10 +45,6 @@ function ChatResponseMark({ spinning, animated = true }: { spinning: boolean; an
   spinningRef.current = spinning
 
   useEffect(() => {
-    if (!animated) {
-      setReady(false)
-      return
-    }
     const container = ref.current
     if (!container) return
     const anim = lottie.loadAnimation({
@@ -85,7 +76,7 @@ function ChatResponseMark({ spinning, animated = true }: { spinning: boolean; an
       anim.destroy()
       animRef.current = null
     }
-  }, [animated])
+  }, [])
 
   useEffect(() => {
     const anim = animRef.current
@@ -105,8 +96,8 @@ function ChatResponseMark({ spinning, animated = true }: { spinning: boolean; an
 
   return (
     <div className="chatResponseLogo">
-      {animated ? <div ref={ref} className="chatResponseLogoLottie" aria-hidden /> : null}
-      {(!animated || !ready) && <img src="/assets/LogoMark.fallback.png" alt="" />}
+      <div ref={ref} className="chatResponseLogoLottie" aria-hidden />
+      {!ready && <img src="/assets/LogoMark.fallback.png" alt="" />}
     </div>
   )
 }
@@ -308,6 +299,7 @@ export function HomeDock() {
   useLayoutEffect(() => {
     if (!chatMounted) return
     const grid = masonry.current
+    if (!grid) return
     const frame = column.current
 
     if (!browsing) {
@@ -327,17 +319,13 @@ export function HomeDock() {
         skipBegin.current = false
         return
       }
-      if (folioMobile() && !userMessage) {
-        enterChatSessionMobile()
-        return
-      }
-      if (!grid) return
+      if (window.matchMedia('(max-width: 768px)').matches && !userMessage) return
       if (!grid.classList.contains('is-orbit')) beginFolioSession(grid)
       if (userMessage) setOrbitLoading(true)
       return
     }
 
-    if (!grid || !frame || !answers) return
+    if (!frame || !answers) return
     const from = logoFromRef.current
     logoFromRef.current = null
     frame.classList.add('is-answered')
@@ -625,10 +613,7 @@ export function HomeDock() {
             >
               <div className="chatBlurb">
                 <div className="chatResponseLogoContainer">
-                  <ChatResponseMark
-                    spinning={loading && !reducedMotion()}
-                    animated={!(folioMobile() && waiting && !loading)}
-                  />
+                  <ChatResponseMark spinning={loading && !reducedMotion()} />
                 </div>
                 {waiting ? (
                   <p className="Title folio-empty-prompt" aria-hidden={loading}>
@@ -645,9 +630,7 @@ export function HomeDock() {
           ) : null}
         </div>
       ) : null}
-      {chatMounted && !(folioMobile() && waiting && !loading) ? (
-        <div className="folio-masonry" ref={masonry} />
-      ) : null}
+      {chatMounted ? <div className="folio-masonry" ref={masonry} /> : null}
       {chatMounted && failure ? (
         <p className="folio-chat-failure" role="status">
           {failure}
