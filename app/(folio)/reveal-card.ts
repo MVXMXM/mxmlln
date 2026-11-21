@@ -346,8 +346,12 @@ export function cardsForAnswer(urls: string[]): HTMLElement[] {
   return cards
 }
 
-export function enterChatSession(grid: HTMLElement) {
+export function showChatSession() {
   page()?.classList.add('is-chat-session')
+}
+
+export function enterChatSession(grid: HTMLElement) {
+  showChatSession()
   if (sessionUndo) return
   const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
   const parents = new Map<HTMLElement, Node[]>()
@@ -1598,6 +1602,7 @@ export function exitChatSession() {
     sessionUndo = null
     undo()
   }
+  page()?.classList.remove('is-chat-session')
   if (document.querySelector('.CardStackLabelContainer.expanded')) {
     window.collapseExpandedStack?.()
   }
