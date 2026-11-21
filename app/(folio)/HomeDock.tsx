@@ -283,6 +283,8 @@ export function HomeDock() {
   const fadeGen = useRef(0)
   const revealTimer = useRef(0)
   const closeTimer = useRef(0)
+  const shellTimer = useRef(0)
+  const shellVvOff = useRef<(() => void) | null>(null)
   const logoFromRef = useRef<DOMRect | null>(null)
   const browsing = !!answers
   const waiting = !browsing
@@ -397,6 +399,7 @@ export function HomeDock() {
     return () => {
       if (revealTimer.current) window.clearTimeout(revealTimer.current)
       if (closeTimer.current) window.clearTimeout(closeTimer.current)
+      cancelPendingShell()
     }
   }, [])
 
@@ -424,6 +427,15 @@ export function HomeDock() {
     exitChatSession()
   }
 
+  function cancelPendingShell() {
+    if (shellTimer.current) {
+      window.clearTimeout(shellTimer.current)
+      shellTimer.current = 0
+    }
+    shellVvOff.current?.()
+    shellVvOff.current = null
+  }
+
   function mountChatShell() {
     setChatMounted(true)
     setLogoIn(false)
@@ -438,10 +450,27 @@ export function HomeDock() {
       closeTimer.current = 0
     }
     setChatOpen(true)
-    mountChatShell()
+    cancelPendingShell()
+    if (!window.matchMedia('(max-width: 768px)').matches) {
+      mountChatShell()
+      return
+    }
+    let done = false
+    const finish = () => {
+      if (done) return
+      done = true
+      cancelPendingShell()
+      mountChatShell()
+    }
+    const vv = window.visualViewport
+    const onVv = () => finish()
+    vv?.addEventListener('resize', onVv)
+    shellVvOff.current = () => vv?.removeEventListener('resize', onVv)
+    shellTimer.current = window.setTimeout(finish, 320)
   }
 
   function closeChat() {
+    cancelPendingShell()
     if (!chatMounted && !chatOpen) return
     setChatOpen(false)
     setLogoIn(false)
