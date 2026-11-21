@@ -10,7 +10,7 @@ import {
   cardsForAnswer,
   folioFocusMetrics,
   chatSessionOpen,
-  showChatSession,
+  enterChatSessionMobile,
   ORBIT_TRAVEL_MS,
   orbitRevealWaitMs,
   exitChatSession,
@@ -322,7 +322,7 @@ export function HomeDock() {
       }
       const mobile = window.matchMedia('(max-width: 768px)').matches
       if (mobile && !userMessage) {
-        showChatSession()
+        enterChatSessionMobile()
       } else if (!grid.classList.contains('is-orbit')) {
         beginFolioSession(grid)
       }

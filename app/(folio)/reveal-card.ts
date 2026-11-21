@@ -346,12 +346,16 @@ export function cardsForAnswer(urls: string[]): HTMLElement[] {
   return cards
 }
 
-export function showChatSession() {
+function markChatSession() {
   page()?.classList.add('is-chat-session')
 }
 
+export function enterChatSessionMobile() {
+  markChatSession()
+}
+
 export function enterChatSession(grid: HTMLElement) {
-  showChatSession()
+  markChatSession()
   if (sessionUndo) return
   const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
   const parents = new Map<HTMLElement, Node[]>()
