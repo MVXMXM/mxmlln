@@ -97,7 +97,7 @@ function restoreStyles(saved: SavedStyle[]) {
 }
 
 let motionToken = 0
-let sessionUndo: (() => void) | null = null
+let restoreStacks: (() => void) | null = null
 let sessionCards: HTMLElement[] = []
 let orbitRing: HTMLElement | null = null
 let orbitFrame = 0
@@ -182,7 +182,7 @@ const ORBIT_REORBIT_MS = 400
 const ORBIT_REORBIT_FOCUS_MS = 280
 
 export function chatSessionOpen() {
-  return sessionUndo !== null
+  return restoreStacks !== null
 }
 
 export function orbitRevealWaitMs() {
@@ -356,7 +356,7 @@ export function enterChatSessionMobile() {
 
 export function enterChatSession(grid: HTMLElement) {
   markChatSession()
-  if (sessionUndo) return
+  if (restoreStacks) return
   const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
   const parents = new Map<HTMLElement, Node[]>()
   for (const card of cards) {
@@ -367,7 +367,7 @@ export function enterChatSession(grid: HTMLElement) {
   const saved = savedStyles([...cards, ...inners])
   sessionCards = cards
   for (const card of sessionCards) dehydrateCard(card)
-  sessionUndo = () => {
+  restoreStacks = () => {
     disposeCarousel()
     stopOrbit()
     orbitRing?.remove()
@@ -377,7 +377,7 @@ export function enterChatSession(grid: HTMLElement) {
       for (const node of nodes) parent.appendChild(node)
     }
     restoreStyles(saved)
-    sessionUndo = null
+    restoreStacks = null
     sessionCards = []
     orbitStartedAt = 0
     orbitTighten = 0
@@ -1601,10 +1601,10 @@ export function exitChatSession() {
   motionToken += 1
   disposeCarousel()
   stopOrbit()
-  if (sessionUndo) {
-    const undo = sessionUndo
-    sessionUndo = null
-    undo()
+  if (restoreStacks) {
+    const restore = restoreStacks
+    restoreStacks = null
+    restore()
   }
   page()?.classList.remove('is-chat-session')
   if (document.querySelector('.CardStackLabelContainer.expanded')) {
