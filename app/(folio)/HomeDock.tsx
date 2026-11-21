@@ -455,18 +455,10 @@ export function HomeDock() {
       mountChatShell()
       return
     }
-    let done = false
-    const finish = () => {
-      if (done) return
-      done = true
-      cancelPendingShell()
+    shellTimer.current = window.setTimeout(() => {
+      shellTimer.current = 0
       mountChatShell()
-    }
-    const vv = window.visualViewport
-    const onVv = () => finish()
-    vv?.addEventListener('resize', onVv)
-    shellVvOff.current = () => vv?.removeEventListener('resize', onVv)
-    shellTimer.current = window.setTimeout(finish, 320)
+    }, 700)
   }
 
   function closeChat() {
