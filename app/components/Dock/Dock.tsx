@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import lottie from 'lottie-web';
 import folioVersion from '@/folio-version.json';
 import { DockGlass } from './DockGlass';
@@ -93,7 +94,7 @@ export function Dock({
   contained?: boolean;
   activeItem?: DockItem;
   onActiveItemChange?: (item: DockItem) => void;
-  onSend?: () => void;
+  onSend?: (value: string) => void;
 }) {
   const [uncontrolledItem, setUncontrolledItem] = useState<DockItem>('work');
   const [panel, setPanel] = useState<Panel | null>(null);
@@ -123,7 +124,15 @@ export function Dock({
   const openComposer = useCallback(() => {
     if (composerTimer.current) clearTimeout(composerTimer.current);
     setComposerClosing(false);
-    setComposer(true);
+    // Chat stays full-width — drop any idle-dock minify left over from page scroll.
+    const shell = clusterRef.current?.querySelector<HTMLElement>('.dockDynamicContainer');
+    if (shell) {
+      delete shell.dataset.dockScrolling;
+      delete shell.dataset.dockExpanding;
+    }
+    // Commit before focus so `inert` clears in the same tap (iOS needs the gesture).
+    flushSync(() => setComposer(true));
+    inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
@@ -179,6 +188,14 @@ export function Dock({
     return () => observer.disconnect();
   }, [activeItem]);
 
+  const closePanel = useCallback(() => {
+    setPanel(null);
+    setContactSettled(false);
+    setClosing(true);
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setClosing(false), 1000);
+  }, []);
+
   useEffect(() => {
     if (!panel) return;
     function onClick(event: MouseEvent) {
@@ -186,23 +203,26 @@ export function Dock({
       if (!(target instanceof Node) || clusterRef.current?.contains(target)) return;
       closePanel();
     }
+    // Minify is bar chrome only — tall panels fight the 48px shell.
+    function onScroll(event: Event) {
+      if (event.target instanceof Node && clusterRef.current?.contains(event.target)) return;
+      closePanel();
+    }
     document.addEventListener('click', onClick);
-    return () => document.removeEventListener('click', onClick);
-  }, [panel]);
+    document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener('click', onClick);
+      document.removeEventListener('scroll', onScroll, { capture: true });
+    };
+  }, [panel, closePanel]);
 
   useEffect(() => {
     if (!composer) return;
-    const frame = window.setTimeout(() => {
-      inputRef.current?.focus({ preventScroll: true });
-    }, 80);
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') closeComposer();
     }
     document.addEventListener('keydown', onKey);
-    return () => {
-      window.clearTimeout(frame);
-      document.removeEventListener('keydown', onKey);
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [composer, closeComposer]);
 
   useEffect(() => {
@@ -231,14 +251,6 @@ export function Dock({
     setPanel(next);
   }
 
-  function closePanel() {
-    setPanel(null);
-    setContactSettled(false);
-    setClosing(true);
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setClosing(false), 1000);
-  }
-
   const root = (
     <div
       className={contained ? 'mx-dock mx-dock--contained' : 'mx-dock'}
@@ -256,7 +268,7 @@ export function Dock({
             <button type="button" onClick={() => openPanel('info')} aria-label="Open info menu">
               <LottieMark
                 path="/assets/LogoSpin2026.json"
-                fallback="/assets/LogoSpin2024.SML.gif"
+                fallback="/assets/LogoMark.fallback.png"
                 className="lottieMark lottieMark--dock"
                 label="Open info menu"
               />
@@ -292,9 +304,10 @@ export function Dock({
             inert={!composer || undefined}
             onSubmit={(event) => {
               event.preventDefault();
-              if (!draft.trim()) return;
+              const value = draft.trim();
+              if (!value) return;
               setDraft('');
-              onSend?.();
+              onSend?.(value);
             }}
           >
             <span className="dockComposerCaret" aria-hidden="true" />
@@ -302,7 +315,7 @@ export function Dock({
               ref={inputRef}
               className="dockComposerField"
               value={draft}
-              placeholder="Ask me anything..."
+              placeholder="Ask me about design..."
               aria-label="Message"
               autoComplete="off"
               spellCheck={false}
@@ -330,7 +343,7 @@ export function Dock({
           <div className="infoLogo">
             <LottieMark
               path="/assets/Sig2026.json"
-              fallback="/assets/Sig2026.gif"
+              fallback="/assets/LogoMark.fallback.png"
               className="lottieMark lottieMark--sig"
               label="MXMLLN logo"
             />

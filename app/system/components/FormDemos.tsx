@@ -22,7 +22,7 @@ export function ButtonDemo() {
 }
 
 // The real chat composer: a text field with an embedded submit arrow that
-// activates only once there's input. Mirrors public/components/ChatIntelligence.js.
+// activates only once there's input.
 export function InputDemo() {
   const [text, setText] = useState('');
   const [composer, setComposer] = useState('');

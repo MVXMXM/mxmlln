@@ -24,9 +24,16 @@
   color: inherit;
   background: transparent;
   border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
   padding: 0;
   margin: 0;
   cursor: pointer;
+}
+
+.mx-dock button:hover {
+  background: transparent;
 }
 
 .mx-dock img {
@@ -42,14 +49,17 @@
 
 .mx-dock .dockCluster {
   position: fixed;
-  z-index: 900;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  left: 50%;
+  /* Above carousel chrome (910). */
+  z-index: 960;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--folio-dock-bottom, 0px));
+  top: auto;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
   display: flex;
   flex-direction: row;
   align-items: flex-end;
   width: max-content;
-  transform: translateX(-50%);
   pointer-events: none;
 }
 
@@ -63,7 +73,11 @@
   height: 64px;
   interpolate-size: allow-keywords;
   border-radius: 40px;
-  transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.56s cubic-bezier(0.22, 1, 0.36, 1);
   border: 0;
   isolation: isolate;
   overflow: hidden;
@@ -76,7 +90,7 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 0 0 1px rgba(255, 255, 255, 0.32),
-    0 10px 28px rgba(0, 0, 0, 0.12);
+    0 4px 12px oklch(0.25 0.04 260 / 0.12);
 }
 
 .mx-dock .dockDynamicContainer::after {
@@ -169,16 +183,31 @@
   transition-duration: 0.05s;
 }
 
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockGlassTint {
+  background-color: rgba(255, 255, 255, 0.75);
+  transition-duration: 0.32s;
+}
+
 .mx-dock .dockDynamicContainer[data-dock-moving='true'] .dockGlassTint::before {
   opacity: 1;
   transition-duration: 0.05s;
 }
 
-.mx-dock .dockDynamicContainer[data-dock-moving='true'] {
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockGlassTint::before {
+  opacity: 1;
+  transition-duration: 0.32s;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] {
+  pointer-events: none;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-moving='true'],
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
     inset 0 0 28px rgba(255, 255, 255, 0.45),
-    0 10px 28px rgba(0, 0, 0, 0.12);
+    0 4px 12px oklch(0.25 0.04 260 / 0.12);
 }
 
 .mx-dock .dockDynamicContainer[data-dock-native='true'] {
@@ -186,13 +215,17 @@
   -webkit-backdrop-filter: none;
 }
 
-.mx-dock .dockDynamicContainer[data-dock-glass='live']:not([data-dock-moving='true']) {
+.mx-dock .dockDynamicContainer[data-dock-glass='live']:not([data-dock-moving='true']):not([data-dock-scrolling='true']):not([data-dock-paging='true']) {
   backdrop-filter: saturate(1.6);
   -webkit-backdrop-filter: saturate(1.6);
 }
 
 .mx-dock .dockDynamicContainer[data-dock-capture='true'] > :not(.dockGlassTint):not(.dockGlassBackdrop):not(.dockGlassDefs) {
   pointer-events: auto;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] > :not(.dockGlassTint):not(.dockGlassBackdrop):not(.dockGlassDefs) {
+  pointer-events: none;
 }
 
 .mx-dock .dockDynamicContainer[data-dock-native='true'] .dockGlassBackdrop {
@@ -231,12 +264,12 @@
 }
 
 .mx-dock[data-composer] .dockDynamicContainer {
-  width: min(100dvw, 500px);
+  width: min(calc(100dvw - 24px), 600px);
   min-width: 0;
 }
 
 .mx-dock.mx-dock--contained[data-composer] .dockDynamicContainer {
-  width: min(100cqw, 500px);
+  width: min(calc(100cqw - 24px), 600px);
 }
 
 .mx-dock .dockComposer {
@@ -312,11 +345,12 @@
   border-radius: 1px;
   background: #00bbff;
   pointer-events: none;
-  animation: dock-caret 1.06s step-end infinite;
+  visibility: hidden;
 }
 
-.mx-dock .dockComposer:has(.dockComposerField:not(:placeholder-shown)) .dockComposerCaret {
-  visibility: hidden;
+.mx-dock .dockComposer:has(.dockComposerField:placeholder-shown:focus) .dockComposerCaret {
+  visibility: visible;
+  animation: dock-caret 1.06s step-end infinite;
 }
 
 @keyframes dock-caret {
@@ -435,7 +469,7 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-archivo), 'Archivo', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.2px;
@@ -452,7 +486,7 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-archivo), 'Archivo', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.2px;
@@ -517,6 +551,7 @@
   font-size: 14px;
   letter-spacing: 0.2px;
   color: #000;
+  text-transform: none;
 }
 
 .mx-dock .closeButton {
@@ -822,6 +857,58 @@
   visibility: visible;
   opacity: 1;
   transition: opacity 1.5s;
+}
+
+/* min-width has to ease with the size. If it jumps back to the full minimum, the grow snaps. */
+.mx-dock .dockBarSegments,
+.mx-dock .dockBarSegController > button:last-child {
+  transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'],
+.mx-dock[data-panel] .dockDynamicContainer[data-dock-scrolling='true'],
+.mx-dock[data-closing='true'] .dockDynamicContainer[data-dock-scrolling='true'] {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  transition:
+    width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock .dockDynamicContainer[data-dock-expanding='true'],
+.mx-dock[data-panel] .dockDynamicContainer[data-dock-expanding='true'],
+.mx-dock[data-closing='true'] .dockDynamicContainer[data-dock-expanding='true'] {
+  transition:
+    width 0.56s cubic-bezier(0.22, 1, 0.36, 1),
+    min-width 0.56s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.56s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.56s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBar,
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegController {
+  width: 48px;
+  height: 48px;
+  gap: 0;
+  padding-inline: 4px;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegController > button:first-child {
+  flex: none;
+  margin-right: 0;
+}
+
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegments,
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockBarSegController > button:last-child,
+.mx-dock .dockDynamicContainer[data-dock-scrolling='true'] .dockComposer {
+  flex: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
