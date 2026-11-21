@@ -346,7 +346,7 @@ export function cardsForAnswer(urls: string[]): HTMLElement[] {
   return cards
 }
 
-export function enterFolioSession(grid: HTMLElement) {
+export function enterChatSession(grid: HTMLElement) {
   page()?.classList.add('is-folio-session')
   if (sessionUndo) return
   const cards = [...document.querySelectorAll<HTMLElement>('.Card')]
@@ -404,7 +404,7 @@ export function beginFolioSession(grid: HTMLElement) {
   const token = ++motionToken
   const duration = motion() ? '0.01s' : `${ORBIT_INTRO_MS}ms`
   syncFolioVisualViewport()
-  enterFolioSession(grid)
+  enterChatSession(grid)
   grid.classList.remove('is-result')
   grid.classList.add('is-orbit')
   window.scrollTo(0, 0)
@@ -1197,7 +1197,7 @@ export function reorbitSession(grid: HTMLElement): Promise<void> {
 
   disposeCarousel()
   stopOrbit()
-  enterFolioSession(grid)
+  enterChatSession(grid)
   window.scrollTo(0, 0)
 
   
