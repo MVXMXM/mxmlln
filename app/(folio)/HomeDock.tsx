@@ -337,7 +337,7 @@ export function HomeDock() {
       return
     }
 
-    if (!frame || !answers) return
+    if (!grid || !frame || !answers) return
     const from = logoFromRef.current
     logoFromRef.current = null
     frame.classList.add('is-answered')
