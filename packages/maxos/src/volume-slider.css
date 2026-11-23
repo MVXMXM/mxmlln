@@ -117,6 +117,9 @@
   border-radius: inherit;
   appearance: none;
   background: transparent;
+  outline: 2px solid transparent;
+  outline-offset: var(--maxos-volume-slider-focus-offset);
+  transition: outline-color 180ms ease-out;
   cursor: ew-resize;
   touch-action: none;
 }
@@ -137,8 +140,7 @@
 }
 
 .maxos-volume-slider-input:focus {
-  outline: 2px solid var(--hairline, #e2e8f0);
-  outline-offset: var(--maxos-volume-slider-focus-offset);
+  outline-color: var(--hairline, #e2e8f0);
 }
 
 .maxos-volume-slider[data-disabled] {
@@ -157,12 +159,22 @@
   .maxos-volume-slider-fill,
   .maxos-volume-slider-icon,
   .maxos-volume-slider-value,
+  .maxos-volume-slider-input,
   .maxos-volume-slider-fill > span::after {
     transition: none;
   }
 }
 
 @media (forced-colors: active) {
+  .maxos-volume-slider-input {
+    outline-style: none;
+  }
+
+  .maxos-volume-slider-input:focus {
+    outline-style: solid;
+    outline-color: Highlight;
+  }
+
   .maxos-volume-slider-content--filled {
     forced-color-adjust: none;
     color: HighlightText;
