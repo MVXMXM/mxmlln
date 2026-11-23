@@ -25,7 +25,7 @@
   position: absolute;
   inset-inline: var(--maxos-volume-slider-track-inset);
   top: 50%;
-  height: 16px;
+  height: 8px;
   border-radius: inherit;
   background: var(--background-alt, #f1f5f9);
   translate: 0 -50%;
