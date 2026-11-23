@@ -1,6 +1,7 @@
 @import './numeric-readout.css';
 
 .maxos-volume-slider {
+  --maxos-volume-slider-fill-duration: 180ms;
   --maxos-volume-slider-focus-offset: 4px;
   --maxos-volume-slider-fill-gap: 2px;
   --maxos-volume-slider-content-inset: 8px;
@@ -29,7 +30,7 @@
   background: var(--background-alt, #f1f5f9);
   translate: 0 -50%;
   pointer-events: none;
-  transition: height 180ms ease-out;
+  transition: height var(--maxos-volume-slider-fill-duration) ease-out;
 }
 
 .maxos-volume-slider:focus-within {
@@ -141,6 +142,7 @@
 
 .maxos-volume-slider-input:focus {
   outline-color: var(--hairline, #e2e8f0);
+  transition-delay: var(--maxos-volume-slider-fill-duration);
 }
 
 .maxos-volume-slider[data-disabled] {
@@ -152,6 +154,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .maxos-volume-slider {
+    --maxos-volume-slider-fill-duration: 0ms;
+  }
+
   .maxos-volume-slider[data-dragging] {
     scale: none;
   }
