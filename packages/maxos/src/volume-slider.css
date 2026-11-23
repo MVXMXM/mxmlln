@@ -142,6 +142,7 @@
 
 .maxos-volume-slider-input:focus {
   outline-color: var(--hairline, #e2e8f0);
+  transition-duration: 120ms;
   transition-delay: calc(var(--maxos-volume-slider-fill-duration) * 2 / 3);
 }
 
