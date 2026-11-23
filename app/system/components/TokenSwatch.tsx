@@ -34,7 +34,7 @@ const TYPE_FAMILIES = [
   { name: 'Archivo', font: 'var(--font-sans)', weight: 600, script: false },
   { name: 'Homemade Apple', font: 'var(--font-handwritten)', weight: 400, script: true },
   { name: 'Playfair Display', font: 'var(--font-serif)', weight: 600, script: false },
-  { name: 'JetBrains Mono', font: 'var(--font-mono)', weight: 400, script: false },
+  { name: 'JetBrains Mono', font: 'var(--font-mono)', weight: 500, script: false },
 ] as const;
 
 export function Families() {

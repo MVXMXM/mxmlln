@@ -1,0 +1,127 @@
+.maxos-slider {
+  --maxos-slider-thumb-size: 18px;
+  --maxos-slider-ink: var(--foreground, #0f172b);
+  position: relative;
+  height: 44px;
+}
+
+.maxos-slider-scale {
+  position: absolute;
+  inset-inline: calc(var(--maxos-slider-thumb-size) / 2);
+  top: 50%;
+  height: 2px;
+  translate: 0 -50%;
+  background: var(--border, #cad5e2);
+  pointer-events: none;
+}
+
+.maxos-slider-fill {
+  position: absolute;
+  inset-block: 0;
+  background: var(--maxos-slider-ink);
+  transition: left 120ms ease-out, right 120ms ease-out;
+}
+
+.maxos-slider-tick,
+.maxos-slider-thumb {
+  position: absolute;
+  top: 50%;
+  translate: -50% -50%;
+}
+
+.maxos-slider-tick {
+  width: 2px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--muted, #62748e);
+}
+
+.maxos-slider-tick[data-center] {
+  height: 16px;
+  background: var(--maxos-slider-ink);
+}
+
+.maxos-slider-thumb {
+  box-sizing: border-box;
+  width: var(--maxos-slider-thumb-size);
+  height: var(--maxos-slider-thumb-size);
+  border: 2px solid var(--surface, #fcfcfc);
+  border-radius: 50%;
+  background: var(--maxos-slider-ink);
+  box-shadow: 0 0 0 1px var(--maxos-slider-ink);
+  transition: left 120ms ease-out;
+}
+
+.maxos-slider-input {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  appearance: none;
+  direction: ltr;
+  background: transparent;
+  cursor: grab;
+}
+
+.maxos-slider-input::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--maxos-slider-thumb-size);
+  height: var(--maxos-slider-thumb-size);
+  border: 0;
+  background: transparent;
+}
+
+.maxos-slider-input::-moz-range-thumb {
+  width: var(--maxos-slider-thumb-size);
+  height: var(--maxos-slider-thumb-size);
+  border: 0;
+  background: transparent;
+}
+
+.maxos-slider-input:active {
+  cursor: grabbing;
+}
+
+.maxos-slider-input:focus-visible {
+  outline: 2px solid var(--maxos-slider-ink);
+  outline-offset: 2px;
+}
+
+.maxos-slider[data-disabled] {
+  opacity: 0.5;
+}
+
+.maxos-slider-input:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maxos-slider-fill,
+  .maxos-slider-thumb {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .maxos-slider-scale {
+    forced-color-adjust: none;
+    background: GrayText;
+  }
+
+  .maxos-slider-fill,
+  .maxos-slider-tick,
+  .maxos-slider-tick[data-center],
+  .maxos-slider-thumb {
+    background: CanvasText;
+  }
+
+  .maxos-slider-thumb {
+    border-color: Canvas;
+    box-shadow: 0 0 0 1px CanvasText;
+  }
+}

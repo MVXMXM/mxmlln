@@ -5,14 +5,23 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/SegmentedController.d.ts",
-      "default": "./dist/SegmentedController.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "./segmented-controller.css": "./src/segmented-controller.css"
+    "./segmented-controller.css": "./src/segmented-controller.css",
+    "./slider.css": "./src/slider.css",
+    "./scrubber.css": "./src/scrubber.css",
+    "./direction-slider.css": "./src/direction-slider.css",
+    "./volume-slider.css": "./src/volume-slider.css"
   },
   "files": [
     "dist",
-    "src/segmented-controller.css"
+    "src/segmented-controller.css",
+    "src/slider.css",
+    "src/scrubber.css",
+    "src/direction-slider.css",
+    "src/volume-slider.css",
+    "src/numeric-readout.css"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
