@@ -10,17 +10,17 @@
     },
     "./segmented-controller.css": "./src/segmented-controller.css",
     "./slider.css": "./src/slider.css",
-    "./scrubber.css": "./src/scrubber.css",
+    "./slider-scale.css": "./src/slider-scale.css",
     "./direction-slider.css": "./src/direction-slider.css",
-    "./volume-slider.css": "./src/volume-slider.css"
+    "./slider-general.css": "./src/slider-general.css"
   },
   "files": [
     "dist",
     "src/segmented-controller.css",
     "src/slider.css",
-    "src/scrubber.css",
+    "src/slider-scale.css",
     "src/direction-slider.css",
-    "src/volume-slider.css",
+    "src/slider-general.css",
     "src/numeric-readout.css"
   ],
   "scripts": {

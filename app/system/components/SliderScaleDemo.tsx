@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Scrubber } from '@mvxmxm/maxos';
-import '@mvxmxm/maxos/scrubber.css';
+import { SliderScale } from '@mvxmxm/maxos';
+import '@mvxmxm/maxos/slider-scale.css';
 
 const MAX = 100;
 
@@ -14,7 +14,7 @@ export function SliderScaleDemo() {
   const [step, setStep] = useState(MAX / 2);
 
   return (
-    <Scrubber
+    <SliderScale
       label="Scale"
       count={MAX + 1}
       value={step}

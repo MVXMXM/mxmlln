@@ -12,7 +12,7 @@ function nearestStop(position: number, subdivisions: number) {
   return Math.round(position * subdivisions) / subdivisions;
 }
 
-export function Scrubber({
+export function SliderScale({
   label,
   count,
   value,
@@ -47,7 +47,7 @@ export function Scrubber({
     : formatValue(value);
   const intermediateStops = useMemo(() => Array.from({ length: subdivisions - 1 }, (_, index) => (
     <span
-      className="maxos-scrubber-intermediate-stop"
+      className="maxos-slider-scale-intermediate-stop"
       key={index}
       style={{ left: `${50 + (index + 1) * 100 / subdivisions}%` }}
     />
@@ -64,8 +64,8 @@ export function Scrubber({
     const previous = hover.current;
     if (offset === null) {
       if (previous.offset !== null) hoverWindow.current?.removeAttribute('data-hovering');
-      for (const tick of previous.ticks) tick.style.removeProperty('--maxos-scrubber-tick-lift');
-      marker.current?.style.removeProperty('--maxos-scrubber-tick-lift');
+      for (const tick of previous.ticks) tick.style.removeProperty('--maxos-slider-scale-tick-lift');
+      marker.current?.style.removeProperty('--maxos-slider-scale-tick-lift');
       hover.current = { offset: null, ticks: [] };
       return;
     }
@@ -77,13 +77,13 @@ export function Scrubber({
     const ticks = [];
     for (let index = first; index <= last; index++) {
       const tick = element.children.item(index) as HTMLElement;
-      tick.style.setProperty('--maxos-scrubber-tick-lift', `${14 * 0.5 ** Math.abs(index - center)}px`);
+      tick.style.setProperty('--maxos-slider-scale-tick-lift', `${14 * 0.5 ** Math.abs(index - center)}px`);
       ticks.push(tick);
     }
     for (const tick of previous.ticks) {
-      if (!ticks.includes(tick)) tick.style.removeProperty('--maxos-scrubber-tick-lift');
+      if (!ticks.includes(tick)) tick.style.removeProperty('--maxos-slider-scale-tick-lift');
     }
-    marker.current?.style.setProperty('--maxos-scrubber-tick-lift', `${14 * 0.5 ** Math.abs(offset)}px`);
+    marker.current?.style.setProperty('--maxos-slider-scale-tick-lift', `${14 * 0.5 ** Math.abs(offset)}px`);
     hover.current = { offset, ticks };
   }
 
@@ -167,14 +167,14 @@ export function Scrubber({
   }
 
   return (
-    <div className="maxos-scrubber">
-      <div className="maxos-scrubber-value" aria-hidden="true">
+    <div className="maxos-slider-scale">
+      <div className="maxos-slider-scale-value" aria-hidden="true">
         {animateValue && /^-?\d+(?:\.\d+)?$/.test(readout) ? <NumericReadout text={readout} /> : readout}
       </div>
-      <div className="maxos-scrubber-window" ref={hoverWindow}>
+      <div className="maxos-slider-scale-window" ref={hoverWindow}>
         <div
           ref={ruler}
-          className="maxos-scrubber-ruler"
+          className="maxos-slider-scale-ruler"
           role="slider"
           tabIndex={0}
           aria-label={label}
@@ -200,7 +200,7 @@ export function Scrubber({
             const caption = tickLabel?.(index);
             return (
               <span
-                className="maxos-scrubber-tick"
+                className="maxos-slider-scale-tick"
                 data-major={caption ? '' : undefined}
                 key={index}
                 aria-hidden="true"
@@ -208,7 +208,7 @@ export function Scrubber({
                 {index < count - 1 && intermediateStops}
                 {caption && (
                   <span
-                    className="maxos-scrubber-caption"
+                    className="maxos-slider-scale-caption"
                     style={{ opacity: Math.min(1, Math.max(0, Math.abs(index - labelPosition) - 3.25)) }}
                   >
                     {caption}
@@ -219,11 +219,11 @@ export function Scrubber({
           })}
         </div>
         <span
-          className="maxos-scrubber-marker"
+          className="maxos-slider-scale-marker"
           aria-hidden="true"
           ref={marker}
         />
-        <span className="maxos-scrubber-pointer" aria-hidden="true" />
+        <span className="maxos-slider-scale-pointer" aria-hidden="true" />
       </div>
     </div>
   );

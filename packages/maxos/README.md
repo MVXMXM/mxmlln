@@ -12,9 +12,9 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 | Component | Use it for | Stylesheet |
 | --- | --- | --- |
 | `Slider` | A fixed integer range with an optional center marker | `@mvxmxm/maxos/slider.css` |
-| `Scrubber` | A scrolling ruler with optional fractional stops | `@mvxmxm/maxos/scrubber.css` |
+| `SliderScale` | A scrolling ruler with optional fractional stops | `@mvxmxm/maxos/slider-scale.css` |
 | `DirectionSlider` | Choosing an action on either side of a neutral stop | `@mvxmxm/maxos/direction-slider.css` |
-| `VolumeSlider` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/volume-slider.css` |
+| `SliderGeneral` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/slider-general.css` |
 
 From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.2.0.tgz`.
 
