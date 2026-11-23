@@ -12,20 +12,17 @@ import React from 'react';
 export function ComponentPreview({
   background = 'light',
   tall = false,
-  square = false,
   block = false,
   children,
 }: {
   background?: 'light' | 'dark' | 'checker' | 'glass';
   /** Taller, top-aligned canvas — for content that needs vertical room (popovers). */
   tall?: boolean;
-  /** Canvas matches its width, for specimens that should read as a square stage. */
-  square?: boolean;
   block?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`component-preview${square ? ' component-preview--square' : ''}`}>
+    <div className="component-preview">
       <div
         className={`component-preview-canvas component-preview-canvas--${background}${tall ? ' component-preview-canvas--tall' : ''}${block ? ' component-preview-canvas--block' : ''}`}
       >

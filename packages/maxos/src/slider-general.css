@@ -1,0 +1,218 @@
+@import './numeric-readout.css';
+
+.maxos-slider-general {
+  --maxos-slider-general-fill-duration: 180ms;
+  --maxos-slider-general-focus-offset: 4px;
+  --maxos-slider-general-fill-gap: 2px;
+  --maxos-slider-general-content-inset: 8px;
+  --maxos-slider-general-track-inset: 0px;
+  position: relative;
+  width: min(100%, 264px);
+  min-height: 28px;
+  box-sizing: border-box;
+  border-radius: 40px;
+  direction: ltr;
+  color: var(--foreground, #0f172b);
+  font: 500 var(--text-label, 12px) / 1.5 var(--font-mono, 'JetBrains Mono', monospace);
+  transition: scale 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.maxos-slider-general[data-dragging] {
+  scale: 1.12 1;
+}
+
+.maxos-slider-general-fill {
+  position: absolute;
+  inset-inline: var(--maxos-slider-general-track-inset);
+  top: 50%;
+  height: 8px;
+  container-type: inline-size;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--slate-200, #e2e8f0);
+  translate: 0 -50%;
+  pointer-events: none;
+  transition: height var(--maxos-slider-general-fill-duration) ease-out;
+}
+
+.maxos-slider-general:focus-within {
+  --maxos-slider-general-track-inset: calc(var(--maxos-slider-general-fill-gap) - var(--maxos-slider-general-focus-offset));
+}
+
+.maxos-slider-general:focus-within .maxos-slider-general-fill {
+  height: calc(100% + 2 * (var(--maxos-slider-general-focus-offset) - var(--maxos-slider-general-fill-gap)));
+}
+
+.maxos-slider-general-cyan {
+  position: relative;
+  display: block;
+  top: 50%;
+  height: min(100%, calc(100cqi * var(--maxos-slider-general-level)));
+  translate: 0 -50%;
+  overflow: hidden;
+  border-radius: 40px;
+  background: var(--accent, #00bbff);
+}
+
+.maxos-slider-general-notch {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 2px;
+  height: 12px;
+  border-radius: 2px;
+  translate: 0 -50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.maxos-slider-general-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline: var(--maxos-slider-general-content-inset);
+  pointer-events: none;
+}
+
+.maxos-slider-general-content--filled {
+  --maxos-slider-general-unfilled: calc((100% - 2 * var(--maxos-slider-general-track-inset)) * (1 - var(--maxos-slider-general-level)) + var(--maxos-slider-general-track-inset));
+  clip-path: inset(0 var(--maxos-slider-general-unfilled) 0 0);
+  color: white;
+}
+
+.maxos-slider-general-content[data-icon-covered] .maxos-slider-general-icon {
+  color: white;
+}
+
+.maxos-slider-general-content[data-icon-covered] + .maxos-slider-general-content--filled .maxos-slider-general-icon {
+  visibility: hidden;
+}
+
+.maxos-slider-general-icon {
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  display: flex;
+  translate: -100% -50%;
+  transition: left 180ms ease-out, translate 180ms ease-out;
+}
+
+.maxos-slider-general-value {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+
+.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-icon {
+  left: var(--maxos-slider-general-content-inset);
+  translate: 0 -50%;
+}
+
+.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-value,
+.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-notch:not([data-overlapping]) {
+  opacity: 1;
+}
+
+.maxos-slider-general-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  appearance: none;
+  background: transparent;
+  outline: 2px solid transparent;
+  outline-offset: var(--maxos-slider-general-focus-offset);
+  transition: outline-color 80ms ease-out;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.maxos-slider-general-input::-webkit-slider-thumb {
+  width: 4px;
+  height: 28px;
+  border: 0;
+  appearance: none;
+  background: transparent;
+}
+
+.maxos-slider-general-input::-moz-range-thumb {
+  width: 4px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+}
+
+.maxos-slider-general-input:focus {
+  outline-color: var(--hairline, #e2e8f0);
+  transition-duration: 200ms;
+  transition-delay: calc(var(--maxos-slider-general-fill-duration) * 2 / 3);
+}
+
+.maxos-slider-general[data-disabled] {
+  opacity: 0.5;
+}
+
+.maxos-slider-general-input:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maxos-slider-general {
+    --maxos-slider-general-fill-duration: 0ms;
+  }
+
+  .maxos-slider-general[data-dragging] {
+    scale: none;
+  }
+
+  .maxos-slider-general-fill,
+  .maxos-slider-general-icon,
+  .maxos-slider-general-value,
+  .maxos-slider-general-input,
+  .maxos-slider-general-notch {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .maxos-slider-general-content[data-icon-covered] .maxos-slider-general-icon {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+
+  .maxos-slider-general-input {
+    outline-style: none;
+  }
+
+  .maxos-slider-general-input:focus {
+    outline-style: solid;
+    outline-color: Highlight;
+  }
+
+  .maxos-slider-general-content--filled {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+
+  .maxos-slider-general-fill {
+    outline: 1px solid ButtonText;
+  }
+
+  .maxos-slider-general-cyan {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+
+  .maxos-slider-general-notch {
+    background: HighlightText;
+  }
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Archivo, Homemade_Apple, JetBrains_Mono, Playfair_Display } from 'next/font/google';
+import { Archivo, Homemade_Apple, Playfair_Display } from 'next/font/google';
+import localFont from 'next/font/local';
 import { SiteLogo } from '../components/SiteLogo';
 
 const archivo = Archivo({
@@ -14,11 +15,12 @@ const homemadeApple = Homemade_Apple({
   variable: '--font-homemade-apple',
 });
 
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
+const jetbrains = localFont({
+  src: './fonts/JetBrainsMono-Variable.woff2',
+  weight: '100 800',
   variable: '--font-jetbrains',
   display: 'swap',
+  adjustFontFallback: false,
 });
 
 const playfair = Playfair_Display({
