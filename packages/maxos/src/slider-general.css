@@ -83,6 +83,14 @@
   color: white;
 }
 
+.maxos-slider-general-content[data-icon-covered] .maxos-slider-general-icon {
+  color: white;
+}
+
+.maxos-slider-general-content[data-icon-covered] + .maxos-slider-general-content--filled .maxos-slider-general-icon {
+  visibility: hidden;
+}
+
 .maxos-slider-general-icon {
   position: absolute;
   top: 50%;
@@ -176,6 +184,11 @@
 }
 
 @media (forced-colors: active) {
+  .maxos-slider-general-content[data-icon-covered] .maxos-slider-general-icon {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+
   .maxos-slider-general-input {
     outline-style: none;
   }

@@ -43,24 +43,33 @@ export function SliderGeneral({
   useLayoutEffect(() => {
     const handle = notch.current;
     const fill = handle?.parentElement;
-    const [speaker, percentageLabel] = Array.from(content.current?.children ?? []);
-    if (!handle || !fill || !speaker || !percentageLabel) return;
+    const baseContent = content.current;
+    const [speaker, percentageLabel] = Array.from(baseContent?.children ?? []);
+    if (!handle || !fill || !baseContent || !speaker || !percentageLabel) return;
 
     const updateOverlap = () => {
       const bounds = handle.getBoundingClientRect();
-      const overlaps = [speaker, percentageLabel].some((element) => {
-        const { left, right, width } = element.getBoundingClientRect();
-        return width > 0 && bounds.right + 4 > left && bounds.left - 4 < right;
-      });
-      handle.toggleAttribute('data-overlapping', overlaps);
+      const iconBounds = speaker.getBoundingClientRect();
+      const labelBounds = percentageLabel.getBoundingClientRect();
+      const fillBounds = fill.getBoundingClientRect();
+      const beforeIconClears = iconBounds.width > 0 && bounds.left < iconBounds.right + 4;
+      const overlapsValue = bounds.right + 4 > labelBounds.left && bounds.left - 4 < labelBounds.right;
+      handle.toggleAttribute('data-overlapping', beforeIconClears || overlapsValue);
+      baseContent.toggleAttribute('data-icon-covered', iconBounds.width > 0
+        && fillBounds.left <= iconBounds.left && fillBounds.right >= iconBounds.right + 4
+        && fillBounds.top <= iconBounds.top && fillBounds.bottom >= iconBounds.bottom);
     };
 
     const observer = new ResizeObserver(updateOverlap);
     observer.observe(fill);
     observer.observe(speaker);
     observer.observe(percentageLabel);
+    speaker.addEventListener('transitionend', updateOverlap);
     updateOverlap();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      speaker.removeEventListener('transitionend', updateOverlap);
+    };
   }, []);
 
   useEffect(() => () => window.clearTimeout(wheelTimeout.current), []);
