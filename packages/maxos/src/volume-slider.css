@@ -120,7 +120,7 @@
   background: transparent;
   outline: 2px solid transparent;
   outline-offset: var(--maxos-volume-slider-focus-offset);
-  transition: outline-color 180ms ease-out;
+  transition: outline-color 80ms ease-out;
   cursor: ew-resize;
   touch-action: none;
 }
@@ -142,7 +142,7 @@
 
 .maxos-volume-slider-input:focus {
   outline-color: var(--hairline, #e2e8f0);
-  transition-delay: var(--maxos-volume-slider-fill-duration);
+  transition-delay: calc(var(--maxos-volume-slider-fill-duration) * 2 / 3);
 }
 
 .maxos-volume-slider[data-disabled] {
