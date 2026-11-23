@@ -29,7 +29,7 @@
   container-type: inline-size;
   overflow: hidden;
   border-radius: inherit;
-  background: var(--background-alt, #f1f5f9);
+  background: var(--slate-200, #e2e8f0);
   translate: 0 -50%;
   pointer-events: none;
   transition: height var(--maxos-slider-general-fill-duration) ease-out;
