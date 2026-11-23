@@ -10,7 +10,7 @@ function formatScale(value: number) {
   return value.toFixed(1);
 }
 
-export function SliderDemo() {
+export function SliderScaleDemo() {
   const [step, setStep] = useState(MAX / 2);
 
   return (

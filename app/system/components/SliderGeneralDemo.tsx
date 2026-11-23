@@ -5,7 +5,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 import { VolumeSlider } from '@mvxmxm/maxos';
 import '@mvxmxm/maxos/volume-slider.css';
 
-export function VolumeSliderDemo() {
+export function SliderGeneralDemo() {
   const [volume, setVolume] = useState(50);
   const Icon = volume === 0 ? VolumeX : Volume2;
 
