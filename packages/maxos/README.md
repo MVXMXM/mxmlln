@@ -16,6 +16,6 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 | `DirectionSlider` | Choosing an action on either side of a neutral stop | `@mvxmxm/maxos/direction-slider.css` |
 | `VolumeSlider` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/volume-slider.css` |
 
-From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.1.0.tgz`.
+From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.2.0.tgz`.
 
 The portfolio builds the workspace package before `npm run dev` and `npm run build`. When editing the package during a dev session, run `npm run build --workspace @mvxmxm/maxos -- --watch` in a second terminal.
