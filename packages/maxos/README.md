@@ -11,7 +11,6 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 
 | Component | Use it for | Stylesheet |
 | --- | --- | --- |
-| `Slider` | A fixed integer range with an optional center marker | `@mvxmxm/maxos/slider.css` |
 | `SliderScale` | A scrolling ruler with optional fractional stops | `@mvxmxm/maxos/slider-scale.css` |
 | `SliderGeneral` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/slider-general.css` |
 

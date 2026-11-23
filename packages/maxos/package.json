@@ -9,14 +9,12 @@
       "default": "./dist/index.js"
     },
     "./segmented-controller.css": "./src/segmented-controller.css",
-    "./slider.css": "./src/slider.css",
     "./slider-scale.css": "./src/slider-scale.css",
     "./slider-general.css": "./src/slider-general.css"
   },
   "files": [
     "dist",
     "src/segmented-controller.css",
-    "src/slider.css",
     "src/slider-scale.css",
     "src/slider-general.css",
     "src/numeric-readout.css"
