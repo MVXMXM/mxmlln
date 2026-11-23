@@ -26,6 +26,8 @@
   inset-inline: var(--maxos-volume-slider-track-inset);
   top: 50%;
   height: 8px;
+  container-type: inline-size;
+  overflow: hidden;
   border-radius: inherit;
   background: var(--background-alt, #f1f5f9);
   translate: 0 -50%;
@@ -41,17 +43,18 @@
   height: calc(100% + 2 * (var(--maxos-volume-slider-focus-offset) - var(--maxos-volume-slider-fill-gap)));
 }
 
-.maxos-volume-slider-fill > span {
+.maxos-volume-slider-cyan {
   position: relative;
   display: block;
-  height: 100%;
+  top: 50%;
+  height: min(100%, calc(100cqi * var(--maxos-volume-slider-level)));
+  translate: 0 -50%;
   overflow: hidden;
   border-radius: 40px;
   background: var(--accent, #00bbff);
 }
 
-.maxos-volume-slider-fill > span::after {
-  content: '';
+.maxos-volume-slider-notch {
   position: absolute;
   top: 50%;
   right: 8px;
@@ -102,7 +105,7 @@
 }
 
 .maxos-volume-slider:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-volume-slider-value,
-.maxos-volume-slider:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-volume-slider-fill > span::after {
+.maxos-volume-slider:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-volume-slider-notch:not([data-overlapping]) {
   opacity: 1;
 }
 
@@ -167,7 +170,7 @@
   .maxos-volume-slider-icon,
   .maxos-volume-slider-value,
   .maxos-volume-slider-input,
-  .maxos-volume-slider-fill > span::after {
+  .maxos-volume-slider-notch {
     transition: none;
   }
 }
@@ -191,12 +194,12 @@
     outline: 1px solid ButtonText;
   }
 
-  .maxos-volume-slider-fill > span {
+  .maxos-volume-slider-cyan {
     forced-color-adjust: none;
     background: Highlight;
   }
 
-  .maxos-volume-slider-fill > span::after {
+  .maxos-volume-slider-notch {
     background: HighlightText;
   }
 }

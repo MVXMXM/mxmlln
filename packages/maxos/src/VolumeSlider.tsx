@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { NumericReadout } from './NumericReadout.js';
 
@@ -22,6 +22,8 @@ export function VolumeSlider({
   disabled?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
+  const notch = useRef<HTMLSpanElement>(null);
+  const content = useRef<HTMLSpanElement>(null);
   const wheelTimeout = useRef<number | undefined>(undefined);
   const gesture = useRef<{ pointerId: number; x: number; value: number } | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -37,6 +39,29 @@ export function VolumeSlider({
       </span>
     </>
   );
+
+  useLayoutEffect(() => {
+    const handle = notch.current;
+    const fill = handle?.parentElement;
+    const [speaker, percentageLabel] = Array.from(content.current?.children ?? []);
+    if (!handle || !fill || !speaker || !percentageLabel) return;
+
+    const updateOverlap = () => {
+      const bounds = handle.getBoundingClientRect();
+      const overlaps = [speaker, percentageLabel].some((element) => {
+        const { left, right, width } = element.getBoundingClientRect();
+        return width > 0 && bounds.right + 4 > left && bounds.left - 4 < right;
+      });
+      handle.toggleAttribute('data-overlapping', overlaps);
+    };
+
+    const observer = new ResizeObserver(updateOverlap);
+    observer.observe(fill);
+    observer.observe(speaker);
+    observer.observe(percentageLabel);
+    updateOverlap();
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => () => window.clearTimeout(wheelTimeout.current), []);
 
@@ -67,9 +92,11 @@ export function VolumeSlider({
       style={{ '--maxos-volume-slider-level': volume / 100 } as CSSProperties}
     >
       <span className="maxos-volume-slider-fill" aria-hidden="true">
-        <span style={{ width: percentage }} />
+        <span className="maxos-volume-slider-cyan" style={{ width: percentage }}>
+          <span className="maxos-volume-slider-notch" ref={notch} />
+        </span>
       </span>
-      <span className="maxos-volume-slider-content" aria-hidden="true">{readout}</span>
+      <span className="maxos-volume-slider-content" ref={content} aria-hidden="true">{readout}</span>
       <span className="maxos-volume-slider-content maxos-volume-slider-content--filled" aria-hidden="true">
         {readout}
       </span>
