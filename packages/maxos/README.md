@@ -11,8 +11,13 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 
 | Component | Use it for | Stylesheet |
 | --- | --- | --- |
+| `SegmentedController` | Selecting one option from a group | `@mvxmxm/maxos/segmented-controller.css` |
 | `SliderScale` | A scrolling ruler with optional fractional stops | `@mvxmxm/maxos/slider-scale.css` |
 | `SliderGeneral` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/slider-general.css` |
+| `Switch` | A controlled on/off toggle | `@mvxmxm/maxos/switch.css` |
+| `Kbd` | An inline key or shortcut, such as `<Kbd>control + shift + M</Kbd>` | `@mvxmxm/maxos/kbd.css` |
+
+Pass `checked` & `onCheckedChange` to `Switch`. Give it an accessible name with an associated label or `aria-label`.
 
 From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.2.0.tgz`.
 
