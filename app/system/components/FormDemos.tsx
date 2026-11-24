@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Kbd, Switch } from '@mvxmxm/maxos';
+import '@mvxmxm/maxos/kbd.css';
+import '@mvxmxm/maxos/switch.css';
 
 export function ButtonDemo() {
   return (
@@ -74,32 +77,6 @@ export function InputDemo() {
   );
 }
 
-function Switch({
-  id,
-  checked,
-  disabled = false,
-  onCheckedChange,
-}: {
-  id: string;
-  checked: boolean;
-  disabled?: boolean;
-  onCheckedChange: (next: boolean) => void;
-}) {
-  return (
-    <button
-      id={id}
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      className="ui-switch"
-      onClick={() => onCheckedChange(!checked)}
-    >
-      <span className="ui-switch-knob" aria-hidden="true" />
-    </button>
-  );
-}
-
 export function SwitchDemo() {
   const [checked, setChecked] = useState(true);
 
@@ -115,6 +92,16 @@ export function SwitchDemo() {
         </label>
         <Switch id="ui-switch-disabled" checked={false} disabled onCheckedChange={() => {}} />
       </div>
+    </div>
+  );
+}
+
+export function KbdDemo() {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <Kbd>control + shift + M</Kbd>
+      <Kbd>esc</Kbd>
+      <Kbd>tab</Kbd>
     </div>
   );
 }

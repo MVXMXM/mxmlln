@@ -1,6 +1,6 @@
 {
   "name": "@mvxmxm/maxos",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MaxOS components from the MVXMXM design system",
   "type": "module",
   "exports": {
@@ -10,14 +10,18 @@
     },
     "./segmented-controller.css": "./src/segmented-controller.css",
     "./slider-scale.css": "./src/slider-scale.css",
-    "./slider-general.css": "./src/slider-general.css"
+    "./slider-general.css": "./src/slider-general.css",
+    "./switch.css": "./src/switch.css",
+    "./kbd.css": "./src/kbd.css"
   },
   "files": [
     "dist",
     "src/segmented-controller.css",
     "src/slider-scale.css",
     "src/slider-general.css",
-    "src/numeric-readout.css"
+    "src/numeric-readout.css",
+    "src/switch.css",
+    "src/kbd.css"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
