@@ -86,7 +86,7 @@
   font-size: var(--text-body);
   line-height: var(--leading-body);
   text-wrap: pretty;
-  color: #333;
+  color: var(--slate-700);
 }
 .system-prose > *:last-child {
   margin-bottom: 0;
@@ -381,11 +381,20 @@
 }
 
 /* ─── Component preview ──────────────────────────────────── */
+.component-preview,
+.dock-demo-stage,
+.card-stack-demo-frame {
+  margin: 24px 0 40px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--slate-950) 6%, transparent),
+    0 1px 2px -1px color-mix(in srgb, var(--slate-950) 8%, transparent),
+    0 2px 4px color-mix(in srgb, var(--slate-950) 6%, transparent);
+}
+
 .component-preview {
   container-type: inline-size;
-  margin: 24px 0 40px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
   overflow: hidden;
 }
 .component-preview-canvas {
@@ -395,9 +404,6 @@
   box-sizing: border-box;
   min-height: 100cqi;
   padding: 40px 24px;
-}
-.component-preview-canvas--light {
-  background: var(--surface);
 }
 .component-preview-canvas--dark {
   background: #1a1a1a;
@@ -444,11 +450,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  margin: 24px 0 40px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
   overflow: hidden;
-  background: #fcfcfc;
 }
 .dock-demo-scroll {
   height: 100%;
@@ -591,10 +593,6 @@
   width: 100%;
   aspect-ratio: 1;
   min-height: 720px;
-  margin: 24px 0 40px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: var(--surface);
 }
 
 /* Logo demo: live Lottie mark with a segmented control to swap faces.
@@ -610,49 +608,21 @@
   margin: 0;
 }
 .logo-demo {
-  width: 88px;
-  height: 88px;
+  width: 200px;
+  height: 200px;
 }
 .logo-demo svg {
   display: block;
 }
 
-/* Segmented control — pill track with a sliding active option. */
-.segmented {
-  display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 999px;
-}
-.segmented-option {
-  appearance: none;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-  color: #555;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.segmented-option:hover {
-  color: #1a1a1a;
-}
-.segmented-option--active {
-  background: var(--surface);
-  color: #1a1a1a;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+/* ─── Buttons ────────────────────────────────────────────── */
+.ui-button,
+.ui-switch-row label,
+.dock-demo .mx-dock .dockInfoButton,
+.dock-demo .mx-dock .dockComposerField {
+  font-family: var(--font-inter), sans-serif;
 }
 
-/* ─── Buttons ────────────────────────────────────────────── */
 .ui-button-row {
   display: flex;
   flex-wrap: wrap;
@@ -661,11 +631,10 @@
 }
 .ui-button {
   appearance: none;
-  font-family: var(--font-archivo), 'Archivo', sans-serif;
   font-size: var(--text-button);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: 0.2px;
+  letter-spacing: normal;
   padding: 13px 22px;
   border-radius: 40px;
   border: 1px solid transparent;
@@ -712,83 +681,6 @@
   background: #f5f5f5;
 }
 
-/* ─── Inputs ─────────────────────────────────────────────── */
-/* Mirrors .chatInputField in public/components/NavBar.css. */
-.ui-field-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 100%;
-  max-width: 380px;
-}
-.ui-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ui-field-label {
-  font-size: var(--text-label);
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #666;
-}
-.ui-input {
-  width: 100%;
-  height: 52px;
-  padding: 0 18px;
-  font-family: var(--font-sans);
-  font-size: var(--text-body);
-  color: #1a1a1a;
-  background: var(--surface);
-  border: 2px solid rgba(0, 0, 0, 0.15);
-  border-radius: 16px;
-  outline: none;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.ui-input::placeholder {
-  color: #999;
-}
-.ui-input:focus {
-  border-color: #1a1a1a;
-  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.08);
-}
-/* Composer — text field with an embedded, input-gated submit arrow. */
-.ui-composer {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.ui-composer-input {
-  padding-right: 56px;
-}
-.ui-composer-submit {
-  position: absolute;
-  right: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: #1a1a1a;
-  color: #fff;
-  cursor: pointer;
-  transition:
-    opacity 0.2s ease,
-    background 0.2s ease;
-}
-.ui-composer-submit:not(:disabled):hover {
-  background: #333;
-}
-.ui-composer-submit:disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-}
-
 /* ─── Switch ─────────────────────────────────────────────── */
 .ui-switch-list {
   display: flex;
@@ -807,9 +699,10 @@
 }
 .ui-switch-row label {
   flex: 1;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: #1a1a1a;
+  letter-spacing: normal;
+  color: var(--foreground);
   cursor: pointer;
   user-select: none;
 }
@@ -819,17 +712,14 @@
 }
 
 /* ─── Chat bubbles ───────────────────────────────────────── */
-/* Pulled verbatim from the production chatbot styles in
-   public/components/NavBar.css. The only additions are the .chat-demo-thread
-   wrapper (which stands in for the live .chatResponseLog, minus its hidden
-   animation state) and a few resets so the .system-prose p/a rules don't
-   bleed into the bubbles. Keep these in sync with NavBar.css. */
 .chat-demo-thread {
   display: flex;
   flex-direction: column;
   gap: 24px;
   width: 100%;
   max-width: 600px;
+  font: 400 var(--text-body) / var(--leading-body) var(--font-inter), sans-serif;
+  letter-spacing: normal;
 }
 .chat-demo-thread p {
   margin: 0;
@@ -876,51 +766,6 @@
 .chatResponseLogo {
   height: 30px;
   width: 30px;
-}
-
-/* Menu demo: the labeled popover list. The live rail lives in
-   app/blog/minimap.css (imported by Minimap.tsx). */
-.minimap-popover {
-  background: var(--surface);
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 8px 0;
-  min-width: 200px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  white-space: nowrap;
-}
-.minimap-popover--demo {
-  position: static;
-  left: auto;
-  margin-left: 0;
-}
-/* The demo lives inside .system-prose, whose `a` rule (underline, hover
-   opacity) out-specifies .minimap-link. Restore the real link styling. */
-.minimap-popover--demo .minimap-link {
-  text-decoration: none;
-}
-.minimap-popover--demo .minimap-link:hover {
-  opacity: 1;
-}
-.minimap-link {
-  display: block;
-  padding: 6px 16px;
-  font-size: 13px;
-  color: #666;
-  text-decoration: none;
-  transition: color 0.15s, background 0.15s;
-}
-.minimap-link--sub {
-  padding-left: 28px;
-  font-size: 12px;
-}
-.minimap-link:hover {
-  color: #1a1a1a;
-  background: #f5f5f5;
-}
-.minimap-link--active {
-  color: #1a1a1a;
-  font-weight: 600;
 }
 
 /* ─── Responsive ─────────────────────────────────────────── */

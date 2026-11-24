@@ -1,0 +1,64 @@
+.maxos-menu {
+  box-sizing: border-box;
+  width: min(260px, 100%);
+  padding: 8px;
+  border-radius: 24px;
+  background: var(--surface, #fcfcfc);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--slate-950, #020618) 6%, transparent),
+    0 4px 30px oklch(0.25 0.04 260 / 0.12);
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.maxos-menu-option {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  letter-spacing: normal;
+  color: var(--foreground, #0f172b);
+  cursor: pointer;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: left;
+  transition: background-color 0.5s ease;
+}
+
+.maxos-menu-option + .maxos-menu-option {
+  margin-top: 8px;
+}
+
+.maxos-menu-icon {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.maxos-menu-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.maxos-menu-option:hover {
+  background: var(--background-alt, var(--slate-100, #f1f5f9));
+}
+
+.maxos-menu-option:focus-visible {
+  outline: 2px solid var(--accent, #00bbff);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maxos-menu-option {
+    transition: none;
+  }
+}

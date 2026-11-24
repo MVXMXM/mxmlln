@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Archivo, Homemade_Apple, Playfair_Display } from 'next/font/google';
+import { Archivo, Homemade_Apple, Inter, Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local';
 import { SiteLogo } from '../components/SiteLogo';
 
@@ -7,6 +7,11 @@ const archivo = Archivo({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-archivo',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
 });
 
 const homemadeApple = Homemade_Apple({
@@ -36,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function SystemLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`system-layout ${archivo.variable} ${homemadeApple.variable} ${jetbrains.variable} ${playfair.variable}`}>
+    <div className={`system-layout ${archivo.variable} ${inter.variable} ${homemadeApple.variable} ${jetbrains.variable} ${playfair.variable}`}>
       <SiteLogo
         href="/"
         ariaLabel="Back to maximin.design"
