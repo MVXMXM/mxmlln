@@ -19,6 +19,6 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 
 Pass `checked` & `onCheckedChange` to `Switch`. Give it an accessible name with an associated label or `aria-label`.
 
-From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.2.0.tgz`.
+From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.3.0.tgz`.
 
 The portfolio builds the workspace package before `npm run dev` and `npm run build`. When editing the package during a dev session, run `npm run build --workspace @mvxmxm/maxos -- --watch` in a second terminal.
