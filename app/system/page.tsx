@@ -4,13 +4,15 @@ import matter from 'gray-matter';
 import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import type { MDXComponents } from 'mdx/types';
+import { LLMLoader } from '@mvxmxm/maxos';
+import '@mvxmxm/maxos/llm-loader.css';
 import Minimap from '../blog/Minimap';
 import { Families, Type } from './components/TokenSwatch';
 import { Palette } from './components/ColorScale';
 import { ComponentPreview } from './components/ComponentPreview';
 import { AnchorHeading } from './components/AnchorHeading';
 import { LogoDemo, DockDemo, SegmentedControllerDemo, MenuDemo } from './components/ChromeDemos';
-import { ButtonDemo, InputDemo, KbdDemo, SwitchDemo } from './components/FormDemos';
+import { ButtonDemo, KbdDemo, SwitchDemo } from './components/FormDemos';
 import { CardStackDemo } from './components/CardStackDemos';
 import { SliderGeneralDemo } from './components/SliderGeneralDemo';
 import { SliderScaleDemo } from './components/SliderScaleDemo';
@@ -54,11 +56,11 @@ const mdxComponents: MDXComponents = {
   SliderGeneralDemo,
   MenuDemo,
   ButtonDemo,
-  InputDemo,
   SwitchDemo,
   KbdDemo,
   CardStackDemo,
   ChatDemo,
+  LLMLoader,
 };
 
 export default function SystemPage() {

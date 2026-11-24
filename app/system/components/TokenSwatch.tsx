@@ -9,6 +9,7 @@ import { Fragment } from 'react';
 
 const FAMILIES = {
   sans: 'var(--font-sans)',
+  inter: 'var(--font-inter), sans-serif',
   handwritten: 'var(--font-handwritten)',
   mono: 'var(--font-mono)',
   serif: 'var(--font-serif)',
@@ -32,6 +33,7 @@ const TEXT_WRAP: Record<string, 'balance' | 'pretty'> = {
 
 const TYPE_FAMILIES = [
   { name: 'Archivo', font: 'var(--font-sans)', weight: 600, script: false },
+  { name: 'Inter', font: FAMILIES.inter, weight: 400, script: false },
   { name: 'Homemade Apple', font: 'var(--font-handwritten)', weight: 400, script: true },
   { name: 'Playfair Display', font: 'var(--font-serif)', weight: 600, script: false },
   { name: 'JetBrains Mono', font: 'var(--font-mono)', weight: 500, script: false },

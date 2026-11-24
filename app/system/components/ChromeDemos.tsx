@@ -2,9 +2,11 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import lottie from 'lottie-web';
+import { LayoutGrid, Palette, Type } from 'lucide-react';
 import { Dock, type DockItem } from '../../components/Dock/Dock';
-import { SegmentedController } from '@mvxmxm/maxos';
+import { Menu, SegmentedController } from '@mvxmxm/maxos';
 import '@mvxmxm/maxos/segmented-controller.css';
+import '@mvxmxm/maxos/menu.css';
 import { ComponentPreview } from './ComponentPreview';
 
 /**
@@ -17,11 +19,11 @@ import { ComponentPreview } from './ComponentPreview';
 // The two faces of the mark, both Lottie. "Signature" is the index-page state;
 // "Spin" is what article pages drive with scroll direction.
 const LOGO_VARIANTS = [
-  { key: 'signature', label: 'Signature', path: '/assets/Sig2026.json' },
-  { key: 'spin', label: 'Spin', path: '/assets/LogoSpin2026.json' },
+  { id: 'signature', label: 'Signature', path: '/assets/Sig2026.json' },
+  { id: 'spin', label: 'Spin', path: '/assets/LogoSpin2026.json' },
 ] as const;
 
-type LogoVariant = (typeof LOGO_VARIANTS)[number]['key'];
+type LogoVariant = (typeof LOGO_VARIANTS)[number]['id'];
 
 export function LogoDemo() {
   const [variant, setVariant] = useState<LogoVariant>('signature');
@@ -29,7 +31,7 @@ export function LogoDemo() {
 
   useEffect(() => {
     if (!lottieRef.current) return;
-    const path = LOGO_VARIANTS.find((v) => v.key === variant)!.path;
+    const path = LOGO_VARIANTS.find((v) => v.id === variant)!.path;
     const anim = lottie.loadAnimation({
       container: lottieRef.current,
       path,
@@ -44,20 +46,7 @@ export function LogoDemo() {
     <>
       <div className="logo-demo-header">
         <h2 id="logo">Logo</h2>
-        <div className="segmented" role="tablist" aria-label="Logo variant">
-          {LOGO_VARIANTS.map((v) => (
-            <button
-              key={v.key}
-              type="button"
-              role="tab"
-              aria-selected={variant === v.key}
-              className={`segmented-option ${variant === v.key ? 'segmented-option--active' : ''}`}
-              onClick={() => setVariant(v.key)}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedController label="Logo variant" items={LOGO_VARIANTS} value={variant} onChange={setVariant} />
       </div>
       <ComponentPreview>
         <div ref={lottieRef} className="logo-demo" aria-label="MXMLLN" />
@@ -240,37 +229,14 @@ export function DockDemo() {
   );
 }
 
-// Mix of top-level (level 2) and nested (level 3) items so the demo shows the
-// indented sub-item design.
 const MENU_ITEMS = [
-  { label: 'Color', level: 2 },
-  { label: 'Typography', level: 2 },
-  { label: 'Components', level: 2 },
-  { label: 'Logo', level: 3 },
-  { label: 'Dock', level: 3 },
-  { label: 'Menu', level: 3 },
-];
+  { id: 'color', label: 'Color', icon: <Palette /> },
+  { id: 'typography', label: 'Typography', icon: <Type /> },
+  { id: 'components', label: 'Components', icon: <LayoutGrid /> },
+] as const;
 
-// The labeled popover list. Documented on its own because the list is the
-// reusable primitive; the rail of notches around it is specific to the Minimap.
-// Clicking an item sets the active state.
 export function MenuDemo() {
-  const [active, setActive] = useState(2);
-  return (
-    <div className="minimap-popover minimap-popover--demo">
-      {MENU_ITEMS.map((s, i) => (
-        <a
-          key={s.label}
-          href="#"
-          className={`minimap-link ${s.level === 3 ? 'minimap-link--sub' : ''} ${i === active ? 'minimap-link--active' : ''}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setActive(i);
-          }}
-        >
-          {s.label}
-        </a>
-      ))}
-    </div>
-  );
+  const [active, setActive] = useState<(typeof MENU_ITEMS)[number]['id']>('components');
+
+  return <Menu label="Sections" items={MENU_ITEMS} value={active} onChange={setActive} />;
 }
