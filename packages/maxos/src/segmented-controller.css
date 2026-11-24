@@ -84,14 +84,14 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: var(--slate-100, #f1f5f9);
+  background: var(--background-alt, var(--slate-100, #f1f5f9));
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
 }
 
 .segmented-controller-button[aria-pressed="false"]:hover::before {
-  opacity: 0.5;
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
