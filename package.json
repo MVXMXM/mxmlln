@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@mvxmxm/maxos": "0.4.0",
-    "@ai-sdk/openai": "^2.0.67",
+    "@ai-sdk/openai": "^4.0.122",
     "@ai-sdk/react": "^3.0.29",
     "@codedgar/glassworks": "^2.0.0",
     "@react-three/drei": "^10.7.8",
