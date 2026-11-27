@@ -18,6 +18,7 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 | `Kbd` | An inline key or shortcut, such as `<Kbd>control + shift + M</Kbd>` | `@mvxmxm/maxos/kbd.css` |
 | `LLMLoader` | An animated status while an LLM prepares a response | `@mvxmxm/maxos/llm-loader.css` |
 | `Menu` | Selecting an option from a panel with optional icons | `@mvxmxm/maxos/menu.css` |
+| `SettingsPanel` | A composed settings surface with slider, dropdown, & control rows | `@mvxmxm/maxos/settings-panel.css` |
 
 Pass `checked` & `onCheckedChange` to `Switch` (default toggle). For the cycle variant, pass `variant="cycle"`, `value`, `options`, & `onValueChange`. Give either an accessible name with an associated label or `aria-label`.
 
@@ -25,6 +26,8 @@ Pass `checked` & `onCheckedChange` to `Switch` (default toggle). For the cycle v
 
 Pass `label`, `items`, `value`, and `onChange` to `Menu`. Each item accepts an optional decorative `icon` React node.
 
-From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.4.0.tgz`.
+Compose a settings surface with `SettingsPanel` plus `SettingsPanelSliderRow`, `SettingsPanelDropdownRow`, and `SettingsPanelControlRow`. Dropdown & control rows take a leading `icon`, `label`, and `labelId`. Put `SliderGeneral` or `Switch` in the row children; load `menu.css`, `slider-general.css`, and `switch.css` alongside `settings-panel.css` when those controls are used.
+
+From the portfolio repo, run `npm pack --workspace @mvxmxm/maxos` to build and create a versioned tarball. Install that tarball in another React project with `npm install /path/to/mvxmxm-maxos-0.5.0.tgz`.
 
 The portfolio builds the workspace package before `npm run dev` and `npm run build`. When editing the package during a dev session, run `npm run build --workspace @mvxmxm/maxos -- --watch` in a second terminal.

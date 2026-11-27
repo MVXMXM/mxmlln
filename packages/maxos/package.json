@@ -1,6 +1,6 @@
 {
   "name": "@mvxmxm/maxos",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "MaxOS components from the MVXMXM design system",
   "type": "module",
   "exports": {
@@ -14,7 +14,8 @@
     "./switch.css": "./src/switch.css",
     "./kbd.css": "./src/kbd.css",
     "./llm-loader.css": "./src/llm-loader.css",
-    "./menu.css": "./src/menu.css"
+    "./menu.css": "./src/menu.css",
+    "./settings-panel.css": "./src/settings-panel.css"
   },
   "files": [
     "dist",
@@ -25,7 +26,8 @@
     "src/switch.css",
     "src/kbd.css",
     "src/llm-loader.css",
-    "src/menu.css"
+    "src/menu.css",
+    "src/settings-panel.css"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

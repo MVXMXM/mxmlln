@@ -1,0 +1,181 @@
+.maxos-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 360px);
+  box-sizing: border-box;
+  padding: 8px;
+  overflow: visible;
+  border-radius: 40px;
+  background: var(--background-alt, var(--slate-100, #f1f5f9));
+}
+
+.maxos-settings-panel-row {
+  --maxos-settings-icon-box: 24px;
+  --maxos-settings-icon-glyph: 16px;
+  --maxos-settings-row-pad: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: var(--maxos-settings-row-pad);
+}
+
+.maxos-settings-panel-row--slider {
+  padding: 0;
+  min-height: 0;
+}
+
+.maxos-settings-panel-row--control {
+  cursor: pointer;
+}
+
+.maxos-settings-panel-row--cycle {
+  padding-block: 8px;
+}
+
+.maxos-settings-panel-control {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.maxos-settings-panel-control--dropdown {
+  position: relative;
+  isolation: isolate;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 4px 4px 4px 10px;
+  border-radius: 10px;
+}
+
+.maxos-settings-panel-control--dropdown::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--slate-200, #e2e8f0);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.maxos-settings-panel-row--dropdown:hover .maxos-settings-panel-control--dropdown::before,
+.maxos-settings-panel-row--dropdown[data-open] .maxos-settings-panel-control--dropdown::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maxos-settings-panel-control--dropdown::before {
+    transition: none;
+  }
+}
+
+.maxos-settings-panel-value {
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+  font-size: var(--text-label, 14px);
+  font-weight: 500;
+  line-height: var(--leading-label, 1);
+  letter-spacing: normal;
+  color: var(--foreground, #0f172b);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.maxos-settings-panel-row + .maxos-settings-panel-row::before {
+  content: '';
+  position: absolute;
+  top: -4.25px;
+  right: var(--maxos-settings-row-pad);
+  left: var(--maxos-settings-row-pad);
+  height: 0.5px;
+  background: color-mix(in srgb, var(--slate-950, #020618) 10%, transparent);
+  pointer-events: none;
+}
+
+.maxos-settings-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.maxos-settings-panel-icon {
+  display: grid;
+  place-items: center;
+  width: var(--maxos-settings-icon-box);
+  height: var(--maxos-settings-icon-box);
+  flex-shrink: 0;
+  color: var(--foreground, #0f172b);
+}
+
+.maxos-settings-panel-icon svg {
+  width: var(--maxos-settings-icon-glyph);
+  height: var(--maxos-settings-icon-glyph);
+}
+
+.maxos-settings-panel-label {
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+  font-size: var(--text-label, 14px);
+  font-weight: 500;
+  line-height: var(--leading-label, 1);
+  letter-spacing: normal;
+  color: var(--foreground, #0f172b);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.maxos-settings-panel-row--control .maxos-settings-panel-label {
+  cursor: inherit;
+}
+
+.maxos-settings-panel-dropdown {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--slate-200, #e2e8f0);
+  color: var(--foreground, #0f172b);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.maxos-settings-panel-dropdown:focus-visible {
+  outline: 2px solid var(--foreground, #0f172b);
+  outline-offset: 3px;
+}
+
+.maxos-settings-panel-menu {
+  position: absolute;
+  top: 50%;
+  right: calc(var(--maxos-settings-row-pad) - 8px);
+  z-index: 10;
+  transform: translateY(-50%) scale(0.96);
+  transform-origin: right center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.maxos-settings-panel-menu[data-open] {
+  transform: translateY(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maxos-settings-panel-menu {
+    transition: none;
+  }
+}

@@ -4,7 +4,7 @@
   --maxos-menu-pad: 8px;
   --maxos-menu-option-pad: 16px;
   --maxos-menu-option-radius: 40px;
-  --maxos-menu-radius: 38px;
+  --maxos-menu-radius: 36px;
   box-sizing: border-box;
   width: min(260px, 100%);
   padding: var(--maxos-menu-pad);
