@@ -24,14 +24,30 @@ export function ButtonDemo() {
   );
 }
 
+const CYCLE_OPTIONS = [
+  { id: 'system', label: 'System' },
+  { id: 'microphone', label: 'Microphone' },
+] as const;
+
 export function SwitchDemo() {
   const [checked, setChecked] = useState(true);
+  const [input, setInput] = useState<(typeof CYCLE_OPTIONS)[number]['id']>('system');
 
   return (
     <div className="ui-switch-list">
       <div className="ui-switch-row">
-        <label htmlFor="ui-switch">Label</label>
+        <label htmlFor="ui-switch">Toggle</label>
         <Switch id="ui-switch" checked={checked} onCheckedChange={setChecked} />
+      </div>
+      <div className="ui-switch-row">
+        <label htmlFor="ui-switch-cycle">Cycle</label>
+        <Switch
+          id="ui-switch-cycle"
+          variant="cycle"
+          value={input}
+          options={CYCLE_OPTIONS}
+          onValueChange={setInput}
+        />
       </div>
       <div className="ui-switch-row">
         <label htmlFor="ui-switch-disabled" className="is-disabled">

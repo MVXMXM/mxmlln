@@ -11,6 +11,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 > **Design system:** Before designing or generating any new UI, read `content/system.mdx` — the reference for color & type tokens, chrome components (logo, nav, minimap), and the `registry/` primitives. It renders at the unlisted `/system` route (`app/system/`). `app/globals.css` is the canonical source for token values: when the code and the doc disagree, the code wins — update `content/system.mdx` to match. Color rules are under Conventions.
 >
 > **Decks:** Before authoring or editing presentation slides, read `app/decks/README.md` — the deck visual system (type specs, the lowercase-handwritten rule, slide archetypes, logo-border bookends) and how to add a deck/slide.
+>
+> **Agent skills:** Project skills live in `.agents/skills/<name>/SKILL.md` (tool-agnostic). Read the matching skill when its description applies.
 
 ## Project Overview
 

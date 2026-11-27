@@ -45,7 +45,7 @@ export function LogoDemo() {
   return (
     <>
       <div className="logo-demo-header">
-        <h2 id="logo">Logo</h2>
+        <h3 id="logo">Logo</h3>
         <SegmentedController label="Logo variant" items={LOGO_VARIANTS} value={variant} onChange={setVariant} />
       </div>
       <ComponentPreview>
@@ -230,9 +230,9 @@ export function DockDemo() {
 }
 
 const MENU_ITEMS = [
-  { id: 'color', label: 'Color', icon: <Palette /> },
-  { id: 'typography', label: 'Typography', icon: <Type /> },
+  { id: 'primitives', label: 'Primitives', icon: <Palette /> },
   { id: 'components', label: 'Components', icon: <LayoutGrid /> },
+  { id: 'patterns', label: 'Patterns', icon: <Type /> },
 ] as const;
 
 export function MenuDemo() {

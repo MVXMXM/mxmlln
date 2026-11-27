@@ -14,12 +14,12 @@ Pass an accessible `label`, an `items` array of `{ id, label }` objects, the sel
 | `SegmentedController` | Selecting one option from a group | `@mvxmxm/maxos/segmented-controller.css` |
 | `SliderScale` | A scrolling ruler with optional fractional stops | `@mvxmxm/maxos/slider-scale.css` |
 | `SliderGeneral` | A 0–100 control with relative dragging & a percentage readout | `@mvxmxm/maxos/slider-general.css` |
-| `Switch` | A controlled on/off toggle | `@mvxmxm/maxos/switch.css` |
+| `Switch` | A controlled on/off toggle, or `variant="cycle"` for labeled option cycling | `@mvxmxm/maxos/switch.css` |
 | `Kbd` | An inline key or shortcut, such as `<Kbd>control + shift + M</Kbd>` | `@mvxmxm/maxos/kbd.css` |
 | `LLMLoader` | An animated status while an LLM prepares a response | `@mvxmxm/maxos/llm-loader.css` |
 | `Menu` | Selecting an option from a panel with optional icons | `@mvxmxm/maxos/menu.css` |
 
-Pass `checked` & `onCheckedChange` to `Switch`. Give it an accessible name with an associated label or `aria-label`.
+Pass `checked` & `onCheckedChange` to `Switch` (default toggle). For the cycle variant, pass `variant="cycle"`, `value`, `options`, & `onValueChange`. Give either an accessible name with an associated label or `aria-label`.
 
 `<LLMLoader />` displays “Thinking”. Pass children to customize the label. The text stays static when reduced motion is enabled.
 

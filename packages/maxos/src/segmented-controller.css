@@ -49,9 +49,9 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-inter, 'Inter'), sans-serif;
-  font-size: 14px;
+  font-size: var(--text-label, 14px);
   font-weight: 500;
-  line-height: 1;
+  line-height: var(--leading-label, 1);
   letter-spacing: normal;
   padding: 13px 22px;
   color: var(--surface, #fcfcfc);
@@ -65,9 +65,9 @@
   justify-content: center;
   box-sizing: border-box;
   font-family: var(--font-inter, 'Inter'), sans-serif;
-  font-size: 14px;
+  font-size: var(--text-label, 14px);
   font-weight: 500;
-  line-height: 1;
+  line-height: var(--leading-label, 1);
   letter-spacing: normal;
   margin: 0;
   border: 0;

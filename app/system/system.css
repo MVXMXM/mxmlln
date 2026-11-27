@@ -108,6 +108,16 @@
   margin: 40px 0 12px;
   scroll-margin-top: 32px;
 }
+.system-prose h4 {
+  font-family: var(--font-inter), sans-serif;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--leading-caption);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 28px 0 8px;
+}
 
 /* Copyable section anchors */
 .anchor-heading {
@@ -604,7 +614,7 @@
   gap: 16px;
   margin: 40px 0 12px;
 }
-.logo-demo-header h2 {
+.logo-demo-header h3 {
   margin: 0;
 }
 .logo-demo {
@@ -679,6 +689,174 @@
 }
 .ui-button--ghost:not(:disabled):hover {
   background: #f5f5f5;
+}
+
+/* ─── Settings panel (pattern) ───────────────────────────── */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(100%, 360px);
+  box-sizing: border-box;
+  padding: 8px;
+  /* Visible so the original focus scale / track inset aren’t clipped. */
+  overflow: visible;
+  border-radius: 40px;
+  background: var(--background-alt);
+}
+.settings-panel-row {
+  --settings-panel-icon-box: 24px;
+  --settings-panel-icon-glyph: 16px;
+  --settings-panel-row-pad: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: var(--settings-panel-row-pad);
+}
+.settings-panel-row--slider {
+  /* Slider owns idle 16px inset — avoid double padding. */
+  padding: 0;
+  min-height: 0;
+}
+.settings-panel-row--control {
+  cursor: pointer;
+}
+/* Offset the cycle switch’s tall reel mask so the row stays ~switch-row height. */
+.settings-panel-row--cycle {
+  padding-block: 8px;
+}
+.settings-panel-control {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.settings-panel-control--dropdown {
+  position: relative;
+  isolation: isolate;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 4px 4px 4px 10px;
+  border-radius: 10px;
+}
+.settings-panel-control--dropdown::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--slate-200);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+.settings-panel-row--dropdown:hover .settings-panel-control--dropdown::before,
+.settings-panel-row--dropdown[data-open] .settings-panel-control--dropdown::before {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel-control--dropdown::before {
+    transition: none;
+  }
+}
+.settings-panel-value {
+  font-family: var(--font-inter), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  line-height: var(--leading-label);
+  letter-spacing: normal;
+  color: var(--foreground);
+  white-space: nowrap;
+  user-select: none;
+}
+.settings-panel-row + .settings-panel-row::before {
+  content: '';
+  position: absolute;
+  top: -4.25px;
+  /* Match row content: icon left → control right (slider idle pad too). */
+  right: var(--settings-panel-row-pad);
+  left: var(--settings-panel-row-pad);
+  height: 0.5px;
+  background: color-mix(in srgb, var(--slate-950) 10%, transparent);
+  pointer-events: none;
+}
+.settings-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.settings-panel-icon {
+  display: grid;
+  place-items: center;
+  width: var(--settings-panel-icon-box);
+  height: var(--settings-panel-icon-box);
+  flex-shrink: 0;
+  color: var(--foreground);
+}
+.settings-panel-icon svg {
+  width: var(--settings-panel-icon-glyph);
+  height: var(--settings-panel-icon-glyph);
+}
+.settings-panel-label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: var(--text-label);
+  font-weight: 500;
+  line-height: var(--leading-label);
+  letter-spacing: normal;
+  color: var(--foreground);
+  white-space: nowrap;
+  user-select: none;
+}
+.settings-panel-row--control .settings-panel-label {
+  cursor: inherit;
+}
+.settings-panel-dropdown {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--slate-200);
+  color: var(--foreground);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.settings-panel-dropdown:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+.settings-panel-menu {
+  /* Pull right by the menu’s 8px chrome so options line up with the chevron. */
+  position: absolute;
+  top: 50%;
+  right: calc(var(--settings-panel-row-pad) - 8px);
+  z-index: 10;
+  /* translateY keeps vertical centering; keep it in the same transform as scale. */
+  transform: translateY(-50%) scale(0.96);
+  transform-origin: right center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.settings-panel-menu[data-open] {
+  transform: translateY(-50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-panel-menu {
+    transition: none;
+  }
 }
 
 /* ─── Switch ─────────────────────────────────────────────── */

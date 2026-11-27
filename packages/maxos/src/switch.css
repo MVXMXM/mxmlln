@@ -58,6 +58,116 @@
 .maxos-switch:active:not(:disabled)[aria-checked='true'] .maxos-switch-knob {
   margin-left: calc(var(--stretch) * -1);
 }
+
+/* Cycle — labeled options with a vertical page indicator. */
+.maxos-switch--cycle {
+  --maxos-switch-cycle-blur: 2px;
+  --maxos-switch-cycle-gap: 6px;
+  --maxos-switch-cycle-pager: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--foreground, #0f172b);
+  font-family: var(--font-inter, 'Inter'), sans-serif;
+  font-size: var(--text-label, 14px);
+  font-weight: 500;
+  line-height: var(--leading-label, 1);
+  letter-spacing: normal;
+  transition: none;
+}
+.maxos-switch-cycle-value {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* Tall mask so the reel soft-edges instead of hard-clipping mid-glyph. */
+  height: calc(3em + var(--maxos-switch-cycle-gap));
+  text-align: right;
+  white-space: nowrap;
+}
+.maxos-switch-cycle-measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+}
+.maxos-switch-cycle-reel {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: right;
+  line-height: 1;
+}
+.maxos-switch-cycle-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+.maxos-switch-cycle-text--out {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+}
+/* Same easing/blur as the minimap reel; travel includes a full line + gap. */
+.maxos-switch-cycle-text--in.is-down {
+  animation: maxos-switch-cycle-in-down 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.maxos-switch-cycle-text--in.is-up {
+  animation: maxos-switch-cycle-in-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.maxos-switch-cycle-text--out.is-down {
+  animation: maxos-switch-cycle-out-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.maxos-switch-cycle-text--out.is-up {
+  animation: maxos-switch-cycle-out-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes maxos-switch-cycle-in-down {
+  from { opacity: 0; filter: blur(var(--maxos-switch-cycle-blur)); transform: translateY(calc(100% + var(--maxos-switch-cycle-gap))); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes maxos-switch-cycle-in-up {
+  from { opacity: 0; filter: blur(var(--maxos-switch-cycle-blur)); transform: translateY(calc(-100% - var(--maxos-switch-cycle-gap))); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes maxos-switch-cycle-out-down {
+  from { opacity: 1; filter: blur(0); transform: none; }
+  to { opacity: 0; filter: blur(var(--maxos-switch-cycle-blur)); transform: translateY(calc(-100% - var(--maxos-switch-cycle-gap))); }
+}
+@keyframes maxos-switch-cycle-out-up {
+  from { opacity: 1; filter: blur(0); transform: none; }
+  to { opacity: 0; filter: blur(var(--maxos-switch-cycle-blur)); transform: translateY(calc(100% + var(--maxos-switch-cycle-gap))); }
+}
+.maxos-switch-cycle-pager {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: var(--maxos-switch-cycle-pager);
+  height: var(--maxos-switch-cycle-pager);
+  gap: 3px;
+}
+.maxos-switch-cycle-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.22;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.maxos-switch-cycle-dot[data-active] {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .maxos-switch,
   .maxos-switch-knob {
@@ -67,5 +177,15 @@
   .maxos-switch:active:not(:disabled)[aria-checked='true'] .maxos-switch-knob {
     width: var(--knob);
     margin-left: 0;
+  }
+  .maxos-switch-cycle-dot {
+    transition: none;
+  }
+  .maxos-switch-cycle-text--in,
+  .maxos-switch-cycle-text--out {
+    animation: none;
+  }
+  .maxos-switch-cycle-text--out {
+    display: none;
   }
 }
