@@ -1,15 +1,22 @@
 .maxos-menu {
+  --maxos-menu-icon-box: 24px;
+  --maxos-menu-icon-glyph: 16px;
+  --maxos-menu-pad: 8px;
+  --maxos-menu-option-pad: 16px;
+  --maxos-menu-option-radius: 40px;
+  --maxos-menu-radius: 36px;
   box-sizing: border-box;
   width: min(260px, 100%);
-  padding: 8px;
-  border-radius: 24px;
+  padding: var(--maxos-menu-pad);
+  border-radius: var(--maxos-menu-radius);
   background: var(--surface, #fcfcfc);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--slate-950, #020618) 6%, transparent),
     0 4px 30px oklch(0.25 0.04 260 / 0.12);
   font-family: var(--font-inter, 'Inter'), sans-serif;
-  font-size: 14px;
+  font-size: var(--text-label, 14px);
   font-weight: 500;
+  line-height: var(--leading-label, 1);
 }
 
 .maxos-menu-option {
@@ -24,8 +31,8 @@
   cursor: pointer;
   gap: 10px;
   width: 100%;
-  padding: 16px;
-  border-radius: 16px;
+  padding: var(--maxos-menu-option-pad);
+  border-radius: var(--maxos-menu-option-radius);
   text-align: left;
   transition: background-color 0.5s ease;
 }
@@ -37,15 +44,15 @@
 .maxos-menu-icon {
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: var(--maxos-menu-icon-box);
+  height: var(--maxos-menu-icon-box);
   flex-shrink: 0;
   pointer-events: none;
 }
 
 .maxos-menu-icon svg {
-  width: 100%;
-  height: 100%;
+  width: var(--maxos-menu-icon-glyph);
+  height: var(--maxos-menu-icon-glyph);
 }
 
 .maxos-menu-option:hover {

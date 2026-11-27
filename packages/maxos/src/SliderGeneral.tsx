@@ -9,43 +9,72 @@ function clampValue(value: number) {
 }
 
 export function SliderGeneral({
-  label = 'Value',
+  label,
   value,
   onChange,
   icon,
   disabled = false,
+  stretch = false,
+  'aria-label': ariaLabel,
 }: {
   label?: string;
   value: number;
   onChange: (value: number) => void;
   icon?: ReactNode;
   disabled?: boolean;
+  /** Grow the track column to fill the host width (settings rows). */
+  stretch?: boolean;
+  'aria-label'?: string;
 }) {
+  const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const notch = useRef<HTMLSpanElement>(null);
   const content = useRef<HTMLSpanElement>(null);
+  const leadingSlot = useRef<HTMLSpanElement>(null);
   const wheelTimeout = useRef<number | undefined>(undefined);
   const gesture = useRef<{ pointerId: number; x: number; value: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   const [wheeling, setWheeling] = useState(false);
   const level = Math.round(clampValue(value));
   const percentage = `${level}%`;
-  const readout = (
-    <>
-      <span className="maxos-slider-general-icon">{icon}</span>
-      <span className="maxos-slider-general-value">
-        <NumericReadout text={String(level)} />
-        <span>%</span>
-      </span>
-    </>
-  );
+  const accessibleName = ariaLabel ?? label ?? 'Value';
+
+  function trackReadout() {
+    return (
+      <>
+        <span className="maxos-slider-general-leading">
+          <span className="maxos-slider-general-icon">{icon}</span>
+        </span>
+        <span className="maxos-slider-general-value">
+          <NumericReadout text={String(level)} />
+          <span>%</span>
+        </span>
+      </>
+    );
+  }
+
+  useLayoutEffect(() => {
+    const slot = leadingSlot.current;
+    const rootEl = root.current;
+    if (!slot || !rootEl) return;
+
+    const syncLeading = () => {
+      rootEl.style.setProperty('--maxos-slider-general-leading-extent', `${slot.offsetWidth}px`);
+    };
+
+    syncLeading();
+    const observer = new ResizeObserver(syncLeading);
+    observer.observe(slot);
+    return () => observer.disconnect();
+  }, [label, icon]);
 
   useLayoutEffect(() => {
     const handle = notch.current;
     const fill = handle?.parentElement;
     const baseContent = content.current;
-    const [speaker, percentageLabel] = Array.from(baseContent?.children ?? []);
-    if (!handle || !fill || !baseContent || !speaker || !percentageLabel) return;
+    const [leadingEl, percentageLabel] = Array.from(baseContent?.children ?? []);
+    const speaker = leadingEl?.querySelector('.maxos-slider-general-icon');
+    if (!handle || !fill || !baseContent || !leadingEl || !speaker || !percentageLabel) return;
 
     const updateOverlap = () => {
       const bounds = handle.getBoundingClientRect();
@@ -55,20 +84,25 @@ export function SliderGeneral({
       const beforeIconClears = iconBounds.width > 0 && bounds.left < iconBounds.right + 4;
       const overlapsValue = bounds.right + 4 > labelBounds.left && bounds.left - 4 < labelBounds.right;
       handle.toggleAttribute('data-overlapping', beforeIconClears || overlapsValue);
-      baseContent.toggleAttribute('data-icon-covered', iconBounds.width > 0
-        && fillBounds.left <= iconBounds.left && fillBounds.right >= iconBounds.right + 4
-        && fillBounds.top <= iconBounds.top && fillBounds.bottom >= iconBounds.bottom);
+      baseContent.toggleAttribute(
+        'data-icon-covered',
+        iconBounds.width > 0
+          && fillBounds.left <= iconBounds.left
+          && fillBounds.right >= iconBounds.right + 4
+          && fillBounds.top <= iconBounds.top
+          && fillBounds.bottom >= iconBounds.bottom,
+      );
     };
 
     const observer = new ResizeObserver(updateOverlap);
     observer.observe(fill);
     observer.observe(speaker);
     observer.observe(percentageLabel);
-    speaker.addEventListener('transitionend', updateOverlap);
+    leadingEl.addEventListener('transitionend', updateOverlap);
     updateOverlap();
     return () => {
       observer.disconnect();
-      speaker.removeEventListener('transitionend', updateOverlap);
+      leadingEl.removeEventListener('transitionend', updateOverlap);
     };
   }, []);
 
@@ -94,66 +128,84 @@ export function SliderGeneral({
 
   return (
     <div
+      ref={root}
       className="maxos-slider-general"
       data-disabled={disabled || undefined}
       data-dragging={!disabled && dragging || undefined}
       data-wheeling={!disabled && wheeling || undefined}
+      data-stretch={stretch || undefined}
+      data-label={label ? '' : undefined}
       style={{ '--maxos-slider-general-level': level / 100 } as CSSProperties}
     >
-      <span className="maxos-slider-general-fill" aria-hidden="true">
-        <span className="maxos-slider-general-cyan" style={{ width: percentage }}>
-          <span className="maxos-slider-general-notch" ref={notch} />
+      <div className="maxos-slider-general-shell">
+        <span className="maxos-slider-general-leading-slot" ref={leadingSlot} aria-hidden="true">
+          <span className="maxos-slider-general-icon">{icon}</span>
+          {label ? <span className="maxos-slider-general-label">{label}</span> : null}
         </span>
-      </span>
-      <span className="maxos-slider-general-content" ref={content} aria-hidden="true">{readout}</span>
-      <span className="maxos-slider-general-content maxos-slider-general-content--filled" aria-hidden="true">
-        {readout}
-      </span>
-      <input
-        ref={input}
-        className="maxos-slider-general-input"
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={level}
-        aria-label={label}
-        aria-valuetext={percentage}
-        disabled={disabled}
-        onChange={(event) => onChange(event.currentTarget.valueAsNumber)}
-        onPointerDown={(event) => {
-          if (disabled || !event.isPrimary || event.button !== 0 || gesture.current) return;
-          event.preventDefault();
-          window.clearTimeout(wheelTimeout.current);
-          setWheeling(false);
-          event.currentTarget.focus({ preventScroll: true });
-          event.currentTarget.setPointerCapture(event.pointerId);
-          gesture.current = { pointerId: event.pointerId, x: event.clientX, value: level };
-          setDragging(true);
-        }}
-        onPointerMove={(event) => {
-          const drag = gesture.current;
-          if (disabled || !drag || event.pointerId !== drag.pointerId) return;
-          const gain = event.pointerType === 'touch' ? 2 : 1;
-          const previous = Math.round(drag.value);
-          drag.value = clampValue(drag.value + (event.clientX - drag.x) * gain);
-          drag.x = event.clientX;
-          const next = Math.round(drag.value);
-          if (next !== previous) onChange(next);
-        }}
-        onLostPointerCapture={(event) => {
-          if (event.pointerId !== gesture.current?.pointerId) return;
-          gesture.current = null;
-          setDragging(false);
-          event.currentTarget.blur();
-        }}
-        onKeyDown={(event) => {
-          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-          event.preventDefault();
-          const next = clampValue(level + (event.key === 'ArrowRight' ? 10 : -10));
-          if (next !== level) onChange(next);
-        }}
-      />
+        <span className="maxos-slider-general-track">
+          <span className="maxos-slider-general-fill" aria-hidden="true">
+            <span className="maxos-slider-general-cyan" style={{ width: percentage }}>
+              <span className="maxos-slider-general-notch" ref={notch} />
+            </span>
+          </span>
+          <span className="maxos-slider-general-content" ref={content} aria-hidden="true">
+            {trackReadout()}
+          </span>
+          <span className="maxos-slider-general-content maxos-slider-general-content--filled" aria-hidden="true">
+            {trackReadout()}
+          </span>
+        </span>
+        <input
+          ref={input}
+          className="maxos-slider-general-input"
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={level}
+          aria-label={accessibleName}
+          aria-valuetext={percentage}
+          disabled={disabled}
+          onChange={(event) => onChange(event.currentTarget.valueAsNumber)}
+          onPointerDown={(event) => {
+            if (disabled || !event.isPrimary || event.button !== 0 || gesture.current) return;
+            event.preventDefault();
+            window.clearTimeout(wheelTimeout.current);
+            setWheeling(false);
+            event.currentTarget.focus({ preventScroll: true });
+            event.currentTarget.setPointerCapture(event.pointerId);
+            gesture.current = { pointerId: event.pointerId, x: event.clientX, value: level };
+            setDragging(true);
+          }}
+          onPointerMove={(event) => {
+            const drag = gesture.current;
+            if (disabled || !drag || event.pointerId !== drag.pointerId) return;
+            const gain = event.pointerType === 'touch' ? 2 : 1;
+            const previous = Math.round(drag.value);
+            drag.value = clampValue(drag.value + (event.clientX - drag.x) * gain);
+            drag.x = event.clientX;
+            const next = Math.round(drag.value);
+            if (next !== previous) onChange(next);
+          }}
+          onLostPointerCapture={(event) => {
+            if (event.pointerId !== gesture.current?.pointerId) return;
+            gesture.current = null;
+            setDragging(false);
+            event.currentTarget.blur();
+          }}
+          onBlur={() => {
+            gesture.current = null;
+            setDragging(false);
+            setWheeling(false);
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+            event.preventDefault();
+            const next = clampValue(level + (event.key === 'ArrowRight' ? 10 : -10));
+            if (next !== level) onChange(next);
+          }}
+        />
+      </div>
     </div>
   );
 }

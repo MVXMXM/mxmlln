@@ -108,6 +108,16 @@
   margin: 40px 0 12px;
   scroll-margin-top: 32px;
 }
+.system-prose h4 {
+  font-family: var(--font-inter), sans-serif;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--leading-caption);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 28px 0 8px;
+}
 
 /* Copyable section anchors */
 .anchor-heading {
@@ -604,7 +614,7 @@
   gap: 16px;
   margin: 40px 0 12px;
 }
-.logo-demo-header h2 {
+.logo-demo-header h3 {
   margin: 0;
 }
 .logo-demo {
@@ -681,6 +691,7 @@
   background: #f5f5f5;
 }
 
+/* ─── Settings panel (pattern) ───────────────────────────── */
 /* ─── Switch ─────────────────────────────────────────────── */
 .ui-switch-list {
   display: flex;

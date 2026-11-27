@@ -5,42 +5,135 @@
   --maxos-slider-general-focus-offset: 4px;
   --maxos-slider-general-fill-gap: 2px;
   --maxos-slider-general-content-inset: 8px;
+  --maxos-slider-general-leading-gap: 8px;
+  /* Labeled idle: bar caps here & sits end-aligned (space after label, not a larger gap). */
+  --maxos-slider-general-fill-max-width: 160px;
   --maxos-slider-general-track-inset: 0px;
+  --maxos-slider-general-shell-height: 28px;
+  --maxos-slider-general-idle-fill-height: 8px;
+  --maxos-slider-general-leading-extent: 0px;
+  --maxos-slider-general-icon-box: 24px;
+  --maxos-slider-general-icon-glyph: 16px;
+  --maxos-slider-general-width: 360px;
+  --maxos-slider-general-height: 56px;
+  /* Idle matches menu-row padding; focus keeps 8px to the pill edge. */
+  --maxos-slider-general-idle-padding: 16px;
+  --maxos-slider-general-focus-padding: 14px;
+  /* Fill blooms this far past the input; ring sits focus-offset outside the input
+     → even fill-gap between bar edge and ring on every side. */
+  --maxos-slider-general-focus-grow: calc(
+    var(--maxos-slider-general-focus-offset) - var(--maxos-slider-general-fill-gap)
+  );
+  --maxos-slider-general-expanded-height: calc(
+    var(--maxos-slider-general-shell-height) + 2 * var(--maxos-slider-general-focus-grow)
+  );
   position: relative;
-  width: min(100%, 264px);
-  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   box-sizing: border-box;
-  border-radius: 40px;
+  width: var(--maxos-slider-general-width);
+  max-width: 100%;
+  height: var(--maxos-slider-general-height);
+  padding-block: var(--maxos-slider-general-focus-offset);
+  padding-inline: var(--maxos-slider-general-idle-padding);
+  border-radius: 0;
   direction: ltr;
   color: var(--foreground, #0f172b);
-  font: 500 var(--text-label, 12px) / 1.5 var(--font-mono, 'JetBrains Mono', monospace);
-  transition: scale 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  font: 500 12px / 1.5 var(--font-mono, 'JetBrains Mono', monospace);
+  transition: padding-inline var(--maxos-slider-general-fill-duration) ease-out;
 }
 
-.maxos-slider-general[data-dragging] {
-  scale: 1.12 1;
+/* Settings rows: fill the host width; height stays the fixed box. */
+.maxos-slider-general[data-stretch] {
+  width: 100%;
+  max-width: none;
+}
+
+.maxos-slider-general-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--maxos-slider-general-leading-gap);
+  align-items: center;
+  width: 100%;
+  height: var(--maxos-slider-general-shell-height);
+}
+
+/* In-flow slot — holds idle icon/label width so the shell never resizes on focus. */
+.maxos-slider-general-leading-slot {
+  grid-column: 1;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+  transition: opacity 120ms ease-out;
+}
+
+.maxos-slider-general-track {
+  /* Always full shell — fill insets animate idle→focus (no grid-column jump). */
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: relative;
+  align-self: stretch;
+  min-width: 0;
+  height: 100%;
+}
+
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within)
+  .maxos-slider-general-leading-slot {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .maxos-slider-general-fill {
   position: absolute;
-  inset-inline: var(--maxos-slider-general-track-inset);
+  inset-inline-start: calc(
+    var(--maxos-slider-general-leading-extent) + var(--maxos-slider-general-leading-gap)
+  );
+  inset-inline-end: 0;
   top: 50%;
-  height: 8px;
+  height: var(--maxos-slider-general-idle-fill-height);
   container-type: inline-size;
   overflow: hidden;
-  border-radius: inherit;
+  border-radius: 40px;
   background: var(--slate-200, #e2e8f0);
   translate: 0 -50%;
   pointer-events: none;
-  transition: height var(--maxos-slider-general-fill-duration) ease-out;
+  transition:
+    height var(--maxos-slider-general-fill-duration) ease-out,
+    inset-inline-start var(--maxos-slider-general-fill-duration) ease-out,
+    inset-inline-end var(--maxos-slider-general-fill-duration) ease-out;
 }
 
-.maxos-slider-general:focus-within {
-  --maxos-slider-general-track-inset: calc(var(--maxos-slider-general-fill-gap) - var(--maxos-slider-general-focus-offset));
+/* Labeled idle — cap width, pin to the end; keep ≥ leading-gap after the label. */
+.maxos-slider-general[data-label]:not(:is([data-dragging], [data-wheeling], :focus-within))
+  .maxos-slider-general-fill {
+  inset-inline-start: max(
+    calc(
+      var(--maxos-slider-general-leading-extent) + var(--maxos-slider-general-leading-gap)
+    ),
+    calc(100% - var(--maxos-slider-general-fill-max-width))
+  );
 }
 
-.maxos-slider-general:focus-within .maxos-slider-general-fill {
-  height: calc(100% + 2 * (var(--maxos-slider-general-focus-offset) - var(--maxos-slider-general-fill-gap)));
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within) {
+  --maxos-slider-general-track-inset: calc(
+    var(--maxos-slider-general-fill-gap) - var(--maxos-slider-general-focus-offset)
+  );
+  /* Padding + fill bloom → focus-padding clear of the bounding box. */
+  padding-inline: calc(
+    var(--maxos-slider-general-focus-padding) + var(--maxos-slider-general-focus-grow)
+  );
+}
+
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within)
+  .maxos-slider-general-fill {
+  /* Bloom past the input by focus-grow so the ring clears the bar by fill-gap. */
+  inset-inline-start: var(--maxos-slider-general-track-inset);
+  inset-inline-end: var(--maxos-slider-general-track-inset);
+  height: var(--maxos-slider-general-expanded-height);
 }
 
 .maxos-slider-general-cyan {
@@ -78,7 +171,10 @@
 }
 
 .maxos-slider-general-content--filled {
-  --maxos-slider-general-unfilled: calc((100% - 2 * var(--maxos-slider-general-track-inset)) * (1 - var(--maxos-slider-general-level)) + var(--maxos-slider-general-track-inset));
+  --maxos-slider-general-unfilled: calc(
+    (100% - 2 * var(--maxos-slider-general-track-inset)) * (1 - var(--maxos-slider-general-level)) +
+      var(--maxos-slider-general-track-inset)
+  );
   clip-path: inset(0 var(--maxos-slider-general-unfilled) 0 0);
   color: white;
 }
@@ -87,17 +183,47 @@
   color: white;
 }
 
-.maxos-slider-general-content[data-icon-covered] + .maxos-slider-general-content--filled .maxos-slider-general-icon {
+.maxos-slider-general-content[data-icon-covered]
+  + .maxos-slider-general-content--filled
+  .maxos-slider-general-icon {
   visibility: hidden;
 }
 
-.maxos-slider-general-icon {
+/* In-track chrome — icon starts at the idle slot position, eases to content inset. */
+.maxos-slider-general-leading {
   position: absolute;
   top: 50%;
-  left: -8px;
-  display: flex;
-  translate: -100% -50%;
-  transition: left 180ms ease-out, translate 180ms ease-out;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  translate: 0 -50%;
+  opacity: 0;
+  transition:
+    left var(--maxos-slider-general-fill-duration) ease-out,
+    opacity 120ms ease-out;
+}
+
+.maxos-slider-general-icon {
+  display: grid;
+  place-items: center;
+  width: var(--maxos-slider-general-icon-box);
+  height: var(--maxos-slider-general-icon-box);
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.maxos-slider-general-icon svg {
+  width: var(--maxos-slider-general-icon-glyph);
+  height: var(--maxos-slider-general-icon-glyph);
+}
+
+.maxos-slider-general-label {
+  font-family: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  font-size: var(--text-label, 14px);
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: var(--leading-label, 1);
+  white-space: nowrap;
 }
 
 .maxos-slider-general-value {
@@ -107,13 +233,16 @@
   transition: opacity 120ms ease-out;
 }
 
-.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-icon {
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within)
+  .maxos-slider-general-leading {
   left: var(--maxos-slider-general-content-inset);
-  translate: 0 -50%;
+  opacity: 1;
 }
 
-.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-value,
-.maxos-slider-general:is([data-dragging], [data-wheeling], :has(:focus-visible)) .maxos-slider-general-notch:not([data-overlapping]) {
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within)
+  .maxos-slider-general-value,
+.maxos-slider-general:is([data-dragging], [data-wheeling], :focus-within)
+  .maxos-slider-general-notch:not([data-overlapping]) {
   opacity: 1;
 }
 
@@ -126,7 +255,7 @@
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: inherit;
+  border-radius: 40px;
   appearance: none;
   background: transparent;
   outline: 2px solid transparent;
@@ -134,6 +263,7 @@
   transition: outline-color 80ms ease-out;
   cursor: ew-resize;
   touch-action: none;
+  z-index: 2;
 }
 
 .maxos-slider-general-input::-webkit-slider-thumb {
@@ -170,12 +300,9 @@
     --maxos-slider-general-fill-duration: 0ms;
   }
 
-  .maxos-slider-general[data-dragging] {
-    scale: none;
-  }
-
   .maxos-slider-general-fill,
-  .maxos-slider-general-icon,
+  .maxos-slider-general-leading-slot,
+  .maxos-slider-general-leading,
   .maxos-slider-general-value,
   .maxos-slider-general-input,
   .maxos-slider-general-notch {

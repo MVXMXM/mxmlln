@@ -14,6 +14,7 @@ import { AnchorHeading } from './components/AnchorHeading';
 import { LogoDemo, DockDemo, SegmentedControllerDemo, MenuDemo } from './components/ChromeDemos';
 import { ButtonDemo, KbdDemo, SwitchDemo } from './components/FormDemos';
 import { CardStackDemo } from './components/CardStackDemos';
+import { SettingsPanelDemo } from './components/SettingsPanelDemo';
 import { SliderGeneralDemo } from './components/SliderGeneralDemo';
 import { SliderScaleDemo } from './components/SliderScaleDemo';
 import { ChatDemo } from './components/ChatDemos';
@@ -61,6 +62,7 @@ const mdxComponents: MDXComponents = {
   CardStackDemo,
   ChatDemo,
   LLMLoader,
+  SettingsPanelDemo,
 };
 
 export default function SystemPage() {
